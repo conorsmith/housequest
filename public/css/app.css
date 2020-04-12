@@ -1,0 +1,19 @@
+.item.item-selectable {
+  cursor: pointer;
+}
+
+.item .item-label .progress,
+.item .item-controls .progress {
+  margin-left: 0.6rem;
+  width: 2rem;
+}
+
+.item .item-label .progress-bar,
+.item .item-controls .progress-bar {
+  background-color: #b5b5b5;
+}
+
+.item .item-label .badge {
+  margin-left: 0.6rem;
+}
+
