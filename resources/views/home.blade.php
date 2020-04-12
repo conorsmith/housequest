@@ -125,7 +125,7 @@
 </div>
 
 <nav class="navbar fixed-bottom navbar-light bg-white" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
-    <a class="navbar-brand" href="{{ url('/') }}" style="position: absolute;">
+    <a class="navbar-brand d-none d-lg-block" href="{{ url('/') }}" style="position: absolute;">
         {{ config('app.name', 'Laravel') }}
     </a>
     <div class="container d-flex justify-content-center">
