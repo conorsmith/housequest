@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain;
 
 use App\Domain\Inventory;
 use App\Domain\Item;
+use App\Domain\RecipeIngredient;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -22,7 +23,7 @@ final class InventoryTest extends TestCase
             $item = $this->createEdibleItem($itemId, 1, 1, 1)
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,
@@ -46,7 +47,7 @@ final class InventoryTest extends TestCase
             $item = $this->createEdibleItem($itemId, 1, 100, 100)
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,
@@ -70,7 +71,7 @@ final class InventoryTest extends TestCase
             $item = $this->createEdibleItem($itemId, 1, 1, 100)
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,
@@ -95,7 +96,7 @@ final class InventoryTest extends TestCase
             $otherItem = $this->createEdibleItem(Uuid::uuid4(), 1, 49, 100),
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,
@@ -123,7 +124,7 @@ final class InventoryTest extends TestCase
             $item = $this->createEdibleItem($itemId, 100, 50, 100),
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,
@@ -152,7 +153,7 @@ final class InventoryTest extends TestCase
             $otherItem = $this->createEdibleItem(Uuid::uuid4(), 1, 49, 100)
         ]);
 
-        $inventory->eat($itemId);
+        $inventory->removeEatenItem($itemId);
 
         $this->assertInventoryContains(
             $inventory,

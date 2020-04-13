@@ -137,6 +137,8 @@ import EventBus from "./EventBus";
 import ActionButtonController from "./Components/ActionButton";
 import ActionFormController from "./Components/ActionForm";
 import InventoryItemController from "./Components/InventoryItem";
+import OpenModalController from "./Components/OpenModal";
+import AlertController from "./Components/Alert";
 
 window.EventBus = new EventBus();
 
@@ -146,7 +148,14 @@ ActionButtonController.fromAction("pick-up");
 ActionButtonController.fromAction("drop");
 ActionButtonController.fromAction("use");
 ActionButtonController.fromAction("eat");
+ActionButtonController.fromAction("open");
 
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
     InventoryItemController.fromItemEl(itemEl);
 });
+
+document.querySelectorAll(".js-open-modal").forEach(modalEl => {
+    OpenModalController.fromEl(modalEl);
+});
+
+AlertController.fromEl(document.querySelector(".js-alert"));

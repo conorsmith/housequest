@@ -27,4 +27,11 @@ return [
         ],
         'output' => "cheddar-cheese-sandwich",
     ],
+    [
+        'input' => [
+            "milk"      => ['portions' => 1],
+            "coco-pops" => ['portions' => 1],
+        ],
+        'output' => "bowl-of-coco-pops",
+    ],
 ];

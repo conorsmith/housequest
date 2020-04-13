@@ -137,6 +137,9 @@ var Controller = /*#__PURE__*/function () {
         _this.model.deactivate();
       }
     });
+    window.EventBus.addEventListener("action.completed", function (e) {
+      _this.model.deactivate();
+    });
     this.model.bus.addEventListener("activated", function (e) {
       _this.view.activate();
     });
@@ -245,7 +248,7 @@ var Controller = /*#__PURE__*/function () {
       _this.model.action = e.detail.action;
     });
     window.EventBus.addEventListener("action.triggered", function (e) {
-      if (_this.model.action === null) {
+      if (!_this.model.isSupportedAction()) {
         return;
       }
 
@@ -268,6 +271,10 @@ var View = /*#__PURE__*/function () {
   _createClass(View, [{
     key: "submit",
     value: function submit(actionUrl) {
+      if (actionUrl === "") {
+        return;
+      }
+
       this.el.action = actionUrl;
       this.el.submit();
     }
@@ -286,6 +293,11 @@ var Model = /*#__PURE__*/function () {
   }
 
   _createClass(Model, [{
+    key: "isSupportedAction",
+    value: function isSupportedAction() {
+      return ["drop", "pick-up", "use", "eat"].includes(this.action);
+    }
+  }, {
     key: "createActionUrl",
     value: function createActionUrl(itemId) {
       if (this.action === "drop") {
@@ -306,6 +318,124 @@ var Model = /*#__PURE__*/function () {
 
       console.error("Cannot create action URL for action: " + this.action);
       return "";
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
+/***/ "./resources/js/Components/Alert.js":
+/*!******************************************!*\
+  !*** ./resources/js/Components/Alert.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    this.view.onClose(function (e) {
+      _this.model.hide();
+    });
+    window.EventBus.addEventListener("action.failed", function (e) {
+      _this.model.showMessage(e.detail.message);
+    });
+    window.EventBus.addEventListener("action.selected", function (e) {
+      _this.model.hide();
+    });
+    this.model.bus.addEventListener("shown", function (e) {
+      _this.view.showMessage(e.detail.message);
+    });
+    this.model.bus.addEventListener("hidden", function (e) {
+      _this.view.hideMessage();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+    this.$el = $(el);
+  }
+
+  _createClass(View, [{
+    key: "onClose",
+    value: function onClose(callback) {
+      this.el.querySelector("button.close").addEventListener("click", callback);
+    }
+  }, {
+    key: "showMessage",
+    value: function showMessage(message) {
+      this.el.querySelector(".js-alert-message").innerHTML = message;
+      this.el.style.display = "block";
+    }
+  }, {
+    key: "hideMessage",
+    value: function hideMessage() {
+      this.el.querySelector(".js-alert-message").innerHTML = "";
+      this.el.style.display = "none";
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.isShown = false;
+    this.message = "";
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "showMessage",
+    value: function showMessage(message) {
+      this.isShown = true;
+      this.message = message;
+      this.bus.dispatchEvent("shown", {
+        message: message
+      });
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      this.isShown = false;
+      this.message = "";
+      this.bus.dispatchEvent("hidden");
     }
   }]);
 
@@ -337,7 +467,7 @@ var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromItemEl",
     value: function fromItemEl(itemEl) {
-      return new Controller(new Model(itemEl.dataset.id), new View(itemEl));
+      return new Controller(new Model(itemEl.dataset.id, itemEl.dataset.label, itemEl.dataset.isContainer), new View(itemEl));
     }
   }]);
 
@@ -349,7 +479,7 @@ var Controller = /*#__PURE__*/function () {
     this.model = model;
     this.view = view;
     this.view.el.addEventListener("click", function (e) {
-      _this.triggerAction();
+      _this.selectItem();
     });
     this.model.bus.addEventListener("setSelectable", function (e) {
       _this.view.setSelectable();
@@ -360,18 +490,37 @@ var Controller = /*#__PURE__*/function () {
     this.model.bus.addEventListener("setSelected", function (e) {
       _this.view.setSelected();
     });
+    this.model.bus.addEventListener("setNotSelected", function (e) {
+      _this.view.unsetSelected();
+    });
     window.EventBus.addEventListener("action.selected", function (e) {
-      _this.model.setSelectable();
+      _this.model.setSelectable(e.detail.action);
     });
     window.EventBus.addEventListener("action.deselected", function (e) {
       _this.model.setNotSelectable();
     });
+    window.EventBus.addEventListener("action.completed", function (e) {
+      _this.model.setNotSelectable();
+
+      _this.model.setNotSelected(e.detail.itemId);
+    });
   }
 
   _createClass(Controller, [{
-    key: "triggerAction",
-    value: function triggerAction() {
+    key: "selectItem",
+    value: function selectItem() {
       if (this.model.isSelectable === false) {
+        return;
+      }
+
+      if (this.model.action === "open" && !this.model.isContainer) {
+        window.EventBus.dispatchEvent("action.failed", {
+          message: "You cannot open " + this.model.label + "."
+        });
+        window.EventBus.dispatchEvent("action.completed", {
+          action: this.model.action,
+          itemId: this.model.id
+        });
         return;
       }
 
@@ -411,6 +560,138 @@ var View = /*#__PURE__*/function () {
     value: function setSelected() {
       this.el.classList.add("active");
     }
+  }, {
+    key: "unsetSelected",
+    value: function unsetSelected() {
+      this.el.classList.remove("active");
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model(id, label, isContainer) {
+    _classCallCheck(this, Model);
+
+    this.id = id;
+    this.label = label;
+    this.isContainer = isContainer;
+    this.isSelectable = false;
+    this.isSelected = false;
+    this.action = null;
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "setSelectable",
+    value: function setSelectable(action) {
+      this.isSelectable = true;
+      this.action = action;
+      this.bus.dispatchEvent("setSelectable");
+    }
+  }, {
+    key: "setNotSelectable",
+    value: function setNotSelectable() {
+      this.isSelectable = false;
+      this.action = null;
+      this.bus.dispatchEvent("setNotSelectable");
+    }
+  }, {
+    key: "setSelected",
+    value: function setSelected() {
+      this.isSelected = true;
+      this.bus.dispatchEvent("setSelected");
+    }
+  }, {
+    key: "setNotSelected",
+    value: function setNotSelected(itemId) {
+      if (this.id !== itemId) {
+        return;
+      }
+
+      this.isSelectable = false;
+      this.action = null;
+      this.bus.dispatchEvent("setNotSelected");
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
+/***/ "./resources/js/Components/OpenModal.js":
+/*!**********************************************!*\
+  !*** ./resources/js/Components/OpenModal.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(el.dataset.id), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    window.EventBus.addEventListener("action.selected", function (e) {
+      _this.model.action = e.detail.action;
+    });
+    window.EventBus.addEventListener("action.triggered", function (e) {
+      _this.model.open(e.detail.itemId);
+    });
+    this.view.$el.on("hide.bs.modal", function (e) {
+      _this.model.close();
+
+      window.EventBus.dispatchEvent("action.completed", {
+        action: _this.model.action,
+        itemId: _this.model.id
+      });
+    });
+    this.model.bus.addEventListener("opened", function (e) {
+      _this.view.open();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+    this.$el = $(this.el);
+  }
+
+  _createClass(View, [{
+    key: "open",
+    value: function open() {
+      this.$el.modal('show');
+    }
   }]);
 
   return View;
@@ -421,28 +702,30 @@ var Model = /*#__PURE__*/function () {
     _classCallCheck(this, Model);
 
     this.id = id;
-    this.isSelectable = false;
-    this.isSelected = false;
+    this.isOpen = false;
+    this.action = null;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
-    key: "setSelectable",
-    value: function setSelectable() {
-      this.isSelectable = true;
-      this.bus.dispatchEvent("setSelectable");
+    key: "open",
+    value: function open(id) {
+      if (this.action !== "open") {
+        return;
+      }
+
+      if (this.id !== id) {
+        return;
+      }
+
+      this.isOpen = true;
+      this.bus.dispatchEvent("opened");
     }
   }, {
-    key: "setNotSelectable",
-    value: function setNotSelectable() {
-      this.isSelectable = false;
-      this.bus.dispatchEvent("setNotSelectable");
-    }
-  }, {
-    key: "setSelected",
-    value: function setSelected() {
-      this.isSelected = true;
-      this.bus.dispatchEvent("setSelected");
+    key: "close",
+    value: function close() {
+      this.isOpen = false;
+      this.bus.dispatchEvent("closed");
     }
   }]);
 
@@ -514,6 +797,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Components/ActionButton */ "./resources/js/Components/ActionButton.js");
 /* harmony import */ var _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Components/ActionForm */ "./resources/js/Components/ActionForm.js");
 /* harmony import */ var _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Components/InventoryItem */ "./resources/js/Components/InventoryItem.js");
+/* harmony import */ var _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/OpenModal */ "./resources/js/Components/OpenModal.js");
+/* harmony import */ var _Components_Alert__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/Alert */ "./resources/js/Components/Alert.js");
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
   buttonEl.addEventListener("click", function (e) {
     e.preventDefault();
@@ -639,15 +924,22 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 
 
+
+
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("drop");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("use");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("eat");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("open");
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
   _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_3__["default"].fromItemEl(itemEl);
 });
+document.querySelectorAll(".js-open-modal").forEach(function (modalEl) {
+  _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__["default"].fromEl(modalEl);
+});
+_Components_Alert__WEBPACK_IMPORTED_MODULE_5__["default"].fromEl(document.querySelector(".js-alert"));
 
 /***/ }),
 

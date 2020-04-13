@@ -1,20 +1,50 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container" style="padding-bottom: 4rem;">
+<div class="container fixed-top" style="margin-top: 1rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <div class="js-alert alert alert-info" style="display: none;">
+                <span class="js-alert-message"></span>
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             @if(session("success"))
-                <div class="alert alert-success">
+                <div class="alert alert-success alert-dismissible fade show">
                     {{ session("success") }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             @endif
             @if(session("info"))
-                <div class="alert alert-info">
+                <div class="alert alert-info alert-dismissible fade show">
                     {{ session("info") }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             @endif
+            @if(session("achievements"))
+                @foreach (session("achievements") as $achievement)
+                    <div class="alert alert-primary alert-dismissible fade show">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <p style="font-size: 0.75rem; opacity: 0.75; margin-bottom: 0.4rem;">Achievement Unlocked</p>
+                        <strong>{{ $achievement['title'] }}</strong>
+                        <p class="mb-0">{{ $achievement['body'] }}</p>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+    </div>
+</div>
 
+<div class="container" style="padding-bottom: 4rem;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
                     {{ $location->title }}
@@ -50,6 +80,8 @@
                     @foreach($location->objects as $object)
                         <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
                             data-id="{{ $object->id }}"
+                            data-label="{{ $object->label }}"
+                            data-is-container="{{ $object->isContainer }}"
                         >
                             <div class="item-label d-flex justify-content-start align-items-center">
                                 {{ $object->label }}
@@ -64,13 +96,6 @@
                                     <span class="badge badge-light">
                                     {{ $object->quantity }}
                                 </span>
-                                @endif
-                            </div>
-                            <div class="d-flex">
-                                @if($object->isContainer)
-                                    <button type="type" class="btn btn-light btn-sm mr-1" data-toggle="modal" data-target="#container-{{ $object->typeId }}">
-                                        Open
-                                    </button>
                                 @endif
                             </div>
                         </li>
@@ -91,6 +116,8 @@
                         @foreach($player->inventory as $object)
                             <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
                                 data-id="{{ $object->id }}"
+                                data-label="{{ $object->label }}"
+                                data-is-container="{{ $object->isContainer }}"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $object->label }}
@@ -105,13 +132,6 @@
                                         <span class="badge badge-light">
                                             {{ $object->quantity }}
                                         </span>
-                                    @endif
-                                </div>
-                                <div class="d-flex">
-                                    @if($object->isContainer)
-                                        <button type="button" class="btn btn-light btn-sm mr-1"  data-toggle="modal" data-target="#container-{{ $object->typeId }}">
-                                            Open
-                                        </button>
                                     @endif
                                 </div>
                             </li>
@@ -155,6 +175,12 @@
                 Eat
             </button>
             <button type="button"
+                    class="js-open btn btn-light btn-sm"
+                    style="width: 6rem;"
+            >
+                Open
+            </button>
+            <button type="button"
                     class="btn btn-light btn-sm"
                     style="width: 6rem;"
                     data-toggle="modal"
@@ -167,7 +193,7 @@
 </nav>
 
 @foreach($containers as $container)
-    <div class="modal fade" id="container-{{ $container->typeId }}" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade js-open-modal" data-id="{{ $container->id }}" id="container-{{ $container->typeId }}" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form action="/{{ $gameId }}/transfer/{{ $container->typeId }}" method="POST">

@@ -71,6 +71,11 @@ final class Recipe
         return null;
     }
 
+    public function getIngredients(): array
+    {
+        return $this->ingredients;
+    }
+
     public function getEndProduct(): string
     {
         return $this->outputItemTypeId;

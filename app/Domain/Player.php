@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
+use DomainException;
 use Ramsey\Uuid\UuidInterface;
 
 final class Player
@@ -16,11 +17,24 @@ final class Player
     /** @var int */
     private $xp;
 
-    public function __construct(UuidInterface $id, string $locationId, int $xp)
-    {
+    /** @var array */
+    private $eatenItemTypes;
+
+    /** @var int */
+    private $eatenItemsCount;
+
+    public function __construct(
+        UuidInterface $id,
+        string $locationId,
+        int $xp,
+        array $eatenItemTypes,
+        int $eatenItemCount
+    ) {
         $this->id = $id;
         $this->locationId = $locationId;
         $this->xp = $xp;
+        $this->eatenItemTypes = $eatenItemTypes;
+        $this->eatenItemsCount = $eatenItemCount;
     }
 
     public function getId(): UuidInterface
@@ -38,6 +52,16 @@ final class Player
         return $this->xp;
     }
 
+    public function getEatenItemTypes(): array
+    {
+        return $this->eatenItemTypes;
+    }
+
+    public function getEatenItemsCount(): int
+    {
+        return $this->eatenItemsCount;
+    }
+
     public function move(string $locationId): void
     {
         $this->locationId = $locationId;
@@ -46,5 +70,20 @@ final class Player
     public function gainXp(int $gain): void
     {
         $this->xp += $gain;
+    }
+
+    public function eat(Item $item): void
+    {
+        if (!$item->isEdible()) {
+            throw new DomainException("Player cannot eat inedible item {$item->getTypeId()}.");
+        }
+
+        $this->eatenItemsCount++;
+
+        if (in_array($item->getTypeId(), $this->eatenItemTypes)) {
+            return;
+        }
+
+        $this->eatenItemTypes[] = $item->getTypeId();
     }
 }

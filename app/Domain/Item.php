@@ -161,6 +161,16 @@ final class Item
         return in_array("edible", $this->attributes);
     }
 
+    public function isAffixed(): bool
+    {
+        return in_array("affixed", $this->attributes);
+    }
+
+    public function isHeavy(): bool
+    {
+        return in_array("heavy", $this->attributes);
+    }
+
     public function isSinglePortionItem(): bool
     {
         return $this->totalPortions === 1;

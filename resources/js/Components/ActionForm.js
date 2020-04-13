@@ -18,7 +18,7 @@ export default class Controller {
         });
 
         window.EventBus.addEventListener("action.triggered", e => {
-            if (this.model.action === null) {
+            if (!this.model.isSupportedAction()) {
                 return;
             }
 
@@ -35,6 +35,10 @@ class View {
     }
 
     submit(actionUrl) {
+        if (actionUrl === "") {
+            return;
+        }
+
         this.el.action = actionUrl;
         this.el.submit();
     }
@@ -45,6 +49,10 @@ class Model {
         this.gameId = gameId;
         this.currentLocationId = currentLocationId;
         this.action = null;
+    }
+
+    isSupportedAction() {
+        return ["drop", "pick-up", "use", "eat"].includes(this.action);
     }
 
     createActionUrl(itemId) {

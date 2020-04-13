@@ -21,7 +21,7 @@ final class Inventory
         $this->items = $items;
     }
 
-    public function eat(UuidInterface $itemId): void
+    public function removeEatenItem(UuidInterface $itemId): void
     {
         $item = $this->find($itemId);
 
@@ -38,12 +38,17 @@ final class Inventory
             return;
         }
 
+        $this->removePortionsFromItem($item, 1);
+    }
+
+    public function removePortionsFromItem(Item $item, int $portions): void
+    {
         if ($item->hasManyQuantities()) {
             $item = $item->split(1);
             $this->items[] = $item;
         }
 
-        $item->decrementPortions();
+        $item->removePortions($portions);
 
         /** @var Item $inventoryItem */
         foreach ($this->items as $inventoryItem) {

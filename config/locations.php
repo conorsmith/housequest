@@ -53,6 +53,7 @@ return [
         'objects' => [
             "fridge",
             "freezer",
+            "pantry",
             "slice-of-bread" => 16,
             "pack-of-crisps" => 6,
         ],

@@ -27,17 +27,20 @@ return [
         'name' => "Fridge",
         'attributes' => [
             "container",
+            "heavy",
         ],
         'objects' => [
             "red-pepper",
             "yellow-pepper" => 3,
             "cheddar-cheese" => 2,
+            "milk" => 2,
         ],
     ],
     'freezer' => [
         'name' => "Freezer",
         'attributes' => [
             "container",
+            "heavy",
         ],
         'objects' => [
             "phish-food",
@@ -71,13 +74,15 @@ return [
     'hairdryer' => [
         'name' => "Hairdryer",
         'use' => [
-            'location' => ["inventory"],
             'message' => "You blow hot air directly into your face for 5 minutes. It's pleasant.",
             'xp' => 10,
         ],
     ],
     'couch' => [
         'name' => "Couch",
+        'attributes' => [
+            "heavy",
+        ],
         'use' => [
             'location' => ["room"],
             'message' => "You have a bit of a sit down. Thrilling stuff.",
@@ -88,10 +93,14 @@ return [
         'name' => "Entertainment Unit",
         'attributes' => [
             "container",
+            "heavy",
         ],
     ],
     'television' => [
         'name' => "Television",
+        'attributes' => [
+            "affixed",
+        ],
     ],
     'slice-of-bread' => [
         'name' => "Slice of Bread",
@@ -134,6 +143,37 @@ return [
         'name' => "Cheddar Cheese Sandwich",
         'attributes' => [
             "edible",
+        ],
+    ],
+    'milk' => [
+        'name' => "Milk",
+        'portions' => 10,
+        'attributes' => [
+            "edible",
+        ],
+    ],
+    'coco-pops' => [
+        'name' => "Coco Pops",
+        'portions' => 12,
+        'attributes' => [
+            "edible",
+        ],
+    ],
+    'bowl-of-coco-pops' => [
+        'name' => "Bowl of Coco Pops",
+        'attributes' => [
+            "edible",
+        ],
+    ],
+    'pantry' => [
+        'name' => "Pantry",
+        'attributes' => [
+            "container",
+            "heavy",
+            "affixed",
+        ],
+        'objects' => [
+            "coco-pops",
         ],
     ],
 ];

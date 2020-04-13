@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Repositories\AchievementRepositoryConfig;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\Repositories\PlayerRepositoryDb;
@@ -26,6 +27,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(RecipeRepositoryConfig::class, function ($app) {
             return new RecipeRepositoryConfig(
                 include __DIR__ . "/../../config/recipes.php"
+            );
+        });
+
+        $this->app->singleton(AchievementRepositoryConfig::class, function ($app) {
+            return new AchievementRepositoryConfig(
+                include __DIR__ . "/../../config/achievements.php"
             );
         });
 

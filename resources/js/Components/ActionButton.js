@@ -29,6 +29,8 @@ export default class Controller {
             }
         });
 
+        window.EventBus.addEventListener("action.completed", e => { this.model.deactivate(); });
+
         this.model.bus.addEventListener("activated", e => { this.view.activate(); });
         this.model.bus.addEventListener("deactivated", e => { this.view.deactivate(); });
     }

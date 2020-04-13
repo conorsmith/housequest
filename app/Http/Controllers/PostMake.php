@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\Recipe;
 use App\Domain\RecipeIngredient;
@@ -46,7 +47,7 @@ final class PostMake extends Controller
 
         $player = $this->playerRepo->find(Uuid::fromString($gameId));
 
-        $inventoryItems = $this->removeUsedItemsFromInventory($itemRepo, $recipe);
+        $inventoryItems = $this->removeUsedItemsFromInventory($request, $itemRepo);
 
         $endProduct = $this->getEndProduct($itemRepo, $recipe);
         $endProduct->incrementQuantity();
@@ -98,21 +99,25 @@ final class PostMake extends Controller
         return $this->recipeRepo->findForIngredients($submittedIngredients);
     }
 
-    private function removeUsedItemsFromInventory(ItemRepositoryDb $itemRepo, Recipe $recipe): array
+    private function removeUsedItemsFromInventory(Request $request, ItemRepositoryDb $itemRepo): array
     {
-        $inventoryItems = $itemRepo->getInventory();
+        $inventory = new Inventory("player", $itemRepo->getInventory());
 
-        /** @var Item $item */
-        foreach ($inventoryItems as $item) {
-            $ingredient = $recipe->findIngredient($item->getTypeId());
+        $submittedItemsQuantitiesById = $this->getSubmittedItemQuantitiesById($request);
 
-            if (!is_null($ingredient)) {
-                $item->removeQuantity($ingredient->getQuantity());
-                $item->removePortions($ingredient->getPortions());
-            }
+        foreach ($submittedItemsQuantitiesById as $id => $quantity) {
+            $item = $inventory->find(Uuid::fromString($id));
+            $item->removeQuantity(intval($quantity));
         }
 
-        return $inventoryItems;
+        $submittedItemsPortionsById = $this->getSubmittedItemPortionsById($request);
+
+        foreach ($submittedItemsPortionsById as $id => $portions) {
+            $item = $inventory->find(Uuid::fromString($id));
+            $inventory->removePortionsFromItem($item, intval($portions));
+        }
+
+        return $inventory->getItems();
     }
 
     private function getEndProduct(ItemRepositoryDb $itemRepo, Recipe $recipe): Item

@@ -43,6 +43,7 @@ Route::post("/new-game", function () use ($objects, $locations) {
         'game_id' => $gameId,
         'location_id' => "hallway",
         'xp' => 0,
+        'eaten_items_count' => 0,
         'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
     ]);
 
@@ -189,6 +190,35 @@ Route::get('/{gameId}', function ($gameId) use ($locations) {
     foreach ($activeLocationItems as $item) {
         if ($item->isContainer()) {
             $containerViewModel = (object) [
+                'id'       => $item->getId(),
+                'typeId'   => $item->getTypeId(),
+                'label'    => $item->getName(),
+                'contents' => [],
+            ];
+
+            $containedItems = $itemRepo->findAllInContainer($item);
+
+            /** @var Item $containedItem */
+            foreach ($containedItems as $containedItem) {
+                $containerViewModel->contents[] = (object) [
+                    'id'                          => $containedItem->getId(),
+                    'typeId'                      => $containedItem->getTypeId(),
+                    'label'                       => $containedItem->getName(),
+                    'quantity'                    => $containedItem->getQuantity(),
+                    'hasAllPortions'              => $containedItem->hasAllPortions(),
+                    'remainingPortionsPercentage' => $containedItem->getRemainingPortions() / $containedItem->getTotalPortions() * 100,
+                ];
+            }
+
+            $containerViewModels[] = $containerViewModel;
+        }
+    }
+
+    /** @var Item $item */
+    foreach ($inventory as $item) {
+        if ($item->isContainer()) {
+            $containerViewModel = (object) [
+                'id'       => $item->getId(),
                 'typeId'   => $item->getTypeId(),
                 'label'    => $item->getName(),
                 'contents' => [],
@@ -238,62 +268,10 @@ Route::post("/{gameId}/go/{locationId}", function ($gameId, $locationId) {
     return redirect("/{$gameId}");
 });
 
-Route::post("/{gameId}/pick-up/{itemId}", function ($gameId, $itemId) {
 
-    /** @var ItemRepositoryDb $itemRepo */
-    $itemRepo = app(ItemRepositoryDbFactory::class)->create(Uuid::fromString($gameId));
-
-    $playerInventory = new Inventory("player", $itemRepo->getInventory());
-
-    $item = $itemRepo->find(Uuid::fromString($itemId));
-
-    if ($item->getLocationId() === "player") {
-        session()->flash("info", "You cannot pick up {$item->getName()}, you're already holding it.");
-        return redirect("/{$gameId}");
-    }
-
-    $playerInventory->add($item);
-
-    /** @var Item $item */
-    foreach ($playerInventory->getItems() as $item) {
-        $itemRepo->save($item);
-    }
-
-    return redirect("/{$gameId}");
-});
-
-Route::post("/{gameId}/drop/{itemId}/{locationId}", function ($gameId, $itemId, $locationId) {
-
-    $itemId  = Uuid::fromString($itemId);
-
-    /** @var ItemRepositoryDb $itemRepo */
-    $itemRepo = app(ItemRepositoryDbFactory::class)->create(Uuid::fromString($gameId));
-
-    $playerInventory = new Inventory("player", $itemRepo->getInventory());
-    $locationInventory = new Inventory($locationId, $itemRepo->findAtLocation($locationId));
-
-    if (is_null($playerInventory->find($itemId))) {
-        $item = $locationInventory->find($itemId);
-        session()->flash("info", "You cannot drop {$item->getName()}, you're not holding it.");
-        return redirect("/{$gameId}");
-    }
-
-    $item = $playerInventory->remove($itemId);
-    $locationInventory->add($item);
-
-    /** @var Item $item */
-    foreach ($playerInventory->getItems() as $item) {
-        $itemRepo->save($item);
-    }
-    /** @var Item $item */
-    foreach ($locationInventory->getItems() as $item) {
-        $itemRepo->save($item);
-    }
-
-    return redirect("/{$gameId}");
-});
-
-Route::post("/{gameId}/eat/{itemId}", "PostEat");
+Route::post("/{gameId}/pick-up/{itemId}", "PostPickUp");
+Route::post("/{gameId}/drop/{itemId}/{locationId}", "PostDrop");
 Route::post("/{gameId}/use/{itemId}", "PostUse");
+Route::post("/{gameId}/eat/{itemId}", "PostEat");
 Route::post("/{gameId}/make", "PostMake");
-Route::post("{gameId}/transfer/{containerId}", "PostTransfer");
+Route::post("/{gameId}/transfer/{containerId}", "PostTransfer");
