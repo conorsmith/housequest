@@ -107,6 +107,9 @@ return [
         'egresses' => [
             "back-garden",
         ],
+        'objects' => [
+            "step-ladder",
+        ],
     ],
     'front-garden' => [
         'title' => "Front Garden",
@@ -171,5 +174,12 @@ return [
         'title' => "The Street",
         'description' => "You step out from your front garden into the street and are immediately torn asunder in a hail of bullets. Quarantine is serious business, folks.",
         'egresses' => [],
+    ],
+    'attic' => [
+        'title' => "Attic",
+        'description' => "It's as good a time as any to sort this place out.",
+        'egresses' => [
+            "landing",
+        ],
     ],
 ];

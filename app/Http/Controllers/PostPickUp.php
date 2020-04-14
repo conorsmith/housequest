@@ -33,6 +33,11 @@ final class PostPickUp extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($item->isDangerous()) {
+            session()->flash("info", "You cannot pick up {$item->getName()}, it's too dangerous to do so.");
+            return redirect("/{$gameId}");
+        }
+
         if ($item->isAffixed()) {
             session()->flash("info", "You cannot pick up {$item->getName()}, it's fixed in place.");
             return redirect("/{$gameId}");

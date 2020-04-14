@@ -176,4 +176,13 @@ return [
             "coco-pops",
         ],
     ],
+    'step-ladder' => [
+        'name' => "Step Ladder",
+    ],
+    'deployed-step-ladder' => [
+        'name' => "Deployed Step Ladder",
+        'attributes' => [
+            "dangerous",
+        ],
+    ],
 ];

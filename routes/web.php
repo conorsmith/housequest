@@ -132,6 +132,15 @@ Route::get('/{gameId}', function ($gameId) use ($locations) {
 
     $activeLocationConfig = $locationRepo->findForPlayer($player);
 
+    if ($locationId === "landing") {
+        /** @var Item $item */
+        foreach ($activeLocationItems as $item) {
+            if ($item->getTypeId() === "deployed-step-ladder") {
+                $activeLocationConfig["egresses"][] = "attic";
+            }
+        }
+    }
+
     $locationViewModel = (object) $activeLocationConfig;
     $locationViewModel->id = $locationId;
     $locationViewModel->egresses = [];
