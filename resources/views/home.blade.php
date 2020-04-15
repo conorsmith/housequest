@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="container" style="padding-bottom: 4rem;">
+<div class="container" style="padding-bottom: 8rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
             @if(session("message"))
