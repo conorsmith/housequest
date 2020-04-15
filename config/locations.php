@@ -119,6 +119,9 @@ return [
             "hallway",
             "garage",
         ],
+        'objects' => [
+            "letter-box",
+        ],
     ],
     'landing' => [
         'title' => "Landing",
@@ -140,6 +143,7 @@ return [
         ],
         'objects' => [
             "hairdryer",
+            "bed",
         ],
     ],
     'en-suite' => [
@@ -173,6 +177,14 @@ return [
     'the-street' => [
         'title' => "The Street",
         'description' => "You step out from your front garden into the street and are immediately torn asunder in a hail of bullets. Quarantine is serious business, folks.",
+        'egresses' => [
+            'front-garden',
+            'the-next-street-over',
+        ],
+    ],
+    'the-next-street-over' => [
+        'title' => "The Next Street Over",
+        'description' => "",
         'egresses' => [],
     ],
     'attic' => [
@@ -180,6 +192,9 @@ return [
         'description' => "It's as good a time as any to sort this place out.",
         'egresses' => [
             "landing",
+        ],
+        'objects' => [
+            "covid-19-cure",
         ],
     ],
 ];

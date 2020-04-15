@@ -36,6 +36,13 @@ final class PostMake extends Controller
 
     public function __invoke(Request $request, string $gameId)
     {
+        $player = $this->playerRepo->find(Uuid::fromString($gameId));
+
+        if ($player->isDead()) {
+            session()->flash("info", "You cannot do that, you're dead.");
+            return redirect("/{$gameId}");
+        }
+
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
         $recipe = $this->findRecipeForRequest($request);
@@ -44,8 +51,6 @@ final class PostMake extends Controller
             session()->flash("info", "You failed to make anything.");
             return redirect("/{$gameId}");
         }
-
-        $player = $this->playerRepo->find(Uuid::fromString($gameId));
 
         $inventoryItems = $this->removeUsedItemsFromInventory($request, $itemRepo);
 

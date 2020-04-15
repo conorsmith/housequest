@@ -42,12 +42,23 @@ final class PostEat extends Controller
         $itemRepo = $this->itemRepoFactory->create($gameId);
 
         $player = $this->playerRepo->find($gameId);
+
+        if ($player->isDead()) {
+            session()->flash("info", "You cannot do that, you're dead.");
+            return redirect("/{$gameId}");
+        }
+
         $inventory = new Inventory("player", $itemRepo->getInventory());
 
         $item = $inventory->find($itemId);
 
         if (is_null($item)) {
-            throw new InvalidArgumentException("Item '{$itemId}' not found in inventory.");
+            $inventory = new Inventory($player->getLocationId(), $itemRepo->findAtLocation($player->getLocationId()));
+            $item = $inventory->find($itemId);
+
+            if (is_null($item)) {
+                throw new InvalidArgumentException("Item '{$itemId}' not found in inventory.");
+            }
         }
 
         if (!$item->isEdible()) {

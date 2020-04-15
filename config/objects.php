@@ -185,4 +185,30 @@ return [
             "dangerous",
         ],
     ],
+    'bed' => [
+        'name' => "Bed",
+        'attributes' => [
+            "heavy",
+        ],
+        'use' => [
+            'message' => "You sleep until morning.",
+            'xp' => 10,
+        ],
+    ],
+    'letter-box' => [
+        'name' => "Letter Box",
+        'attributes' => [
+            "container",
+            "affixed",
+        ],
+        'objects' => [
+            "quarantine-extension-notice"
+        ],
+    ],
+    'quarantine-extension-notice' => [
+        'name' => "Quarantine Extension Notice",
+    ],
+    'covid-19-cure' => [
+        'name' => "Covid-19 Cure",
+    ],
 ];

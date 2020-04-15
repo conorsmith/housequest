@@ -7,20 +7,32 @@ use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
+use App\Repositories\PlayerRepository;
 use Ramsey\Uuid\Uuid;
 
 final class PostPickUp extends Controller
 {
+    /** @var PlayerRepository */
+    private $playerRepo;
+
     /** @var ItemRepositoryDb */
     private $itemRepoFactory;
 
-    public function __construct(ItemRepositoryDbFactory $itemRepoFactory)
+    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
     {
+        $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
     }
 
     public function __invoke(string $gameId, string $itemId)
     {
+        $player = $this->playerRepo->find(Uuid::fromString($gameId));
+
+        if ($player->isDead()) {
+            session()->flash("info", "You cannot do that, you're dead.");
+            return redirect("/{$gameId}");
+        }
+
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 

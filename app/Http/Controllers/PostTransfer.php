@@ -7,21 +7,33 @@ use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
+use App\Repositories\PlayerRepository;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
 final class PostTransfer extends Controller
 {
+    /** @var PlayerRepository */
+    private $playerRepo;
+
     /** @var ItemRepositoryDb */
     private $itemRepoFactory;
 
-    public function __construct(ItemRepositoryDbFactory $itemRepoFactory)
+    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
     {
+        $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
     }
 
     public function __invoke(Request $request, string $gameId, string $containerId)
     {
+        $player = $this->playerRepo->find(Uuid::fromString($gameId));
+
+        if ($player->isDead()) {
+            session()->flash("info", "You cannot do that, you're dead.");
+            return redirect("/{$gameId}");
+        }
+
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
         $itemIdsFromContainerToPlayer = $request->input("containerItems", []);

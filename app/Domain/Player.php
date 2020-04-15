@@ -17,24 +17,34 @@ final class Player
     /** @var int */
     private $xp;
 
+    /** @var bool */
+    private $isDead;
+
     /** @var array */
     private $eatenItemTypes;
 
     /** @var int */
     private $eatenItemsCount;
 
+    /** @var array */
+    private $enteredLocations;
+
     public function __construct(
         UuidInterface $id,
         string $locationId,
         int $xp,
+        bool $isDead,
         array $eatenItemTypes,
-        int $eatenItemCount
+        int $eatenItemCount,
+        array $enteredLocations
     ) {
         $this->id = $id;
         $this->locationId = $locationId;
         $this->xp = $xp;
+        $this->isDead = $isDead;
         $this->eatenItemTypes = $eatenItemTypes;
         $this->eatenItemsCount = $eatenItemCount;
+        $this->enteredLocations = $enteredLocations;
     }
 
     public function getId(): UuidInterface
@@ -52,6 +62,11 @@ final class Player
         return $this->xp;
     }
 
+    public function isDead(): bool
+    {
+        return $this->isDead;
+    }
+
     public function getEatenItemTypes(): array
     {
         return $this->eatenItemTypes;
@@ -62,9 +77,25 @@ final class Player
         return $this->eatenItemsCount;
     }
 
+    public function getEnteredLocations(): array
+    {
+        return $this->enteredLocations;
+    }
+
     public function move(string $locationId): void
     {
         $this->locationId = $locationId;
+
+        if (in_array($locationId, $this->enteredLocations)) {
+            return;
+        }
+
+        $this->enteredLocations[] = $locationId;
+    }
+
+    public function kill(): void
+    {
+        $this->isDead = true;
     }
 
     public function gainXp(int $gain): void

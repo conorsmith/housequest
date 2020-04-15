@@ -3,7 +3,7 @@
 @section('content')
 <div class="container fixed-top" style="margin-top: 1rem;">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div class="js-alert alert alert-info" style="display: none;">
                 <span class="js-alert-message"></span>
                 <button type="button" class="close" aria-label="Close">
@@ -21,6 +21,14 @@
             @if(session("info"))
                 <div class="alert alert-info alert-dismissible fade show">
                     {{ session("info") }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+            @if(session("infoRaw"))
+                <div class="alert alert-info alert-dismissible fade show">
+                    {!!  session("infoRaw") !!}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -45,6 +53,11 @@
 <div class="container" style="padding-bottom: 4rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            @if(session("message"))
+                <div class="alert alert-secondary">
+                    {{ session("message") }}
+                </div>
+            @endif
             <div class="card">
                 <div class="card-header">
                     {{ $location->title }}
@@ -52,27 +65,24 @@
 
                 <div class="card-body">
 
+                    {{--
                     <p>{{ $location->description }}</p>
+                    --}}
 
-                    <div class="d-flex justify-content-between flex-wrap">
+                    <div class="d-flex justify-content-center flex-wrap">
                         @foreach($location->egresses as $egress)
-                            <form action="/{{ $gameId }}/go/{{ $egress->id }}" method="POST" class="action-button">
+                            <form action="/{{ $gameId }}/go/{{ $egress->id }}" method="POST" class="action-button" style="margin: 0 0.2rem;">
                                 {{ csrf_field() }}
-                                <button type="submit" class="btn btn-light btn-block" style="margin-bottom: 1rem;">
+                                <button type="submit"
+                                        class="btn btn-light btn-block"
+                                        style="margin-bottom: 0.4rem;"
+                                        {{ $player->isDead ? "disabled" : "" }}
+                                >
                                     Go to {{ $egress->label }}
                                 </button>
                             </form>
                         @endforeach
                     </div>
-
-                    @if($location->id === "the-street")
-                        <form action="/new-game" method="POST" class="action-button">
-                            {{ csrf_field() }}
-                            <button type="submit" class="btn btn-light btn-block">
-                                You have died. Try again?
-                            </button>
-                        </form>
-                    @endif
 
                 </div>
 
@@ -103,7 +113,7 @@
                 </ul>
             </div>
 
-            @if($player->inventory or $player->xp)
+            @if($player->inventory or $player->xp or $player->isDead)
                 <div class="card" style="margin-top: 2rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>Player</div>
@@ -111,6 +121,17 @@
                             <span class="badge badge-light">{{ $player->xp }} XP</span>
                         @endif
                     </div>
+
+                    @if($player->isDead)
+                        <div class="card-body">
+                            <form action="/new-game" method="POST" class="action-button">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-light btn-block">
+                                    You have died. Try again?
+                                </button>
+                            </form>
+                        </div>
+                    @endif
 
                     <ul class="list-group list-group-flush">
                         @foreach($player->inventory as $object)
@@ -153,30 +174,35 @@
             <button type="button"
                     class="js-pick-up btn btn-light btn-sm"
                     style="width: 6rem;"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Pick Up
             </button>
             <button type="button"
                     class="js-drop btn btn-light btn-sm"
                     style="width: 6rem;"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Drop
             </button>
             <button type="button"
                     class="js-use btn btn-light btn-sm"
                     style="width: 6rem;"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Use
             </button>
             <button type="button"
                     class="js-eat btn btn-light btn-sm"
                     style="width: 6rem;"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Eat
             </button>
             <button type="button"
                     class="js-open btn btn-light btn-sm"
                     style="width: 6rem;"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Open
             </button>
@@ -185,6 +211,7 @@
                     style="width: 6rem;"
                     data-toggle="modal"
                     data-target="#menu-make"
+                    {{ $player->isDead ? "disabled" : "" }}
             >
                 Make
             </button>

@@ -21,7 +21,12 @@ final class PlayerRepositoryDb implements PlayerRepository
             $row->id,
         ]);
 
+        $locationActionLogRows = DB::select("SELECT * FROM player_location_action_log WHERE player_id = ?", [
+            $row->id,
+        ]);
+
         $eatenItemTypes = [];
+        $enteredLocations = [];
 
         foreach ($itemActionLogRows as $itemActionLogRow) {
             if ($itemActionLogRow->action === "eat") {
@@ -29,12 +34,20 @@ final class PlayerRepositoryDb implements PlayerRepository
             }
         }
 
+        foreach ($locationActionLogRows as $locationActionLogRow) {
+            if ($locationActionLogRow->action === "entered") {
+                $enteredLocations[] = $locationActionLogRow->location_id;
+            }
+        }
+
         return new Player(
             Uuid::fromString($row->id),
             $row->location_id,
             intval($row->xp),
+            $row->is_dead === 1,
             $eatenItemTypes,
-            intval($row->eaten_items_count)
+            intval($row->eaten_items_count),
+            $enteredLocations
         );
     }
 
@@ -47,6 +60,7 @@ final class PlayerRepositoryDb implements PlayerRepository
             ->update([
                 'location_id'       => $player->getLocationId(),
                 'xp'                => $player->getXp(),
+                'is_dead'           => $player->isDead(),
                 'eaten_items_count' => $player->getEatenItemsCount(),
             ]);
 
@@ -57,6 +71,21 @@ final class PlayerRepositoryDb implements PlayerRepository
                         'player_id'    => $player->getId(),
                         'item_type_id' => $itemType,
                         'action'       => "eat",
+                    ],
+                    [
+                        'id'           => Uuid::uuid4(),
+                        'created_at'   => Carbon::now("Europe/Dublin"),
+                    ]
+                );
+        }
+
+        foreach ($player->getEnteredLocations() as $locationId) {
+            DB::table("player_location_action_log")
+                ->updateOrInsert(
+                    [
+                        'player_id'   => $player->getId(),
+                        'location_id' => $locationId,
+                        'action'      => "entered",
                     ],
                     [
                         'id'           => Uuid::uuid4(),
