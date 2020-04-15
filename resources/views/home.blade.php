@@ -167,54 +167,59 @@
 
 <nav class="navbar fixed-bottom navbar-light bg-white" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
     <a class="navbar-brand d-none d-lg-block" href="{{ url('/') }}" style="position: absolute;">
-        {{ config('app.name', 'Laravel') }}
+        {{ config('app.name') }}
     </a>
-    <div class="container d-flex justify-content-center">
-        <div class="">
-            <button type="button"
-                    class="js-pick-up btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Pick Up
-            </button>
-            <button type="button"
-                    class="js-drop btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Drop
-            </button>
-            <button type="button"
-                    class="js-use btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Use
-            </button>
-            <button type="button"
-                    class="js-eat btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Eat
-            </button>
-            <button type="button"
-                    class="js-open btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Open
-            </button>
-            <button type="button"
-                    class="btn btn-light btn-sm"
-                    style="width: 6rem;"
-                    data-toggle="modal"
-                    data-target="#menu-make"
-                    {{ $player->isDead ? "disabled" : "" }}
-            >
-                Make
-            </button>
+    <div class="container">
+        <div class="d-flex justify-content-center" style="width: 100%;">
+            <div>
+                <button type="button"
+                        class="js-pick-up btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Pick Up
+                </button>
+                <button type="button"
+                        class="js-drop btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Drop
+                </button>
+                <button type="button"
+                        class="js-use btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Use
+                </button>
+                <button type="button"
+                        class="js-eat btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Eat
+                </button>
+                <button type="button"
+                        class="js-open btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Open
+                </button>
+                <button type="button"
+                        class="btn btn-light btn-sm"
+                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        data-toggle="modal"
+                        data-target="#menu-make"
+                        {{ $player->isDead ? "disabled" : "" }}
+                >
+                    Make
+                </button>
+            </div>
+        </div>
+        <div class="d-flex justify-content-center w-100 d-lg-none">
+            <a class="navbar-brand" style="font-size: 0.8rem;" href="{{ url('/') }}">{{ config('app.name') }}</a>
         </div>
     </div>
 </nav>
