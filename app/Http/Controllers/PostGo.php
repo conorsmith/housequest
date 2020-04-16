@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Repositories\EventRepositoryConfig;
 use App\Repositories\PlayerRepository;
 use Ramsey\Uuid\Uuid;
 
@@ -11,9 +12,13 @@ final class PostGo extends Controller
     /** @var PlayerRepository */
     private $playerRepo;
 
-    public function __construct(PlayerRepository $playerRepo)
+    /** @var EventRepositoryConfig */
+    private $eventRepo;
+
+    public function __construct(PlayerRepository $playerRepo, EventRepositoryConfig $eventRepo)
     {
         $this->playerRepo = $playerRepo;
+        $this->eventRepo = $eventRepo;
     }
 
     public function __invoke(string $gameId, string $locationId)
@@ -26,25 +31,18 @@ final class PostGo extends Controller
 
         if ($locationId === "the-street") {
             $player->kill();
-
-            session()->flash(
-                "message",
-                "You foolishly step out from your front garden into the street and are immediately torn asunder in a hail of bullets by a passing military patrol drone."
-            );
+            $player->experienceEvent("shot-to-death");
+            session()->flash("message", $this->eventRepo->findMessage("shot-to-death"));
         }
 
         if ($isNewLocation && $locationId === "landing") {
-            session()->flash(
-                "message",
-                "You hear a strange noise. It's faint, but you can tell that it's coming from the attic. The sounds are disturbing, but this is the first interesting thing that's happened in weeks. How will you get up there?"
-            );
+            $player->experienceEvent("attic-noises");
+            session()->flash("message", $this->eventRepo->findMessage("attic-noises"));
         }
 
         if ($isNewLocation && $locationId === "attic") {
-            session()->flash(
-                "message",
-                "Your make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone. It looks like whatever it was dropped something..."
-            );
+            $player->experienceEvent("a-brief-encounter");
+            session()->flash("message", $this->eventRepo->findMessage("a-brief-encounter"));
         }
 
         $this->playerRepo->save($player);

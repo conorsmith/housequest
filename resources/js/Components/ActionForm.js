@@ -22,9 +22,22 @@ export default class Controller {
                 return;
             }
 
+            if (this.model.action === "use"
+                && e.detail.itemTypeId === "telephone"
+            ) {
+                return;
+            }
+
             this.view.submit(
                 this.model.createActionUrl(e.detail.itemId)
             );
+        });
+
+        window.EventBus.addEventListener("use.telephone", e => {
+            this.view.set("number", e.detail.number);
+            this.view.submit(
+                this.model.createUseUrl(e.detail.itemId)
+            )
         });
     }
 }
@@ -32,6 +45,14 @@ export default class Controller {
 class View {
     constructor(el) {
         this.el = el;
+    }
+
+    set(key, value) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        this.el.append(input);
     }
 
     submit(actionUrl) {
@@ -74,5 +95,9 @@ class Model {
 
         console.error("Cannot create action URL for action: " + this.action);
         return "";
+    }
+
+    createUseUrl(itemId) {
+        return "/" + this.gameId + "/use/" + itemId;
     }
 }

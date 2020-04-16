@@ -15,6 +15,7 @@ return [
             "windbreaker",
             "overcoat",
             "scarf",
+            "telephone",
         ],
     ],
     'living-room' => [

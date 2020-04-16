@@ -252,7 +252,16 @@ var Controller = /*#__PURE__*/function () {
         return;
       }
 
+      if (_this.model.action === "use" && e.detail.itemTypeId === "telephone") {
+        return;
+      }
+
       _this.view.submit(_this.model.createActionUrl(e.detail.itemId));
+    });
+    window.EventBus.addEventListener("use.telephone", function (e) {
+      _this.view.set("number", e.detail.number);
+
+      _this.view.submit(_this.model.createUseUrl(e.detail.itemId));
     });
   }
 
@@ -269,6 +278,15 @@ var View = /*#__PURE__*/function () {
   }
 
   _createClass(View, [{
+    key: "set",
+    value: function set(key, value) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      this.el.append(input);
+    }
+  }, {
     key: "submit",
     value: function submit(actionUrl) {
       if (actionUrl === "") {
@@ -318,6 +336,11 @@ var Model = /*#__PURE__*/function () {
 
       console.error("Cannot create action URL for action: " + this.action);
       return "";
+    }
+  }, {
+    key: "createUseUrl",
+    value: function createUseUrl(itemId) {
+      return "/" + this.gameId + "/use/" + itemId;
     }
   }]);
 
@@ -467,7 +490,7 @@ var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromItemEl",
     value: function fromItemEl(itemEl) {
-      return new Controller(new Model(itemEl.dataset.id, itemEl.dataset.label, itemEl.dataset.isContainer), new View(itemEl));
+      return new Controller(new Model(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer), new View(itemEl));
     }
   }]);
 
@@ -526,7 +549,8 @@ var Controller = /*#__PURE__*/function () {
 
       this.model.setSelected();
       window.EventBus.dispatchEvent("action.triggered", {
-        itemId: this.model.id
+        itemId: this.model.id,
+        itemTypeId: this.model.typeId
       });
     }
   }]);
@@ -571,10 +595,11 @@ var View = /*#__PURE__*/function () {
 }();
 
 var Model = /*#__PURE__*/function () {
-  function Model(id, label, isContainer) {
+  function Model(id, typeId, label, isContainer) {
     _classCallCheck(this, Model);
 
     this.id = id;
+    this.typeId = typeId;
     this.label = label;
     this.isContainer = isContainer;
     this.isSelectable = false;
@@ -734,6 +759,176 @@ var Model = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./resources/js/Components/PhoneModal.js":
+/*!***********************************************!*\
+  !*** ./resources/js/Components/PhoneModal.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    window.EventBus.addEventListener("action.selected", function (e) {
+      _this.model.action = e.detail.action;
+    });
+    window.EventBus.addEventListener("action.triggered", function (e) {
+      _this.model.open(e.detail.itemId, e.detail.itemTypeId);
+    });
+    this.view.onHide(function (e) {
+      _this.model.close();
+
+      window.EventBus.dispatchEvent("action.completed", {
+        action: _this.model.action,
+        itemId: _this.model.itemId
+      });
+    });
+    this.view.onKeypadPress(function (e) {
+      _this.model.appendNumber(e.target.dataset.symbol);
+    });
+    this.view.onCall(function (e) {
+      window.EventBus.dispatchEvent("use.telephone", {
+        itemId: _this.model.itemId,
+        number: _this.model.number
+      });
+    });
+    this.model.bus.addEventListener("opened", function (e) {
+      _this.view.open();
+    });
+    this.model.bus.addEventListener("number.updated", function (e) {
+      _this.view.renderNumber(e.detail.number);
+    });
+    this.model.bus.addEventListener("closed", function (e) {
+      _this.view.close();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+    this.$el = $(this.el);
+  }
+
+  _createClass(View, [{
+    key: "open",
+    value: function open() {
+      this.$el.modal('show');
+    }
+  }, {
+    key: "close",
+    value: function close() {
+      this.el.querySelector(".number-display").innerHTML = "";
+    }
+  }, {
+    key: "renderNumber",
+    value: function renderNumber(number) {
+      this.el.querySelector(".number-display").innerHTML = number;
+    }
+  }, {
+    key: "onHide",
+    value: function onHide(callback) {
+      this.$el.on("hide.bs.modal", callback);
+    }
+  }, {
+    key: "onKeypadPress",
+    value: function onKeypadPress(callback) {
+      this.el.querySelectorAll(".keypad button").forEach(function (el) {
+        el.addEventListener("click", callback);
+      });
+    }
+  }, {
+    key: "onCall",
+    value: function onCall(callback) {
+      this.el.querySelector(".call-button").addEventListener("click", callback);
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.itemId = null;
+    this.isOpen = false;
+    this.action = null;
+    this.number = "";
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "open",
+    value: function open(itemId, itemTypeId) {
+      if (this.action !== "use") {
+        return;
+      }
+
+      if (itemTypeId !== "telephone") {
+        return;
+      }
+
+      this.itemId = itemId;
+      this.isOpen = true;
+      this.bus.dispatchEvent("opened");
+    }
+  }, {
+    key: "appendNumber",
+    value: function appendNumber(symbol) {
+      if (this.number.length >= 80) {
+        return;
+      }
+
+      this.number += symbol;
+      this.bus.dispatchEvent("number.updated", {
+        number: this.number
+      });
+    }
+  }, {
+    key: "close",
+    value: function close() {
+      this.isOpen = false;
+      this.number = "";
+      this.bus.dispatchEvent("closed");
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
 /***/ "./resources/js/EventBus.js":
 /*!**********************************!*\
   !*** ./resources/js/EventBus.js ***!
@@ -799,6 +994,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Components/InventoryItem */ "./resources/js/Components/InventoryItem.js");
 /* harmony import */ var _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/OpenModal */ "./resources/js/Components/OpenModal.js");
 /* harmony import */ var _Components_Alert__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/Alert */ "./resources/js/Components/Alert.js");
+/* harmony import */ var _Components_PhoneModal__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Components/PhoneModal */ "./resources/js/Components/PhoneModal.js");
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
   buttonEl.addEventListener("click", function (e) {
     e.preventDefault();
@@ -813,8 +1009,6 @@ document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
 
     if (selectedQuantity === 0) {
       itemEl.classList.add("active");
-      selectedQuantityEl.classList.add("badge-warning");
-      selectedQuantityEl.classList.remove("badge-light");
     }
 
     itemEl.dataset.selectedQuantity = selectedQuantity + 1;
@@ -838,11 +1032,6 @@ document.querySelectorAll(".js-decrement").forEach(function (buttonEl) {
       itemEl.classList.remove("active");
     }
 
-    if (selectedQuantity === 1) {
-      selectedQuantityEl.classList.add("badge-light");
-      selectedQuantityEl.classList.remove("badge-warning");
-    }
-
     itemEl.dataset.selectedQuantity = selectedQuantity - 1;
     selectedQuantityEl.innerHTML = itemEl.dataset.selectedQuantity;
     itemEl.querySelector(".js-quantity-input").value = itemEl.dataset.selectedQuantity;
@@ -862,8 +1051,6 @@ document.querySelectorAll(".js-take-all").forEach(function (buttonEl) {
 
     if (selectedQuantity === 0) {
       itemEl.classList.add("active");
-      selectedQuantityEl.classList.add("badge-warning");
-      selectedQuantityEl.classList.remove("badge-light");
     }
 
     itemEl.dataset.selectedQuantity = availableQuantity;
@@ -926,6 +1113,7 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 
 
+
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
@@ -940,6 +1128,7 @@ document.querySelectorAll(".js-open-modal").forEach(function (modalEl) {
   _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__["default"].fromEl(modalEl);
 });
 _Components_Alert__WEBPACK_IMPORTED_MODULE_5__["default"].fromEl(document.querySelector(".js-alert"));
+_Components_PhoneModal__WEBPACK_IMPORTED_MODULE_6__["default"].fromEl(document.querySelector("#menu-telephone"));
 
 /***/ }),
 

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Repositories\AchievementRepositoryConfig;
+use App\Repositories\EventRepositoryConfig;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\Repositories\PlayerRepositoryDb;
@@ -33,6 +34,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AchievementRepositoryConfig::class, function ($app) {
             return new AchievementRepositoryConfig(
                 include __DIR__ . "/../../config/achievements.php"
+            );
+        });
+
+        $this->app->singleton(EventRepositoryConfig::class, function ($app) {
+            return new EventRepositoryConfig(
+                include __DIR__ . "/../../config/events.php"
             );
         });
 

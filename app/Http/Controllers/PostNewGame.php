@@ -15,6 +15,8 @@ final class PostNewGame extends Controller
 
         $locations = include __DIR__ . "/../../../config/locations.php";
 
+        $events = include __DIR__ . "/../../../config/events.php";
+
         $gameId = Uuid::uuid4();
         $playerId = Uuid::uuid4();
 
@@ -105,11 +107,15 @@ final class PostNewGame extends Controller
             }
         }
 
-        session()->flash(
-            "message",
-            "You awaken. What day is it? It takes you a moment to remember."
-            . " You clamber out of bed, groggy but ready for yet another day of... HouseQuest!"
-        );
+        DB::table("player_event_log")->insert([
+            'id' => Uuid::uuid4(),
+            'player_id' => $playerId,
+            'event_id' => "start",
+            'location_id' => "master-bedroom",
+            'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
+        ]);
+
+        session()->flash("message", $events['start']['message']);
         return redirect("/{$gameId}");
     }
 }

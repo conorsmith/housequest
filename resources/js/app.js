@@ -13,8 +13,6 @@ document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
 
         if (selectedQuantity === 0) {
             itemEl.classList.add("active");
-            selectedQuantityEl.classList.add("badge-warning");
-            selectedQuantityEl.classList.remove("badge-light")
         }
 
         itemEl.dataset.selectedQuantity = selectedQuantity + 1;
@@ -40,11 +38,6 @@ document.querySelectorAll(".js-decrement").forEach(function (buttonEl) {
             itemEl.classList.remove("active");
         }
 
-        if (selectedQuantity === 1) {
-            selectedQuantityEl.classList.add("badge-light");
-            selectedQuantityEl.classList.remove("badge-warning");
-        }
-
         itemEl.dataset.selectedQuantity = selectedQuantity - 1;
 
         selectedQuantityEl.innerHTML = itemEl.dataset.selectedQuantity;
@@ -66,8 +59,6 @@ document.querySelectorAll(".js-take-all").forEach(function (buttonEl) {
 
         if (selectedQuantity === 0) {
             itemEl.classList.add("active");
-            selectedQuantityEl.classList.add("badge-warning");
-            selectedQuantityEl.classList.remove("badge-light")
         }
 
         itemEl.dataset.selectedQuantity = availableQuantity;
@@ -139,6 +130,7 @@ import ActionFormController from "./Components/ActionForm";
 import InventoryItemController from "./Components/InventoryItem";
 import OpenModalController from "./Components/OpenModal";
 import AlertController from "./Components/Alert";
+import PhoneModalController from "./Components/PhoneModal";
 
 window.EventBus = new EventBus();
 
@@ -159,3 +151,5 @@ document.querySelectorAll(".js-open-modal").forEach(modalEl => {
 });
 
 AlertController.fromEl(document.querySelector(".js-alert"));
+
+PhoneModalController.fromEl(document.querySelector("#menu-telephone"));

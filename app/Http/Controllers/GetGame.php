@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Event;
 use App\Domain\Item;
+use App\Repositories\AchievementRepositoryConfig;
+use App\Repositories\EventRepositoryConfig;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\LocationRepositoryConfig;
 use App\Repositories\PlayerRepository;
@@ -17,10 +20,22 @@ final class GetGame extends Controller
     /** @var ItemRepositoryDbFactory */
     private $itemRepoFactory;
 
-    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
-    {
+    /** @var EventRepositoryConfig */
+    private $eventRepo;
+
+    /** @var AchievementRepositoryConfig */
+    private $achievementRepo;
+
+    public function __construct(
+        PlayerRepository $playerRepo,
+        ItemRepositoryDbFactory $itemRepoFactory,
+        EventRepositoryConfig $eventRepo,
+        AchievementRepositoryConfig $achievementRepo
+    ) {
         $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
+        $this->eventRepo = $eventRepo;
+        $this->achievementRepo = $achievementRepo;
     }
 
     public function __invoke(string $gameId)
@@ -81,6 +96,8 @@ final class GetGame extends Controller
             'xp' => $player->getXp(),
             'isDead' => $player->isDead(),
             'inventory' => [],
+            'events' => [],
+            'achievements' => [],
         ];
 
         foreach ($inventory as $item) {
@@ -98,6 +115,22 @@ final class GetGame extends Controller
                 'isContainer'                 => $item->isContainer(),
                 'isUsable'                    => $item->hasUse()
                     && $item->getUse()->fromInventory(),
+            ];
+        }
+
+        /** @var Event $event */
+        foreach ($player->getEvents() as $event) {
+            $playerViewModel->events[] = (object) [
+                'message'  => $this->eventRepo->findMessage($event->getId()),
+                'location' => $locationRepo->find($event->getLocationId())['title'],
+            ];
+        }
+
+        foreach ($player->getAchievements() as $achievementId) {
+            $achievement = $this->achievementRepo->find($achievementId);
+            $playerViewModel->achievements[] = (object) [
+                'title' => $achievement['title'],
+                'body' => $achievement['body'],
             ];
         }
 

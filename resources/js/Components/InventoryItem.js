@@ -3,7 +3,7 @@ import EventBus from "../EventBus";
 export default class Controller {
     static fromItemEl(itemEl) {
         return new Controller(
-            new Model(itemEl.dataset.id, itemEl.dataset.label, itemEl.dataset.isContainer),
+            new Model(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer),
             new View(itemEl)
         );
     }
@@ -48,7 +48,8 @@ export default class Controller {
         this.model.setSelected();
 
         window.EventBus.dispatchEvent("action.triggered", {
-            itemId: this.model.id
+            itemId: this.model.id,
+            itemTypeId: this.model.typeId
         });
     }
 }
@@ -78,8 +79,9 @@ class View {
 }
 
 class Model {
-    constructor(id, label, isContainer) {
+    constructor(id, typeId, label, isContainer) {
         this.id = id;
+        this.typeId = typeId;
         this.label = label;
         this.isContainer = isContainer;
         this.isSelectable = false;

@@ -10,7 +10,6 @@ use App\Repositories\AchievementRepositoryConfig;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
-use Carbon\Carbon;
 use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
 
@@ -66,24 +65,11 @@ final class PostEat extends Controller
             return redirect("/{$gameId}");
         }
 
-        $xp = 10 * $item->getRemainingPortions();
-
         $inventory->removeEatenItem($itemId);
 
         $player->eat($item);
-        $player->gainXp($xp);
 
-        $achievements = $this->findAchievements($player);
-
-        foreach ($achievements as $achievement) {
-            \DB::table("achievements")
-                ->insert([
-                    'id'             => Uuid::uuid4(),
-                    'player_id'      => $player->getId(),
-                    'achievement_id' => $achievement['id'],
-                    'created_at'     => Carbon::now("Europe/Dublin"),
-                ]);
-        }
+        $achievements = $this->unlockAchievements($player);
 
         $this->playerRepo->save($player);
         /** @var Item $inventoryItem */
@@ -104,52 +90,44 @@ final class PostEat extends Controller
             session()->flash("achievements", $achievementSessionData);
         }
 
-        session()->flash("success", "You ate {$item->getName()}. You gained 10 XP.");
+        session()->flash("success", "You ate {$item->getName()}.");
         return redirect("/{$gameId}");
     }
 
-    private function findAchievements(Player $player): array
+    private function unlockAchievements(Player $player): array
     {
-        $rows = \DB::select("SELECT * FROM achievements WHERE player_id = ?", [
-            $player->getId(),
-        ]);
-
-        $existingAchievements = [];
-
-        foreach ($rows as $row) {
-            $existingAchievements[] = $row->achievement_id;
-        }
-
-        $achievements = [];
+        $existingAchievementIds = $player->getAchievements();
 
         if ($player->getEatenItemsCount() === 5) {
-            $achievements[] = $this->achievementRepo->find("eat_count_5");
+            $player->unlockAchievement("eat_count_5");
         } elseif ($player->getEatenItemsCount() === 10) {
-            $achievements[] = $this->achievementRepo->find("eat_count_10");
+            $player->unlockAchievement("eat_count_10");
         } elseif ($player->getEatenItemsCount() === 25) {
-            $achievements[] = $this->achievementRepo->find("eat_count_25");
+            $player->unlockAchievement("eat_count_25");
         } elseif ($player->getEatenItemsCount() === 50) {
-            $achievements[] = $this->achievementRepo->find("eat_count_50");
+            $player->unlockAchievement("eat_count_50");
         }
 
         if (count($player->getEatenItemTypes()) === 5) {
-            $achievements[] = $this->achievementRepo->find("eat_types_5");
+            $player->unlockAchievement("eat_types_5");
         } elseif (count($player->getEatenItemTypes()) === 10) {
-            $achievements[] = $this->achievementRepo->find("eat_types_10");
+            $player->unlockAchievement("eat_types_10");
         } elseif (count($player->getEatenItemTypes()) === 25) {
-            $achievements[] = $this->achievementRepo->find("eat_types_25");
+            $player->unlockAchievement("eat_types_25");
         } elseif (count($player->getEatenItemTypes()) === 50) {
-            $achievements[] = $this->achievementRepo->find("eat_types_50");
+            $player->unlockAchievement("eat_types_50");
         } elseif (count($player->getEatenItemTypes()) === 57) {
-            $achievements[] = $this->achievementRepo->find("eat_types_57");
+            $player->unlockAchievement("eat_types_57");
         }
 
-        foreach ($achievements as $key => $achievement) {
-            if (in_array($achievement['id'], $existingAchievements)) {
-                unset($achievements[$key]);
+        $unlockedAchievements = [];
+
+        foreach ($player->getAchievements() as $achievementId) {
+            if (!in_array($achievementId, $existingAchievementIds)) {
+                $unlockedAchievements[] = $this->achievementRepo->find($achievementId);
             }
         }
 
-        return $achievements;
+        return $unlockedAchievements;
     }
 }

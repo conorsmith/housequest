@@ -57,7 +57,7 @@ final class PostMake extends Controller
         $endProduct = $this->getEndProduct($itemRepo, $recipe);
         $endProduct->incrementQuantity();
 
-        $player->gainXp(10);
+        //$player->gainXp(10);
 
         foreach ($inventoryItems as $item) {
             $itemRepo->save($item);
@@ -66,7 +66,7 @@ final class PostMake extends Controller
         $itemRepo->save($endProduct);
         $this->playerRepo->save($player);
 
-        session()->flash("success", "You made {$endProduct->getName()}. You gained 10 XP.");
+        session()->flash("success", "You made {$endProduct->getName()}.");
         return redirect("/{$gameId}");
     }
 

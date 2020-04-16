@@ -15,6 +15,11 @@ final class LocationRepositoryConfig
         $this->config = $config;
     }
 
+    public function find(string $id)
+    {
+        return $this->config[$id];
+    }
+
     public function findForPlayer(Player $player)
     {
         return $this->config[$player->getLocationId()];

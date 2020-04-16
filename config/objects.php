@@ -211,4 +211,13 @@ return [
     'covid-19-cure' => [
         'name' => "Covid-19 Cure",
     ],
+    'telephone' => [
+        'name' => "Telephone",
+    ],
+    'dented-letter-box' => [
+        'name' => "Severely Dented Letter Box",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
 ];

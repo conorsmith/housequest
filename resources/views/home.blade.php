@@ -1,34 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container fixed-top" style="margin-top: 1rem;">
+<div class="fixed-top fixed-alert-container">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="js-alert alert alert-info" style="display: none;">
-                <span class="js-alert-message"></span>
+            <div class="js-alert alert alert-secondary" style="display: none;">
+                ⚠ <span class="js-alert-message"></span>
                 <button type="button" class="close" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             @if(session("success"))
-                <div class="alert alert-success alert-dismissible fade show">
-                    {{ session("success") }}
+                <div class="alert alert-secondary alert-dismissible fade show">
+                    ✔ {{ session("success") }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             @endif
             @if(session("info"))
-                <div class="alert alert-info alert-dismissible fade show">
-                    {{ session("info") }}
+                <div class="alert alert-secondary alert-dismissible fade show">
+                    ⚠ {{ session("info") }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             @endif
             @if(session("infoRaw"))
-                <div class="alert alert-info alert-dismissible fade show">
-                    {!!  session("infoRaw") !!}
+                <div class="alert alert-secondary alert-dismissible fade show">
+                    ⚠ {!!  session("infoRaw") !!}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -36,7 +36,7 @@
             @endif
             @if(session("achievements"))
                 @foreach (session("achievements") as $achievement)
-                    <div class="alert alert-primary alert-dismissible fade show">
+                    <div class="alert alert-secondary alert-dismissible fade show">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -56,6 +56,11 @@
             @if(session("message"))
                 <div class="alert alert-secondary">
                     {{ session("message") }}
+                </div>
+            @endif
+            @if(session("messageRaw"))
+                <div class="alert alert-secondary">
+                    {!! session("messageRaw") !!}
                 </div>
             @endif
             <div class="card">
@@ -90,6 +95,7 @@
                     @foreach($location->objects as $object)
                         <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
                             data-id="{{ $object->id }}"
+                            data-type-id="{{ $object->typeId }}"
                             data-label="{{ $object->label }}"
                             data-is-container="{{ $object->isContainer }}"
                         >
@@ -117,9 +123,11 @@
                 <div class="card" style="margin-top: 2rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>Player</div>
+                        {{--
                         @if($player->xp)
                             <span class="badge badge-light">{{ $player->xp }} XP</span>
                         @endif
+                        --}}
                     </div>
 
                     @if($player->isDead)
@@ -137,6 +145,7 @@
                         @foreach($player->inventory as $object)
                             <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
                                 data-id="{{ $object->id }}"
+                                data-type-id="{{ $object->typeId }}"
                                 data-label="{{ $object->label }}"
                                 data-is-container="{{ $object->isContainer }}"
                             >
@@ -166,60 +175,68 @@
 </div>
 
 <nav class="navbar fixed-bottom navbar-light bg-white" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
-    <a class="navbar-brand d-none d-lg-block" href="{{ url('/') }}" style="position: absolute;">
+    <a class="navbar-brand d-none d-lg-block"
+       href="#"
+       style="position: absolute;"
+       data-toggle="modal"
+       data-target="#menu-game"
+    >
         {{ config('app.name') }}
     </a>
     <div class="container">
-        <div class="d-flex justify-content-center" style="width: 100%;">
-            <div>
+        <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
                 <button type="button"
                         class="js-pick-up btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Pick Up
                 </button>
                 <button type="button"
                         class="js-drop btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Drop
                 </button>
                 <button type="button"
                         class="js-use btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Use
                 </button>
                 <button type="button"
                         class="js-eat btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Eat
                 </button>
                 <button type="button"
                         class="js-open btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Open
                 </button>
                 <button type="button"
                         class="btn btn-light btn-sm"
-                        style="width: 6rem; margin-bottom: 0.2rem;"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         data-toggle="modal"
                         data-target="#menu-make"
                         {{ $player->isDead ? "disabled" : "" }}
                 >
                     Make
                 </button>
-            </div>
         </div>
         <div class="d-flex justify-content-center w-100 d-lg-none">
-            <a class="navbar-brand" style="font-size: 0.8rem;" href="{{ url('/') }}">{{ config('app.name') }}</a>
+            <a class="navbar-brand"
+               style="font-size: 0.8rem; margin-right: 0;"
+               href="#"
+               data-toggle="modal"
+               data-target="#menu-game"
+            >{{ config('app.name') }}</a>
         </div>
     </div>
 </nav>
@@ -243,6 +260,7 @@
                                class="item list-group-item d-flex justify-content-between align-items-center js-item"
                                data-available-quantity="{{ $object->quantity }}"
                                data-selected-quantity="0"
+                               data-selected-portions="0"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $object->label }}
@@ -295,6 +313,7 @@
                                 class="item list-group-item d-flex justify-content-between align-items-center js-item"
                                 data-available-quantity="{{ $object->quantity }}"
                                 data-selected-quantity="0"
+                                data-selected-portions="0"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $object->label }}
@@ -387,7 +406,7 @@
                             <div class="item-controls d-flex justify-content-start align-items-center">
                                 @if($object->isMultiPortionItem)
                                     <div class="progress" style="margin-right: 0.6rem;">
-                                        <div class="progress-bar bg-warning js-selected-portions"
+                                        <div class="progress-bar bg-selected js-selected-portions"
                                              style="width: 0;"
                                         ></div>
                                         <div class="progress-bar js-unselected-portions"
@@ -440,6 +459,123 @@
                     <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="menu-telephone" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Telephone</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="number-display"></div>
+                <div class="keypad">
+                    <div class="keypad-row">
+                        <button type="button" class="btn btn-light" data-symbol="1">1</button>
+                        <button type="button" class="btn btn-light" data-symbol="2">2</button>
+                        <button type="button" class="btn btn-light" data-symbol="3">3</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button type="button" class="btn btn-light" data-symbol="4">4</button>
+                        <button type="button" class="btn btn-light" data-symbol="5">5</button>
+                        <button type="button" class="btn btn-light" data-symbol="6">6</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button type="button" class="btn btn-light" data-symbol="7">7</button>
+                        <button type="button" class="btn btn-light" data-symbol="8">8</button>
+                        <button type="button" class="btn btn-light" data-symbol="9">9</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button type="button" class="btn btn-light" data-symbol="0">0</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="call-button btn btn-light">Call</button>
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="menu-game" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Menu</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <button type="button" class="btn btn-light btn-block" data-toggle="modal" data-target="#menu-events" data-dismiss="modal">Event Log</button>
+                <button type="button" class="btn btn-light btn-block" data-toggle="modal" data-target="#menu-achievements" data-dismiss="modal">Achievements</button>
+            </div>
+            <div class="modal-body" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
+                <form action="/new-game" method="POST" class="action-button">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-light btn-block">Start New Game</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light btn-block" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="menu-events" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Event Log</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @foreach($player->events as $event)
+                    <div class="review-event">
+                        <div class="review-event-title">{{ $event->location }}</div>
+                        {!! $event->message !!}
+                    </div>
+                @endforeach
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="menu-achievements" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Achievements</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if(count($player->achievements) === 0)
+                    You have not yet unlocked any achievements
+                @endif
+                @foreach($player->achievements as $achievement)
+                    <div class="achievement">
+                        <div class="achievement-title">{{ $achievement->title }}</div>
+                        <div class="achievement-body">{{ $achievement->body }}</div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>

@@ -6,11 +6,12 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\Player;
+use App\Repositories\EventRepositoryConfig;
 use App\Repositories\ItemRepository;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
-use Illuminate\Validation\Rules\In;
+use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
 final class PostUse extends Controller
@@ -21,13 +22,17 @@ final class PostUse extends Controller
     /** @var PlayerRepositoryDb */
     private $playerRepo;
 
-    public function __construct(ItemRepositoryDbFactory $itemRepoFactory, PlayerRepositoryDb $playerRepo)
+    /** @var EventRepositoryConfig */
+    private $eventRepo;
+
+    public function __construct(ItemRepositoryDbFactory $itemRepoFactory, PlayerRepositoryDb $playerRepo, EventRepositoryConfig $eventRepo)
     {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
+        $this->eventRepo = $eventRepo;
     }
 
-    public function __invoke(string $gameId, string $itemId)
+    public function __invoke(Request $request, string $gameId, string $itemId)
     {
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
@@ -41,7 +46,7 @@ final class PostUse extends Controller
         $item = $itemRepo->find($itemId);
 
         if ($this->hasCustomUse($item)) {
-            $this->executeCustomUse($player, $item, $itemRepo);
+            $this->executeCustomUse($request, $player, $item, $itemRepo);
             return redirect("/{$gameId}");
         }
 
@@ -52,11 +57,9 @@ final class PostUse extends Controller
 
         $use = $item->getUse();
 
-        $player->gainXp($use->getXp());
-
         $this->playerRepo->save($player);
 
-        session()->flash("success", "{$use->getMessage()} You gained {$use->getXp()} XP.");
+        session()->flash("success", $use->getMessage());
         return redirect("/{$gameId}");
     }
 
@@ -65,6 +68,8 @@ final class PostUse extends Controller
         'deployed-step-ladder'        => "useDeployedStepLadder",
         'quarantine-extension-notice' => "useQuarantineExtensionNotice",
         'covid-19-cure'               => "useCovid19Cure",
+        'telephone'                   => "useTelephone",
+        'bed'                         => "useBed",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -72,13 +77,13 @@ final class PostUse extends Controller
         return array_key_exists($item->getTypeId(), self::CUSTOM_USES);
     }
 
-    private function executeCustomUse(Player $player, Item $item, ItemRepository $itemRepo): void
+    private function executeCustomUse(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
         $customUseFunction = self::CUSTOM_USES[$item->getTypeId()];
-        $this->$customUseFunction($player, $item, $itemRepo);
+        $this->$customUseFunction($request, $player, $item, $itemRepo);
     }
 
-    private function useStepLadder(Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
         $ladderInventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
         if ($item->getLocationId() !== $player->getLocationId()) {
@@ -112,7 +117,7 @@ final class PostUse extends Controller
         session()->flash("success", "You deployed the Step Ladder.");
     }
 
-    private function useDeployedStepLadder(Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useDeployedStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
         $inventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
 
@@ -136,18 +141,19 @@ final class PostUse extends Controller
         session()->flash("success", "You closed the Step Ladder.");
     }
 
-    private function useQuarantineExtensionNotice(Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useQuarantineExtensionNotice(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
         session()->flash(
-            "infoRaw",
+            "messageRaw",
             "<p><strong>QUARANTINE EXTENSION NOTICE</strong></p>"
             . "<p>The existing quarantine protocol is being extended by another month. Please remain in your home at all times.</p>"
             . "<p>Failure to comply with the quarantine protocol will result in a fine not exceeding €1,000 and/or immediate execution.</p>"
+            . "<p>Any queries can be made to 0800 2684 319</p>"
             . "<p class=\"mb-0\">Thank you for your compliance, citizen.</p>"
         );
     }
 
-    private function useCovid19Cure(Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useCovid19Cure(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
         $inventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
 
@@ -163,6 +169,85 @@ final class PostUse extends Controller
             $itemRepo->save($inventoryItem);
         }
 
-        session()->flash("info", "You inject yourself with the cure for Covid-19 without handing it over to scientists for study. You are now immune to the virus and everybody else is still fucked. Well done.");
+        $player->experienceEvent("selfish-act");
+        session()->flash("message", $this->eventRepo->findMessage("selfish-act"));
+
+        $this->playerRepo->save($player);
+    }
+
+    private function useTelephone(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    {
+        $inventory = new Inventory("player", $itemRepo->findAtLocation("player"));
+
+        $number = $request->get("number");
+
+        if (is_null($number)) {
+            $message = "<p class=\"mb-0\">That did nothing.</p>";
+
+        } elseif ($number === "999" || $number === "112") {
+            $message = "<p class=\"mb-0\">\"You are through to the emergency services. Your call is very important to us. Our lines are busy at the moment. Please call back later if your emergency persists.\"</p>";
+
+        } elseif ($number === "911") {
+            $message = "<p class=\"mb-0\">\"This is an automated message from your local police department. If you require police assistance, a SWAT team will be dispatched to your residence. If you require medical assistance, please contact your insurer. If you do not have medical insurance, a SWAT team will be dispatched to your residence.\"</p>";
+
+        } elseif ($number === "08002684319") {
+            if ($inventory->hasItemType("covid-19-cure")) {
+                $player->experienceEvent("the-right-call");
+                $message = $this->eventRepo->findMessage("the-right-call");
+            } else {
+                $message = "<p>You get through to the quarantine hotline. After several hours of waiting a human finally answers your call. You cannot remember the query you wanted to make and sheepishly hang up without saying anything.</p>"
+                    . "<p class=\"mb-0\">Maybe write it down next time?</p>";
+            }
+
+        } else {
+            $message = "<p class=\"mb-0\">You hear some strange and unfamiliar tones. Was that an international number?</p>";
+        }
+
+        session()->flash("messageRaw", $message);
+
+        $this->playerRepo->save($player);
+    }
+
+    private function useBed(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    {
+        if ($player->experiencedEvent("the-right-call")
+            && !$player->experiencedEvent("prank-call")
+        ) {
+            $letterBoxInventory = new Inventory("letter-box", $itemRepo->findAtLocation("letter-box"));
+
+            if ($letterBoxInventory->hasItemType("covid-19-cure")) {
+                $player->experienceEvent("save-the-world");
+                $this->playerRepo->save($player);
+
+                session()->flash("message", $this->eventRepo->findMessage("save-the-world"));
+                return;
+            }
+
+            $frontGardenInventory = new Inventory("front-garden", $itemRepo->findAtLocation("front-garden"));
+
+            $frontGardenInventory->removeByType("letter-box");
+
+            $item = $itemRepo->createForInventory("dented-letter-box");
+            $item->moveTo("front-garden");
+            $item->incrementQuantity();
+            $frontGardenInventory->add($item);
+
+            /** @var Item $inventoryItem */
+            foreach ($frontGardenInventory->getItems() as $inventoryItem) {
+                $itemRepo->save($inventoryItem);
+            }
+
+            $player->experienceEvent("prank-call");
+            $this->playerRepo->save($player);
+
+            session()->flash("messageRaw", $this->eventRepo->findMessage("prank-call"));
+            return;
+        }
+
+        $use = $item->getUse();
+
+        $this->playerRepo->save($player);
+
+        session()->flash("success", $use->getMessage());
     }
 }

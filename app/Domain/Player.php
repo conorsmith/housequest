@@ -21,6 +21,12 @@ final class Player
     private $isDead;
 
     /** @var array */
+    private $events;
+
+    /** @var array */
+    private $achievements;
+
+    /** @var array */
     private $eatenItemTypes;
 
     /** @var int */
@@ -34,6 +40,8 @@ final class Player
         string $locationId,
         int $xp,
         bool $isDead,
+        array $events,
+        array $achievements,
         array $eatenItemTypes,
         int $eatenItemCount,
         array $enteredLocations
@@ -42,6 +50,8 @@ final class Player
         $this->locationId = $locationId;
         $this->xp = $xp;
         $this->isDead = $isDead;
+        $this->events = $events;
+        $this->achievements = $achievements;
         $this->eatenItemTypes = $eatenItemTypes;
         $this->eatenItemsCount = $eatenItemCount;
         $this->enteredLocations = $enteredLocations;
@@ -65,6 +75,16 @@ final class Player
     public function isDead(): bool
     {
         return $this->isDead;
+    }
+
+    public function getEvents(): array
+    {
+        return $this->events;
+    }
+
+    public function getAchievements(): array
+    {
+        return $this->achievements;
     }
 
     public function getEatenItemTypes(): array
@@ -98,9 +118,22 @@ final class Player
         $this->isDead = true;
     }
 
-    public function gainXp(int $gain): void
+    public function experienceEvent(string $eventId): void
     {
-        $this->xp += $gain;
+        if ($this->experiencedEvent($eventId)) {
+            return;
+        }
+
+        $this->events[] = new Event($eventId, $this->locationId);
+    }
+
+    public function unlockAchievement(string $achievementId): void
+    {
+        if (in_array($achievementId, $this->achievements)) {
+            return;
+        }
+
+        $this->achievements[] = $achievementId;
     }
 
     public function eat(Item $item): void
@@ -116,5 +149,17 @@ final class Player
         }
 
         $this->eatenItemTypes[] = $item->getTypeId();
+    }
+
+    public function experiencedEvent(string $eventId): bool
+    {
+        /** @var Event $event */
+        foreach ($this->events as $event) {
+            if ($event->getId() === $eventId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -58,6 +58,16 @@ final class Inventory
         }
     }
 
+    public function removeByType(string $itemTypeId): void
+    {
+        /** @var Item $inventoryItem */
+        foreach ($this->items as $inventoryItem) {
+            if ($inventoryItem->getTypeId() === $itemTypeId) {
+                $inventoryItem->reduceQuantityTo(0);
+            }
+        }
+    }
+
     public function add(Item $item): void
     {
         $item->moveTo($this->locationId);
@@ -107,6 +117,18 @@ final class Inventory
         }
 
         return null;
+    }
+
+    public function hasItemType(string $itemTypeId): bool
+    {
+        /** @var Item $inventoryItem */
+        foreach ($this->items as $inventoryItem) {
+            if ($inventoryItem->getTypeId() === $itemTypeId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getItems(): array
