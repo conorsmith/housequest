@@ -12,6 +12,9 @@ final class Player
     private $id;
 
     /** @var string */
+    private $name;
+
+    /** @var string */
     private $locationId;
 
     /** @var int */
@@ -40,6 +43,7 @@ final class Player
 
     public function __construct(
         UuidInterface $id,
+        string $name,
         string $locationId,
         int $xp,
         bool $isDead,
@@ -51,6 +55,7 @@ final class Player
         array $enteredLocations
     ) {
         $this->id = $id;
+        $this->name = $name;
         $this->locationId = $locationId;
         $this->xp = $xp;
         $this->isDead = $isDead;
@@ -65,6 +70,11 @@ final class Player
     public function getId(): UuidInterface
     {
         return $this->id;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     public function getLocationId(): string

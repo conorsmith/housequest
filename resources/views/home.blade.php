@@ -5,14 +5,14 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="js-alert alert alert-secondary" style="display: none;">
-                ⚠ <span class="js-alert-message"></span>
+                <i class="fas fa-fw fa-exclamation-circle"></i> <span class="js-alert-message"></span>
                 <button type="button" class="close" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             @if(session("success"))
                 <div class="alert alert-secondary alert-dismissible fade show">
-                    ✔ {{ session("success") }}
+                    <i class="fas fa-fw fa-check-circle"></i> {{ session("success") }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -20,7 +20,7 @@
             @endif
             @if(session("info"))
                 <div class="alert alert-secondary alert-dismissible fade show">
-                    ⚠ {{ session("info") }}
+                    <i class="fas fa-fw fa-exclamation-circle"></i> {{ session("info") }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -28,7 +28,7 @@
             @endif
             @if(session("infoRaw"))
                 <div class="alert alert-secondary alert-dismissible fade show">
-                    ⚠ {!!  session("infoRaw") !!}
+                    <i class="fas fa-fw fa-exclamation-circle"></i> {!!  session("infoRaw") !!}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -124,13 +124,14 @@
             @if($player->inventory or $player->xp or $player->isDead or $player->hasWon)
                 <div class="card" style="margin-top: 2rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>Player</div>
+                        <div>{{ $player->name }}</div>
                     </div>
 
                     @if($player->isDead)
                         <div class="card-body additional-border-bottom">
                             <form action="/new-game" method="POST" class="action-button">
                                 {{ csrf_field() }}
+                                <input type="hidden" name="playerName" value="{{ $player->name }}">
                                 <button type="submit" class="btn btn-primary btn-block">
                                     You have died. Try again?
                                 </button>
@@ -142,6 +143,7 @@
                         <div class="card-body additional-border-bottom">
                             <form action="/new-game" method="POST" class="action-button">
                                 {{ csrf_field() }}
+                                <input type="hidden" name="playerName" value="{{ $player->name }}">
                                 <button type="submit" class="btn btn-primary btn-block">
                                     You saved the world. Care to try again?
                                 </button>
@@ -312,7 +314,7 @@
                         @endforeach
                     </ul>
                     <div class="modal-header additional-border-top">
-                        <h5 class="modal-title" id="staticBackdropLabel">Player Inventory</h5>
+                        <h5 class="modal-title" id="staticBackdropLabel">{{ $player->name }}</h5>
                     </div>
 
                     <ul class="list-group list-group-flush">
@@ -527,6 +529,7 @@
             <div class="modal-body additional-border-top">
                 <form action="/new-game" method="POST" class="action-button">
                     {{ csrf_field() }}
+                    <input type="hidden" name="playerName" value="{{ $player->name }}">
                     <button type="submit" class="btn btn-action btn-block">Start New Game</button>
                 </form>
             </div>

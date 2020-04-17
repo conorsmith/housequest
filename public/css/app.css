@@ -4959,7 +4959,7 @@ input[type=button].btn-block {
   word-wrap: break-word;
   background-color: #000;
   background-clip: border-box;
-  border: 1px solid rgba(0, 255, 0, 0.125);
+  border: 1px solid #007f00;
   border-radius: 0;
 }
 
@@ -5009,7 +5009,7 @@ input[type=button].btn-block {
   padding: 0.75rem 1.25rem;
   margin-bottom: 0;
   background-color: rgba(0, 255, 0, 0.03);
-  border-bottom: 1px solid rgba(0, 255, 0, 0.125);
+  border-bottom: 1px solid #007f00;
 }
 
 .card-header:first-child {
@@ -5023,7 +5023,7 @@ input[type=button].btn-block {
 .card-footer {
   padding: 0.75rem 1.25rem;
   background-color: rgba(0, 255, 0, 0.03);
-  border-top: 1px solid rgba(0, 255, 0, 0.125);
+  border-top: 1px solid #007f00;
 }
 
 .card-footer:last-child {
@@ -6254,7 +6254,7 @@ a.close.disabled {
   pointer-events: auto;
   background-color: #000;
   background-clip: padding-box;
-  border: 1px solid rgba(0, 255, 0, 0.2);
+  border: 1px solid #007f00;
   border-radius: 0;
   outline: 0;
 }
@@ -10933,11 +10933,11 @@ a.text-dark:focus {
 }
 
 .additional-border-top {
-  border-top: 1px solid rgba(0, 255, 0, 0.125);
+  border-top: 1px solid #007f00;
 }
 
 .additional-border-bottom {
-  border-bottom: 1px solid rgba(0, 255, 0, 0.125);
+  border-bottom: 1px solid #007f00;
 }
 
 .item.item-selectable {

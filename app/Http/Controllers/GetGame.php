@@ -93,6 +93,7 @@ final class GetGame extends Controller
         }
 
         $playerViewModel = (object) [
+            'name' => $player->getName(),
             'xp' => $player->getXp(),
             'isDead' => $player->isDead(),
             'hasWon' => $player->hasWon(),

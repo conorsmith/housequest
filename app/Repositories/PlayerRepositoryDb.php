@@ -61,6 +61,7 @@ final class PlayerRepositoryDb implements PlayerRepository
 
         return new Player(
             Uuid::fromString($row->id),
+            $row->name,
             $row->location_id,
             intval($row->xp),
             $row->is_dead === 1,

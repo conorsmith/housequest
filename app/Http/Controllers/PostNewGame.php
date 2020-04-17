@@ -4,12 +4,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 
 final class PostNewGame extends Controller
 {
-    public function __invoke()
+    public function __invoke(Request $request)
     {
         $objects = include __DIR__ . "/../../../config/objects.php";
 
@@ -25,9 +26,12 @@ final class PostNewGame extends Controller
             'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
         ]);
 
+        $name = $request->input("playerName");
+
         DB::table("players")->insert([
             'id' => $playerId,
             'game_id' => $gameId,
+            'name' => $name,
             'location_id' => "master-bedroom",
             'xp' => 0,
             'is_dead' => false,

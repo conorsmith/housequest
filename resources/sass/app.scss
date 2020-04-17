@@ -20,6 +20,8 @@ $font-family-sans-serif: 'Source Code Pro', monospace;
 $font-family-monospace: 'Source Code Pro', monospace;
 $font-family-base: 'Source Code Pro', monospace;
 
+$modal-content-border-color: $gray-300 !default;
+$card-border-color: $gray-300 !default;
 $list-group-action-color: $gray-900 !default;
 $component-active-color: $gray-900 !default;
 $component-active-bg: $gray-100 !default;
@@ -52,11 +54,11 @@ $border-radius-sm: 0 !default;
 }
 
 .additional-border-top {
-    border-top: 1px solid $card-border-color;
+    border-top: 1px solid $border-color;
 }
 
 .additional-border-bottom {
-    border-bottom: 1px solid $card-border-color;
+    border-bottom: 1px solid $border-color;
 }
 
 .item.item-selectable {

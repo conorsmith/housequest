@@ -14,6 +14,11 @@
 
                         <form action="/new-game" method="POST" class="action-button">
                             {{ csrf_field() }}
+                            <div class="form-group row">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" name="playerName" placeholder="Name">
+                                </div>
+                            </div>
                             <button type="submit" class="btn btn-primary btn-block">
                                 Start New Game
                             </button>
