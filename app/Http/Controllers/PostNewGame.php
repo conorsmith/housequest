@@ -28,6 +28,11 @@ final class PostNewGame extends Controller
 
         $name = $request->input("playerName");
 
+        if (is_null($name)) {
+            session()->flash("error", "You must enter a name to start a new game");
+            return redirect("/");
+        }
+
         DB::table("players")->insert([
             'id' => $playerId,
             'game_id' => $gameId,

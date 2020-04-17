@@ -12,6 +12,12 @@
                             House<wbr>Quest
                         </h1>
 
+                        @if(session("error"))
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-fw fa-exclamation-circle"></i> {{ session("error") }}
+                            </div>
+                        @endif
+
                         <form action="/new-game" method="POST" class="action-button">
                             {{ csrf_field() }}
                             <div class="form-group row">
