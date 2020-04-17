@@ -57,7 +57,9 @@ final class GetGame extends Controller
         if ($locationId === "landing") {
             /** @var Item $item */
             foreach ($activeLocationItems as $item) {
-                if ($item->getTypeId() === "deployed-step-ladder") {
+                if ($item->getTypeId() === "deployed-step-ladder"
+                    || $item->getTypeId() === "chair-pyramid"
+                ) {
                     $activeLocationConfig["egresses"][] = "attic";
                 }
             }
@@ -85,7 +87,10 @@ final class GetGame extends Controller
                 'label'                       => $item->getName(),
                 'quantity'                    => $item->getQuantity(),
                 'hasAllPortions'              => $item->hasAllPortions(),
+                'remainingPortions'           => $item->getRemainingPortions(),
+                'totalPortions'               => $item->getTotalPortions(),
                 'remainingPortionsPercentage' => $item->getRemainingPortions() / $item->getTotalPortions() * 100,
+                'isMultiPortionItem'          => $item->isMultiPortionItem(),
                 'isContainer'                 => $item->isContainer(),
                 'isUsable'                    => $item->hasUse()
                     && $item->getUse()->fromRoom()

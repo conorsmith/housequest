@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
+use Illuminate\Support\Arr;
+
 final class Recipe
 {
     public static function fromConfig(array $config): self
@@ -25,7 +27,19 @@ final class Recipe
             }
         }
 
-        return new self($ingredients, $config['output']);
+        if (is_array($config['output'])) {
+            foreach ($config['output'] as $key => $value) {
+                $outputTypeId = $key;
+                $outputQuantity = $value['quantity'];
+            }
+        } else {
+            $outputTypeId = $config['output'];
+            $outputQuantity = 1;
+        }
+
+        $outputLocation = Arr::get($config, 'location', "player");
+
+        return new self($ingredients, $outputTypeId, $outputQuantity, $outputLocation);
     }
 
     /** @var array */
@@ -34,10 +48,18 @@ final class Recipe
     /** @var string */
     private $outputItemTypeId;
 
-    public function __construct(array $ingredients, string $outputItemTypeId)
+    /** @var int */
+    private $outputItemQuantity;
+
+    /** @var string */
+    private $outputLocationId;
+
+    public function __construct(array $ingredients, string $outputItemTypeId, int $outputItemQuantity, string $outputLocationId)
     {
         $this->ingredients = $ingredients;
         $this->outputItemTypeId = $outputItemTypeId;
+        $this->outputItemQuantity = $outputItemQuantity;
+        $this->outputLocationId = $outputLocationId;
     }
 
     public function toArray(): array
@@ -79,6 +101,16 @@ final class Recipe
     public function getEndProduct(): string
     {
         return $this->outputItemTypeId;
+    }
+
+    public function getEndProductQuantity(): int
+    {
+        return $this->outputItemQuantity;
+    }
+
+    public function getEndProductionLocationId(): string
+    {
+        return $this->outputLocationId;
     }
 
     public function matches(array $submittedIngredients): bool

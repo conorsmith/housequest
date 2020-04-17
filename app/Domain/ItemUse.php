@@ -11,19 +11,10 @@ final class ItemUse
     /** @var string */
     private $message;
 
-    /** @var int */
-    private $xp;
-
-    public function __construct(array $from, string $message, int $xp)
+    public function __construct(array $from, string $message)
     {
         $this->from = $from;
         $this->message = $message;
-        $this->xp = $xp;
-    }
-
-    public function getXp(): int
-    {
-        return $this->xp;
     }
 
     public function getMessage(): string
@@ -31,13 +22,18 @@ final class ItemUse
         return $this->message;
     }
 
+    public function hasRestrictions(): bool
+    {
+        return count($this->from) > 0;
+    }
+
     public function fromRoom(): bool
     {
-        return in_array("room", $this->from);
+        return $this->hasRestrictions() && in_array("room", $this->from);
     }
 
     public function fromInventory(): bool
     {
-        return in_array("inventory", $this->from);
+        return $this->hasRestrictions() && in_array("inventory", $this->from);
     }
 }

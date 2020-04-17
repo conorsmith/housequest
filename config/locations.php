@@ -67,6 +67,10 @@ return [
             "kitchen",
             "back-garden",
         ],
+        'objects' => [
+            "dinner-table",
+            "dining-chair" => 4,
+        ],
     ],
     'utility-room' => [
         'title' => "Utility Room",
@@ -83,6 +87,10 @@ return [
         'description' => "It's cosy, I guess.",
         'egresses' => [
             "utility-room",
+        ],
+        'objects' => [
+            "toilet",
+            "sink",
         ],
     ],
     'garage' => [
@@ -132,7 +140,7 @@ return [
             "box-room",
             "staircase",
             "bathroom",
-            "other-bedroom",
+            "guest-bedroom",
         ],
     ],
     'master-bedroom' => [
@@ -153,12 +161,20 @@ return [
         'egresses' => [
             "master-bedroom",
         ],
+        'objects' => [
+            "toilet",
+            "sink",
+            "shower",
+        ],
     ],
-    'other-bedroom' => [
-        'title' => "Other Bedroom",
+    'guest-bedroom' => [
+        'title' => "Guest Bedroom",
         'description' => "No toilet in here, folks.",
         'egresses' => [
             "landing",
+        ],
+        'objects' => [
+            "bed",
         ],
     ],
     'box-room' => [
@@ -167,12 +183,20 @@ return [
         'egresses' => [
             "landing",
         ],
+        'objects' => [
+            "bed",
+        ],
     ],
     'bathroom' => [
         'title' => "Bathroom",
         'description' => "Where everybody knows your name.",
         'egresses' => [
             "landing",
+        ],
+        'objects' => [
+            "toilet",
+            "sink",
+            "bath",
         ],
     ],
     'the-street' => [

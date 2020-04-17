@@ -33,7 +33,7 @@ return [
     'save-the-world' => [
         'message' => [
             "You awaken just in time to hear the commotion outside. A pair of science vans are parked outside your house. A person in a hazmat suit is inspecting your letter box. They retrieve the cure for Covid-19 that you left inside.",
-            "They replace it with a cheque for €10,000,000 and one (1) Get Out Of Jail Free card. The hazmat person sees you looking out the window and salutes you.",
+            "They replace it with a cheque for €10,000,000 and one (1) Get Out Of Jail Free card. The hazmat person sees you looking out of the house and salutes you.",
             "You did it. You saved the world.",
         ],
     ],

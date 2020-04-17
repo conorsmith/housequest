@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Inventory;
 use App\Domain\Item;
+use App\Domain\Player;
 use App\Domain\Recipe;
 use App\Domain\RecipeIngredient;
 use App\Repositories\ItemRepositoryDb;
@@ -45,32 +46,43 @@ final class PostMake extends Controller
 
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
-        $recipe = $this->findRecipeForRequest($request);
+        $recipe = $this->findRecipeForRequest($request, $player);
 
         if (is_null($recipe)) {
             session()->flash("info", "You failed to make anything.");
             return redirect("/{$gameId}");
         }
 
-        $inventoryItems = $this->removeUsedItemsFromInventory($request, $itemRepo);
+        $inventories = $this->removeUsedItemsFromInventory($request, $itemRepo, $player);
 
         $endProduct = $this->getEndProduct($itemRepo, $recipe);
-        $endProduct->incrementQuantity();
+        $endProduct->addQuantity($recipe->getEndProductQuantity());
+        if ($recipe->getEndProductionLocationId() === "room") {
+            $endProduct->moveTo($player->getLocationId());
+        }
 
-        //$player->gainXp(10);
-
-        foreach ($inventoryItems as $item) {
-            $itemRepo->save($item);
+        /** @var Inventory $inventory */
+        foreach ($inventories as $inventory) {
+            /** @var Item $item */
+            foreach ($inventory->getItems() as $item) {
+                $itemRepo->save($item);
+            }
         }
 
         $itemRepo->save($endProduct);
         $this->playerRepo->save($player);
 
-        session()->flash("success", "You made {$endProduct->getName()}.");
+        if ($recipe->getEndProductQuantity() > 1) {
+            $output = "{$endProduct->getName()} ({$recipe->getEndProductQuantity()})";
+        } else {
+            $output = $endProduct->getName();
+        }
+
+        session()->flash("success", "You made {$output}.");
         return redirect("/{$gameId}");
     }
 
-    private function findRecipeForRequest(Request $request): ?Recipe
+    private function findRecipeForRequest(Request $request, Player $player): ?Recipe
     {
         $itemRepo = $this->itemRepoFactory->create(
             Uuid::fromString($request->route()->parameter("gameId"))
@@ -79,50 +91,68 @@ final class PostMake extends Controller
         $submittedItemsQuantitiesById = $this->getSubmittedItemQuantitiesById($request);
         $submittedItemsPortionsById = $this->getSubmittedItemPortionsById($request);
 
-        $inventoryItems = $itemRepo->getInventory();
+        $inventories = [
+            $itemRepo->findAtLocation("player"),
+            $itemRepo->findAtLocation($player->getLocationId()),
+        ];
 
         $submittedIngredients = [];
 
-        /** @var Item $inventoryItem */
-        foreach ($inventoryItems as $inventoryItem) {
-            if (array_key_exists($inventoryItem->getId()->toString(), $submittedItemsQuantitiesById)) {
-                $submittedIngredients[] = new RecipeIngredient(
-                    $inventoryItem->getTypeId(),
-                    intval($submittedItemsQuantitiesById[$inventoryItem->getId()->toString()]),
-                    0
-                );
-            }
-            if (array_key_exists($inventoryItem->getId()->toString(), $submittedItemsPortionsById)) {
-                $submittedIngredients[] = new RecipeIngredient(
-                    $inventoryItem->getTypeId(),
-                    0,
-                    intval($submittedItemsPortionsById[$inventoryItem->getId()->toString()])
-                );
+        foreach ($inventories as $inventoryItems) {
+            /** @var Item $inventoryItem */
+            foreach ($inventoryItems as $inventoryItem) {
+                if (array_key_exists($inventoryItem->getId()->toString(), $submittedItemsQuantitiesById)) {
+                    $submittedIngredients[] = new RecipeIngredient(
+                        $inventoryItem->getTypeId(),
+                        intval($submittedItemsQuantitiesById[$inventoryItem->getId()->toString()]),
+                        0
+                    );
+                }
+                if (array_key_exists($inventoryItem->getId()->toString(), $submittedItemsPortionsById)) {
+                    $submittedIngredients[] = new RecipeIngredient(
+                        $inventoryItem->getTypeId(),
+                        0,
+                        intval($submittedItemsPortionsById[$inventoryItem->getId()->toString()])
+                    );
+                }
             }
         }
 
         return $this->recipeRepo->findForIngredients($submittedIngredients);
     }
 
-    private function removeUsedItemsFromInventory(Request $request, ItemRepositoryDb $itemRepo): array
+    private function removeUsedItemsFromInventory(Request $request, ItemRepositoryDb $itemRepo, Player $player): array
     {
-        $inventory = new Inventory("player", $itemRepo->getInventory());
+        $inventories = [
+            new Inventory("player", $itemRepo->getInventory()),
+            new Inventory($player->getLocationId(), $itemRepo->findAtLocation($player->getLocationId()))
+        ];
 
         $submittedItemsQuantitiesById = $this->getSubmittedItemQuantitiesById($request);
 
-        foreach ($submittedItemsQuantitiesById as $id => $quantity) {
-            $item = $inventory->find(Uuid::fromString($id));
-            $item->removeQuantity(intval($quantity));
+        /** @var Inventory $inventory */
+        foreach ($inventories as $inventory) {
+            foreach ($submittedItemsQuantitiesById as $id => $quantity) {
+                $item = $inventory->find(Uuid::fromString($id));
+                if (!is_null($item)) {
+                    $item->removeQuantity(intval($quantity));
+                }
+            }
         }
 
         $submittedItemsPortionsById = $this->getSubmittedItemPortionsById($request);
 
-        foreach ($submittedItemsPortionsById as $id => $portions) {
-            $item = $inventory->find(Uuid::fromString($id));
-            $inventory->removePortionsFromItem($item, intval($portions));
+        /** @var Inventory $inventory */
+        foreach ($inventories as $inventory) {
+            foreach ($submittedItemsPortionsById as $id => $portions) {
+                $item = $inventory->find(Uuid::fromString($id));
+                if (!is_null($item)) {
+                    $inventory->removePortionsFromItem($item, intval($portions));
+                }
+            }
         }
 
-        return $inventory->getItems();
+        return $inventories;
     }
 
     private function getEndProduct(ItemRepositoryDb $itemRepo, Recipe $recipe): Item

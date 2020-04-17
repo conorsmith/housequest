@@ -382,10 +382,91 @@
             <form action="/{{ $gameId }}/make" method="POST">
                 {{ csrf_field() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Make</h5>
+                    <h5 class="modal-title">{{ $location->title }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    @foreach($location->objects as $object)
+                        <div
+                            class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                            data-available-quantity="{{ $object->quantity }}"
+                            data-selected-quantity="0"
+                            data-total-portions="{{ $object->totalPortions }}"
+                            data-available-portions="{{ $object->remainingPortions }}"
+                            data-selected-portions="0"
+                        >
+                            <div class="item-label d-flex justify-content-start align-items-center">
+                                {{ $object->label }}
+                                @if(!$object->hasAllPortions)
+                                    <div class="progress">
+                                        <div class="progress-bar"
+                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                        ></div>
+                                    </div>
+                                @endif
+                                @if($object->quantity > 1)
+                                    <span class="badge badge-primary">
+                                        {{ $object->quantity }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="item-controls d-flex justify-content-start align-items-center">
+                                @if($object->isMultiPortionItem)
+                                    <div class="progress" style="margin-right: 0.6rem;">
+                                        <div class="progress-bar bg-selected js-selected-portions"
+                                             style="width: 0;"
+                                        ></div>
+                                        <div class="progress-bar js-unselected-portions"
+                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                        ></div>
+                                    </div>
+                                    <div class="btn-group js-item-portions" style="margin-right: 1rem;">
+                                        <button type="button"
+                                                class="btn btn-action btn-sm js-portion-decrement"
+                                        >
+                                            <i class="fas fa-fw fa-minus"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-action btn-sm js-portion-increment"
+                                        >
+                                            <i class="fas fa-fw fa-plus"></i>
+                                        </button>
+                                    </div>
+                                @endif
+                                <span class="badge badge-primary js-selected-quantity"
+                                      style="margin-right: 0.6rem;"
+                                >
+                                    0
+                                </span>
+                                <div class="btn-group js-item-quantities">
+                                    <button type="button"
+                                            class="btn btn-action btn-sm js-decrement"
+                                    >
+                                        <i class="fas fa-fw fa-minus"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-action btn-sm js-take-all"
+                                    >
+                                        All
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-action btn-sm js-increment"
+                                    >
+                                        <i class="fas fa-fw fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="hidden" class="js-quantity-input" name="itemQuantities[{{ $object->id }}]" value="0">
+                            <input type="hidden" class="js-portions-input" name="itemPortions[{{ $object->id }}]" value="0">
+                        </div>
+                    @endforeach
+                </ul>
+
+                <div class="modal-header additional-border-top">
+                    <h5 class="modal-title">{{ $player->name }}</h5>
                 </div>
 
                 <ul class="list-group list-group-flush">

@@ -57,6 +57,23 @@ final class PostUse extends Controller
 
         $use = $item->getUse();
 
+        if ($use->hasRestrictions()) {
+
+            if ($use->fromRoom()
+                && $item->getLocationId() !== $player->getLocationId()
+            ) {
+                session()->flash("info", "You cannot use {$item->getName()} from your inventory.");
+                return redirect("/{$gameId}");
+            }
+
+            if ($use->fromInventory()
+                && $item->getLocationId() !== "player"
+            ) {
+                session()->flash("info", "You can only use {$item->getName()} from your inventory.");
+                return redirect("/{$gameId}");
+            }
+        }
+
         $this->playerRepo->save($player);
 
         session()->flash("success", $use->getMessage());

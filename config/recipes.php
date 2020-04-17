@@ -34,4 +34,19 @@ return [
         ],
         'output' => "bowl-of-coco-pops",
     ],
+    [
+        'input' => [
+            "dining-chair" => ['quantity' => 3],
+        ],
+        'output' => "chair-pyramid",
+        'location' => "room",
+    ],
+    [
+        'input' => [
+            "chair-pyramid",
+        ],
+        'output' => [
+            "dining-chair" => ['quantity' => 3],
+        ],
+    ],
 ];

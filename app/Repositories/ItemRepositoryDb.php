@@ -200,11 +200,17 @@ final class ItemRepositoryDb implements ItemRepository
         $itemConfig = $this->config[$row->object_id];
 
         if (array_key_exists('use', $itemConfig)) {
-            $itemUse = new ItemUse(
-                Arr::get($itemConfig['use'], 'location', []),
-                $itemConfig['use']['message'],
-                $itemConfig['use']['xp']
-            );
+            if (is_array($itemConfig['use'])) {
+                $itemUse = new ItemUse(
+                    Arr::get($itemConfig['use'], 'location', []),
+                    $itemConfig['use']['message']
+                );
+            } else {
+                $itemUse = new ItemUse(
+                    [],
+                    $itemConfig['use']
+                );
+            }
         } else {
             $itemUse = null;
         }

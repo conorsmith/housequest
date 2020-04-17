@@ -73,10 +73,7 @@ return [
     ],
     'hairdryer' => [
         'name' => "Hairdryer",
-        'use' => [
-            'message' => "You blow hot air directly into your face for 5 minutes. It's pleasant.",
-            'xp' => 10,
-        ],
+        'use' => "You blow hot air directly into your face for 5 minutes. It's pleasant.",
     ],
     'couch' => [
         'name' => "Couch",
@@ -86,7 +83,6 @@ return [
         'use' => [
             'location' => ["room"],
             'message' => "You have a bit of a sit down. Thrilling stuff.",
-            'xp' => 10,
         ],
     ],
     'entertainment-unit' => [
@@ -192,7 +188,6 @@ return [
         ],
         'use' => [
             'message' => "You sleep until morning.",
-            'xp' => 10,
         ],
     ],
     'letter-box' => [
@@ -218,6 +213,53 @@ return [
         'name' => "Severely Dented Letter Box",
         'attributes' => [
             "affixed",
+        ],
+    ],
+    'toilet' => [
+        'name' => "Toilet",
+        'use' => "You relieve yourself.",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'sink' => [
+        'name' => "Sink",
+        'use' => "You wash your hands for a solid minute. Good work.",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'shower' => [
+        'name' => "Shower",
+        'use' => "You take an hour long shower since you have the time.",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'bath' => [
+        'name' => "Bath",
+        'use' => "You spend several hours in a nice, warm bath.",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'dinner-table' => [
+        'name' => "Dinner Table",
+        'attributes' => [
+            "heavy",
+        ],
+    ],
+    'dining-chair' => [
+        'name' => "Dining Chair",
+        'use' => [
+            'location' => ["room"],
+            'message' => "You have a bit of a sit down. Thrilling stuff.",
+        ],
+    ],
+    'chair-pyramid' => [
+        'name' => "Chair Pyramid",
+        'attributes' => [
+            "dangerous",
         ],
     ],
 ];
