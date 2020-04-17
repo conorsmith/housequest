@@ -20,6 +20,9 @@ final class Player
     /** @var bool */
     private $isDead;
 
+    /** @var bool */
+    private $hasWon;
+
     /** @var array */
     private $events;
 
@@ -40,6 +43,7 @@ final class Player
         string $locationId,
         int $xp,
         bool $isDead,
+        bool $hasWon,
         array $events,
         array $achievements,
         array $eatenItemTypes,
@@ -50,6 +54,7 @@ final class Player
         $this->locationId = $locationId;
         $this->xp = $xp;
         $this->isDead = $isDead;
+        $this->hasWon = $hasWon;
         $this->events = $events;
         $this->achievements = $achievements;
         $this->eatenItemTypes = $eatenItemTypes;
@@ -75,6 +80,11 @@ final class Player
     public function isDead(): bool
     {
         return $this->isDead;
+    }
+
+    public function hasWon(): bool
+    {
+        return $this->hasWon;
     }
 
     public function getEvents(): array
@@ -116,6 +126,11 @@ final class Player
     public function kill(): void
     {
         $this->isDead = true;
+    }
+
+    public function win(): void
+    {
+        $this->hasWon = true;
     }
 
     public function experienceEvent(string $eventId): void

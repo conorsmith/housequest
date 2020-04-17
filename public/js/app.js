@@ -163,14 +163,12 @@ var View = /*#__PURE__*/function () {
   _createClass(View, [{
     key: "activate",
     value: function activate() {
-      this.el.classList.add("btn-primary");
-      this.el.classList.remove("btn-light");
+      this.el.classList.add("selected");
     }
   }, {
     key: "deactivate",
     value: function deactivate() {
-      this.el.classList.add("btn-light");
-      this.el.classList.remove("btn-primary");
+      this.el.classList.remove("selected");
     }
   }]);
 

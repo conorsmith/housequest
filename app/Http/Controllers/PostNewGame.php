@@ -31,6 +31,7 @@ final class PostNewGame extends Controller
             'location_id' => "master-bedroom",
             'xp' => 0,
             'is_dead' => false,
+            'has_won' => false,
             'eaten_items_count' => 0,
             'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
         ]);

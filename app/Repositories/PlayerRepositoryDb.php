@@ -64,6 +64,7 @@ final class PlayerRepositoryDb implements PlayerRepository
             $row->location_id,
             intval($row->xp),
             $row->is_dead === 1,
+            $row->has_won === 1,
             $events,
             $achievements,
             $eatenItemTypes,
@@ -82,6 +83,7 @@ final class PlayerRepositoryDb implements PlayerRepository
                 'location_id'       => $player->getLocationId(),
                 'xp'                => $player->getXp(),
                 'is_dead'           => $player->isDead(),
+                'has_won'           => $player->hasWon(),
                 'eaten_items_count' => $player->getEatenItemsCount(),
             ]);
 

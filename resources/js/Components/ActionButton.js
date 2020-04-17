@@ -42,13 +42,11 @@ class View {
     }
 
     activate() {
-        this.el.classList.add("btn-primary");
-        this.el.classList.remove("btn-light");
+        this.el.classList.add("selected");
     }
 
     deactivate() {
-        this.el.classList.add("btn-light");
-        this.el.classList.remove("btn-primary");
+        this.el.classList.remove("selected");
     }
 }
 

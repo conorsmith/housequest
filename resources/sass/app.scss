@@ -1,8 +1,63 @@
 @use "sass:map";
 
-$primary: #343a40 !default;
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600&display=swap');
+
+$white: #000 !default;
+$gray-100: #004c00 !default;
+$gray-200: #006600 !default;
+$gray-300: #007f00 !default;
+$gray-400: #008c00 !default;
+$gray-500: #009900 !default;
+$gray-600: #00a500 !default;
+$gray-700: #00b200 !default;
+$gray-800: #00cc00 !default;
+$gray-900: #00e500 !default;
+$black: #0f0 !default;
+
+$primary: $gray-800 !default;
+
+$font-family-sans-serif: 'Source Code Pro', monospace;
+$font-family-monospace: 'Source Code Pro', monospace;
+$font-family-base: 'Source Code Pro', monospace;
+
+$list-group-action-color: $gray-900 !default;
+$component-active-color: $gray-900 !default;
+$component-active-bg: $gray-100 !default;
+$modal-backdrop-bg: #000 !default;
+
+$border-radius: 0 !default;
+$border-radius-lg: 0 !default;
+$border-radius-sm: 0 !default;
 
 @import "~bootstrap/scss/bootstrap";
+
+.btn-action {
+    @include button-variant($gray-800, $gray-800);
+
+    &:focus {
+        box-shadow: none;
+    }
+
+    &.selected {
+        background-color: $gray-200;
+        border-color: $gray-200;
+        color: $black;
+    }
+}
+
+.btn-primary {
+    &:active {
+        color: $black;
+    }
+}
+
+.additional-border-top {
+    border-top: 1px solid $card-border-color;
+}
+
+.additional-border-bottom {
+    border-bottom: 1px solid $card-border-color;
+}
 
 .item.item-selectable {
     cursor: pointer;
@@ -16,7 +71,7 @@ $primary: #343a40 !default;
 
 .item .item-label .progress-bar,
 .item .item-controls .progress-bar {
-    background-color: #b5b5b5;
+    background-color: $gray-800;
 }
 
 .item .item-label .progress-bar.bg-selected,
@@ -41,6 +96,7 @@ $primary: #343a40 !default;
         padding: 0;
 
         .alert {
+            margin-bottom: 0;
             border-radius: 0;
             border-top-width: 0;
             border-left-width: 0;

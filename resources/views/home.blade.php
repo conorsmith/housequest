@@ -79,9 +79,9 @@
                             <form action="/{{ $gameId }}/go/{{ $egress->id }}" method="POST" class="action-button" style="margin: 0 0.2rem;">
                                 {{ csrf_field() }}
                                 <button type="submit"
-                                        class="btn btn-light btn-block"
+                                        class="btn btn-action btn-block"
                                         style="margin-bottom: 0.4rem;"
-                                        {{ $player->isDead ? "disabled" : "" }}
+                                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                                 >
                                     Go to {{ $egress->label }}
                                 </button>
@@ -91,51 +91,59 @@
 
                 </div>
 
-                <ul class="list-group list-group-flush" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
-                    @foreach($location->objects as $object)
-                        <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                            data-id="{{ $object->id }}"
-                            data-type-id="{{ $object->typeId }}"
-                            data-label="{{ $object->label }}"
-                            data-is-container="{{ $object->isContainer }}"
-                        >
-                            <div class="item-label d-flex justify-content-start align-items-center">
-                                {{ $object->label }}
-                                @if(!$object->hasAllPortions)
-                                    <div class="progress">
-                                        <div class="progress-bar"
-                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
-                                        ></div>
-                                    </div>
-                                @endif
-                                @if($object->quantity > 1)
-                                    <span class="badge badge-light">
-                                    {{ $object->quantity }}
-                                </span>
-                                @endif
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+                @if(count($location->objects) > 0)
+                    <ul class="list-group list-group-flush additional-border-top">
+                        @foreach($location->objects as $object)
+                            <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
+                                data-id="{{ $object->id }}"
+                                data-type-id="{{ $object->typeId }}"
+                                data-label="{{ $object->label }}"
+                                data-is-container="{{ $object->isContainer }}"
+                            >
+                                <div class="item-label d-flex justify-content-start align-items-center">
+                                    {{ $object->label }}
+                                    @if(!$object->hasAllPortions)
+                                        <div class="progress">
+                                            <div class="progress-bar"
+                                                 style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                            ></div>
+                                        </div>
+                                    @endif
+                                    @if($object->quantity > 1)
+                                        <span class="badge badge-primary">
+                                        {{ $object->quantity }}
+                                    </span>
+                                    @endif
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
 
-            @if($player->inventory or $player->xp or $player->isDead)
+            @if($player->inventory or $player->xp or $player->isDead or $player->hasWon)
                 <div class="card" style="margin-top: 2rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>Player</div>
-                        {{--
-                        @if($player->xp)
-                            <span class="badge badge-light">{{ $player->xp }} XP</span>
-                        @endif
-                        --}}
                     </div>
 
                     @if($player->isDead)
-                        <div class="card-body">
+                        <div class="card-body additional-border-bottom">
                             <form action="/new-game" method="POST" class="action-button">
                                 {{ csrf_field() }}
-                                <button type="submit" class="btn btn-light btn-block">
+                                <button type="submit" class="btn btn-primary btn-block">
                                     You have died. Try again?
+                                </button>
+                            </form>
+                        </div>
+                    @endif
+
+                    @if($player->hasWon)
+                        <div class="card-body additional-border-bottom">
+                            <form action="/new-game" method="POST" class="action-button">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    You saved the world. Care to try again?
                                 </button>
                             </form>
                         </div>
@@ -159,7 +167,7 @@
                                         </div>
                                     @endif
                                     @if($object->quantity > 1)
-                                        <span class="badge badge-light">
+                                        <span class="badge badge-primary">
                                             {{ $object->quantity }}
                                         </span>
                                     @endif
@@ -174,7 +182,7 @@
     </div>
 </div>
 
-<nav class="navbar fixed-bottom navbar-light bg-white" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
+<nav class="navbar fixed-bottom navbar-light bg-white additional-border-top">
     <a class="navbar-brand d-none d-lg-block"
        href="#"
        style="position: absolute;"
@@ -186,46 +194,46 @@
     <div class="container">
         <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
                 <button type="button"
-                        class="js-pick-up btn btn-light btn-sm"
+                        class="js-pick-up btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Pick Up
                 </button>
                 <button type="button"
-                        class="js-drop btn btn-light btn-sm"
+                        class="js-drop btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Drop
                 </button>
                 <button type="button"
-                        class="js-use btn btn-light btn-sm"
+                        class="js-use btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Use
                 </button>
                 <button type="button"
-                        class="js-eat btn btn-light btn-sm"
+                        class="js-eat btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Eat
                 </button>
                 <button type="button"
-                        class="js-open btn btn-light btn-sm"
+                        class="js-open btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Open
                 </button>
                 <button type="button"
-                        class="btn btn-light btn-sm"
+                        class="btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         data-toggle="modal"
                         data-target="#menu-make"
-                        {{ $player->isDead ? "disabled" : "" }}
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                 >
                     Make
                 </button>
@@ -254,7 +262,7 @@
                         </button>
                     </div>
 
-                    <ul class="list-group list-group-flush" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
+                    <ul class="list-group list-group-flush additional-border-top">
                         @foreach($container->contents as $object)
                             <div
                                class="item list-group-item d-flex justify-content-between align-items-center js-item"
@@ -272,28 +280,28 @@
                                         </div>
                                     @endif
                                     @if($object->quantity > 1)
-                                        <span class="badge badge-light">
+                                        <span class="badge badge-primary">
                                             {{ $object->quantity }}
                                         </span>
                                     @endif
                                 </div>
                                 <div>
-                                    <span class="badge badge-light js-selected-quantity">
+                                    <span class="badge badge-primary js-selected-quantity">
                                         0
                                     </span>
                                     <div class="btn-group js-item-quantities">
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-decrement"
+                                                class="btn btn-action btn-sm js-decrement"
                                         >
                                             <i class="fas fa-fw fa-minus"></i>
                                         </button>
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-take-all"
+                                                class="btn btn-action btn-sm js-take-all"
                                         >
                                             All
                                         </button>
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-increment"
+                                                class="btn btn-action btn-sm js-increment"
                                         >
                                             <i class="fas fa-fw fa-plus"></i>
                                         </button>
@@ -303,7 +311,7 @@
                             </div>
                         @endforeach
                     </ul>
-                    <div class="modal-header" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
+                    <div class="modal-header additional-border-top">
                         <h5 class="modal-title" id="staticBackdropLabel">Player Inventory</h5>
                     </div>
 
@@ -325,28 +333,28 @@
                                         </div>
                                     @endif
                                     @if($object->quantity > 1)
-                                        <span class="badge badge-light">
+                                        <span class="badge badge-primary">
                                             {{ $object->quantity }}
                                         </span>
                                     @endif
                                 </div>
                                 <div>
-                                    <span class="badge badge-light js-selected-quantity">
+                                    <span class="badge badge-primary js-selected-quantity">
                                         0
                                     </span>
                                     <div class="btn-group js-item-quantities">
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-decrement"
+                                                class="btn btn-action btn-sm js-decrement"
                                         >
                                             <i class="fas fa-fw fa-minus"></i>
                                         </button>
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-take-all"
+                                                class="btn btn-action btn-sm js-take-all"
                                         >
                                             All
                                         </button>
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-increment"
+                                                class="btn btn-action btn-sm js-increment"
                                         >
                                             <i class="fas fa-fw fa-plus"></i>
                                         </button>
@@ -357,8 +365,8 @@
                         @endforeach
                     </ul>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-light">Transfer</button>
-                        <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-action">Transfer</button>
+                        <button type="button" class="btn btn-action" data-dismiss="modal">Close</button>
                     </div>
                 </form>
             </div>
@@ -398,7 +406,7 @@
                                     </div>
                                 @endif
                                 @if($object->quantity > 1)
-                                    <span class="badge badge-light">
+                                    <span class="badge badge-primary">
                                         {{ $object->quantity }}
                                     </span>
                                 @endif
@@ -415,35 +423,35 @@
                                     </div>
                                     <div class="btn-group js-item-portions" style="margin-right: 1rem;">
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-portion-decrement"
+                                                class="btn btn-action btn-sm js-portion-decrement"
                                         >
                                             <i class="fas fa-fw fa-minus"></i>
                                         </button>
                                         <button type="button"
-                                                class="btn btn-light btn-sm js-portion-increment"
+                                                class="btn btn-action btn-sm js-portion-increment"
                                         >
                                             <i class="fas fa-fw fa-plus"></i>
                                         </button>
                                     </div>
                                 @endif
-                                <span class="badge badge-light js-selected-quantity"
+                                <span class="badge badge-primary js-selected-quantity"
                                       style="margin-right: 0.6rem;"
                                 >
                                     0
                                 </span>
                                 <div class="btn-group js-item-quantities">
                                     <button type="button"
-                                            class="btn btn-light btn-sm js-decrement"
+                                            class="btn btn-action btn-sm js-decrement"
                                     >
                                         <i class="fas fa-fw fa-minus"></i>
                                     </button>
                                     <button type="button"
-                                            class="btn btn-light btn-sm js-take-all"
+                                            class="btn btn-action btn-sm js-take-all"
                                     >
                                         All
                                     </button>
                                     <button type="button"
-                                            class="btn btn-light btn-sm js-increment"
+                                            class="btn btn-action btn-sm js-increment"
                                     >
                                         <i class="fas fa-fw fa-plus"></i>
                                     </button>
@@ -455,8 +463,8 @@
                     @endforeach
                 </ul>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-light">Make</button>
-                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-action">Make</button>
+                    <button type="button" class="btn btn-action" data-dismiss="modal">Close</button>
                 </div>
             </form>
         </div>
@@ -476,28 +484,28 @@
                 <div class="number-display"></div>
                 <div class="keypad">
                     <div class="keypad-row">
-                        <button type="button" class="btn btn-light" data-symbol="1">1</button>
-                        <button type="button" class="btn btn-light" data-symbol="2">2</button>
-                        <button type="button" class="btn btn-light" data-symbol="3">3</button>
+                        <button type="button" class="btn btn-action" data-symbol="1">1</button>
+                        <button type="button" class="btn btn-action" data-symbol="2">2</button>
+                        <button type="button" class="btn btn-action" data-symbol="3">3</button>
                     </div>
                     <div class="keypad-row">
-                        <button type="button" class="btn btn-light" data-symbol="4">4</button>
-                        <button type="button" class="btn btn-light" data-symbol="5">5</button>
-                        <button type="button" class="btn btn-light" data-symbol="6">6</button>
+                        <button type="button" class="btn btn-action" data-symbol="4">4</button>
+                        <button type="button" class="btn btn-action" data-symbol="5">5</button>
+                        <button type="button" class="btn btn-action" data-symbol="6">6</button>
                     </div>
                     <div class="keypad-row">
-                        <button type="button" class="btn btn-light" data-symbol="7">7</button>
-                        <button type="button" class="btn btn-light" data-symbol="8">8</button>
-                        <button type="button" class="btn btn-light" data-symbol="9">9</button>
+                        <button type="button" class="btn btn-action" data-symbol="7">7</button>
+                        <button type="button" class="btn btn-action" data-symbol="8">8</button>
+                        <button type="button" class="btn btn-action" data-symbol="9">9</button>
                     </div>
                     <div class="keypad-row">
-                        <button type="button" class="btn btn-light" data-symbol="0">0</button>
+                        <button type="button" class="btn btn-action" data-symbol="0">0</button>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="call-button btn btn-light">Call</button>
-                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" class="call-button btn btn-action">Call</button>
+                <button type="button" class="btn btn-action" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -513,17 +521,17 @@
                 </button>
             </div>
             <div class="modal-body">
-                <button type="button" class="btn btn-light btn-block" data-toggle="modal" data-target="#menu-events" data-dismiss="modal">Event Log</button>
-                <button type="button" class="btn btn-light btn-block" data-toggle="modal" data-target="#menu-achievements" data-dismiss="modal">Achievements</button>
+                <button type="button" class="btn btn-action btn-block" data-toggle="modal" data-target="#menu-events" data-dismiss="modal">Event Log</button>
+                <button type="button" class="btn btn-action btn-block" data-toggle="modal" data-target="#menu-achievements" data-dismiss="modal">Achievements</button>
             </div>
-            <div class="modal-body" style="border-top: 1px solid rgba(0, 0, 0, 0.125);">
+            <div class="modal-body additional-border-top">
                 <form action="/new-game" method="POST" class="action-button">
                     {{ csrf_field() }}
-                    <button type="submit" class="btn btn-light btn-block">Start New Game</button>
+                    <button type="submit" class="btn btn-action btn-block">Start New Game</button>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light btn-block" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-action btn-block" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -547,7 +555,7 @@
                 @endforeach
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-action" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -574,7 +582,7 @@
                 @endforeach
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-action" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

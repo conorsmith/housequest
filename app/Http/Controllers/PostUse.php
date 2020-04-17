@@ -217,9 +217,10 @@ final class PostUse extends Controller
 
             if ($letterBoxInventory->hasItemType("covid-19-cure")) {
                 $player->experienceEvent("save-the-world");
+                $player->win();
                 $this->playerRepo->save($player);
 
-                session()->flash("message", $this->eventRepo->findMessage("save-the-world"));
+                session()->flash("messageRaw", $this->eventRepo->findMessage("save-the-world"));
                 return;
             }
 
