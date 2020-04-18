@@ -98,6 +98,9 @@
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $item->label }}
+                                    @if($item->state)
+                                        <span class="badge badge-primary">{{ $item->state }}</span>
+                                    @endif
                                     @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
@@ -157,6 +160,9 @@
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $item->label }}
+                                    @if($item->state)
+                                        <span class="badge badge-primary">{{ $item->state }}</span>
+                                    @endif
                                     @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
@@ -279,6 +285,9 @@
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
                                     {{ $item->label }}
+                                    @if($item->state)
+                                        <span class="badge badge-primary">{{ $item->state }}</span>
+                                    @endif
                                     @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
@@ -333,6 +342,9 @@
                                 >
                                     <div class="item-label d-flex justify-content-start align-items-center">
                                         {{ $item->label }}
+                                        @if($item->state)
+                                            <span class="badge badge-primary">{{ $item->state }}</span>
+                                        @endif
                                         @if(!$item->hasAllPortions)
                                             <div class="progress">
                                                 <div class="progress-bar"
@@ -407,6 +419,9 @@
                         >
                             <div class="item-label d-flex justify-content-start align-items-center">
                                 {{ $item->label }}
+                                @if($item->state)
+                                    <span class="badge badge-primary">{{ $item->state }}</span>
+                                @endif
                                 @if(!$item->hasAllPortions)
                                     <div class="progress">
                                         <div class="progress-bar"
@@ -488,6 +503,9 @@
                         >
                             <div class="item-label d-flex justify-content-start align-items-center">
                                 {{ $item->label }}
+                                @if($item->state)
+                                    <span class="badge badge-primary">{{ $item->state }}</span>
+                                @endif
                                 @if(!$item->hasAllPortions)
                                     <div class="progress">
                                         <div class="progress-bar"

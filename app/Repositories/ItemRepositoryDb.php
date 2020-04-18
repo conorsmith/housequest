@@ -66,13 +66,20 @@ final class ItemRepositoryDb implements ItemRepository
             $portions = 1;
         }
 
-        return $this->createItemFromRow((object)([
+        if (array_key_exists('states', $itemConfig)) {
+            $state = array_key_first($itemConfig['states']);
+        } else {
+            $state = null;
+        }
+
+        return $this->createItemFromRow((object) [
             'id'          => Uuid::uuid4()->toString(),
             'object_id'   => $itemTypeId,
             'location_id' => "",
             'quantity'    => 0,
             'portions'    => $portions,
-        ]));
+            'state'       => $state,
+        ]);
     }
 
     public function save(Item $item): void
@@ -97,6 +104,7 @@ final class ItemRepositoryDb implements ItemRepository
                         'location_id' => $item->getLocationId(),
                         'quantity'    => $item->getQuantity(),
                         'portions'    => $item->getRemainingPortions(),
+                        'state'       => $item->getState(),
                         'created_at'  => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
                     ]);
             } else {
@@ -108,6 +116,7 @@ final class ItemRepositoryDb implements ItemRepository
                         'location_id' => $item->getLocationId(),
                         'quantity'    => $item->getQuantity(),
                         'portions'    => $item->getRemainingPortions(),
+                        'state'       => $item->getState(),
                     ]);
             }
         }
@@ -150,6 +159,17 @@ final class ItemRepositoryDb implements ItemRepository
             $totalPortions = 1;
         }
 
+        $attributes = Arr::get($itemConfig, 'attributes', []);
+
+        if (array_key_exists('states', $itemConfig)) {
+            $state = $itemConfig['states'][$row->state];
+            if (is_array($state)
+                && array_key_exists('attributes', $state)
+            ) {
+                $attributes = array_merge($attributes, $state['attributes']);
+            }
+        }
+
         return new Item(
             Uuid::fromString($row->id),
             $row->object_id,
@@ -157,7 +177,8 @@ final class ItemRepositoryDb implements ItemRepository
             intval($row->quantity),
             intval($row->portions),
             $totalPortions,
-            Arr::get($itemConfig, 'attributes', []),
+            $row->state,
+            $attributes,
             $itemUse
         );
     }

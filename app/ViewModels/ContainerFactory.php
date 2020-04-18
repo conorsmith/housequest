@@ -6,6 +6,7 @@ namespace App\ViewModels;
 use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepository;
+use Illuminate\Support\Arr;
 use stdClass;
 
 final class ContainerFactory
@@ -33,6 +34,11 @@ final class ContainerFactory
         foreach ($contents->getItems() as $item) {
             $itemConfig = $this->config[$item->getTypeId()];
 
+            $state = Arr::get($itemConfig, "states.{$item->getState()}", "");
+            if (is_array($state)) {
+                $state = $state['label'];
+            }
+
             $viewModel->contents[] = (object) [
                 'id'                          => $item->getId(),
                 'typeId'                      => $item->getTypeId(),
@@ -40,6 +46,7 @@ final class ContainerFactory
                 'quantity'                    => $item->getQuantity(),
                 'hasAllPortions'              => $item->hasAllPortions(),
                 'remainingPortionsPercentage' => $item->getRemainingPortions() / $item->getTotalPortions() * 100,
+                'state'                       => $state,
             ];
         }
 

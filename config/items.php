@@ -161,11 +161,14 @@ return [
     ],
     'step-ladder' => [
         'name' => "Step Ladder",
-    ],
-    'deployed-step-ladder' => [
-        'name' => "Deployed Step Ladder",
-        'attributes' => [
-            "dangerous",
+        'states' => [
+            'closed' => "",
+            'open'   => [
+                'label' => "Open",
+                'attributes' => [
+                    "dangerous",
+                ],
+            ],
         ],
     ],
     'bed' => [
@@ -250,6 +253,13 @@ return [
         'name' => "Bedside Locker",
         'attributes' => [
             "container",
+        ],
+    ],
+    'flashlight' => [
+        'name' => "Flashlight",
+        'states' => [
+            'off' => "",
+            'on'  => "On",
         ],
     ],
 ];

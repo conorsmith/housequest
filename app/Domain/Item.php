@@ -27,6 +27,9 @@ final class Item
     /** @var int */
     private $totalPortions;
 
+    /** @var ?string */
+    private $state;
+
     /** @var array */
     private $attributes;
 
@@ -40,6 +43,7 @@ final class Item
         int $quantity,
         int $remainingPortions,
         int $totalPortions,
+        ?string $state,
         array $attributes,
         ?ItemUse $use
     ) {
@@ -49,6 +53,7 @@ final class Item
         $this->quantity = $quantity;
         $this->remainingPortions = $remainingPortions;
         $this->totalPortions = $totalPortions;
+        $this->state = $state;
         $this->attributes = $attributes;
         $this->use = $use;
     }
@@ -64,6 +69,7 @@ final class Item
             $quantity,
             $this->remainingPortions,
             $this->totalPortions,
+            $this->state,
             $this->attributes,
             $this->use
         );
@@ -78,6 +84,7 @@ final class Item
             0,
             $this->remainingPortions,
             $this->totalPortions,
+            $this->state,
             $this->attributes,
             $this->use
         );
@@ -111,6 +118,11 @@ final class Item
     public function getTotalPortions(): int
     {
         return $this->totalPortions;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
     }
 
     public function getUse(): ItemUse
@@ -194,6 +206,11 @@ final class Item
 
         $other->quantity = 0;
         $other->remainingPortions = 0;
+    }
+
+    public function transitionState(string $newState): void
+    {
+        $this->state = $newState;
     }
 
     public function incrementQuantity(): void

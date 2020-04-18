@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\ViewModels;
 
 use App\Domain\Item;
+use Illuminate\Support\Arr;
 use stdClass;
 
 final class ItemFactory
@@ -20,6 +21,11 @@ final class ItemFactory
     {
         $itemConfig = $this->config[$item->getTypeId()];
 
+        $state = Arr::get($itemConfig, "states.{$item->getState()}", "");
+        if (is_array($state)) {
+            $state = $state['label'];
+        }
+
         return (object) [
             'id'                          => $item->getId(),
             'typeId'                      => $item->getTypeId(),
@@ -29,6 +35,7 @@ final class ItemFactory
             'remainingPortions'           => $item->getRemainingPortions(),
             'totalPortions'               => $item->getTotalPortions(),
             'remainingPortionsPercentage' => $item->getRemainingPortions() / $item->getTotalPortions() * 100,
+            'state'                       => $state,
             'isMultiPortionItem'          => $item->isMultiPortionItem(),
             'isContainer'                 => $item->isContainer(),
         ];

@@ -100,6 +100,9 @@ return [
             "downstairs-bathroom",
             "back-garden",
         ],
+        'items' => [
+            "flashlight",
+        ],
     ],
     'downstairs-bathroom' => [
         'title' => "Downstairs Bathroom",

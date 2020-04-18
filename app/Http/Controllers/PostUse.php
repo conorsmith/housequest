@@ -91,11 +91,11 @@ final class PostUse extends Controller
 
     private const CUSTOM_USES = [
         'step-ladder'                 => "useStepLadder",
-        'deployed-step-ladder'        => "useDeployedStepLadder",
         'quarantine-extension-notice' => "useQuarantineExtensionNotice",
         'covid-19-cure'               => "useCovid19Cure",
         'telephone'                   => "useTelephone",
         'bed'                         => "useBed",
+        'flashlight'                  => "useFlashlight",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -118,64 +118,21 @@ final class PostUse extends Controller
         $itemRepo = $this->itemRepoFactory->create($command->getGameId());
         $player = $this->playerRepo->find($command->getGameId());
         $item = $itemRepo->find($command->getItemId());
+        $viewModel = $this->itemViewModelFactory->create($item);
 
-        $ladderInventory = $itemRepo->findInventory($item->getLocationId());
-        if ($item->getLocationId() !== $player->getLocationId()) {
-            $locationInventory = $itemRepo->findInventory($player->getLocationId());
-        } else {
-            $locationInventory = $ladderInventory;
+        if ($item->getState() === "closed") {
+            $item->transitionState("open");
+
+            $item->moveTo($player->getLocationId());
+
+            session()->flash("success", "You deployed the {$viewModel->label}.");
+
+        } elseif ($item->getState() === "open") {
+            $item->transitionState("closed");
+            session()->flash("success", "You closed the {$viewModel->label}.");
         }
 
-        /** @var Item $inventoryItem */
-        foreach ($ladderInventory->getItems() as $inventoryItem) {
-            if ($inventoryItem->getId()->equals($item->getId())) {
-                $inventoryItem->decrementQuantity();
-            }
-        }
-
-        $item = $itemRepo->createType("deployed-step-ladder");
-        $item->moveTo($player->getLocationId());
-        $item->incrementQuantity();
-        $locationInventory->add($item);
-
-        /** @var Item $inventoryItem */
-        foreach ($ladderInventory->getItems() as $inventoryItem) {
-            $itemRepo->save($inventoryItem);
-        }
-
-        /** @var Item $inventoryItem */
-        foreach ($locationInventory->getItems() as $inventoryItem) {
-            $itemRepo->save($inventoryItem);
-        }
-
-        session()->flash("success", "You deployed the Step Ladder.");
-    }
-
-    private function useDeployedStepLadder(UseCommand $command): void
-    {
-        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
-        $item = $itemRepo->find($command->getItemId());
-
-        $inventory = $itemRepo->findInventory($item->getLocationId());
-
-        /** @var Item $inventoryItem */
-        foreach ($inventory->getItems() as $inventoryItem) {
-            if ($inventoryItem->getId()->equals($item->getId())) {
-                $inventoryItem->decrementQuantity();
-            }
-        }
-
-        $alteredItem = $itemRepo->createType("step-ladder");
-        $alteredItem->moveTo($item->getLocationId());
-        $alteredItem->incrementQuantity();
-        $inventory->add($alteredItem);
-
-        /** @var Item $inventoryItem */
-        foreach ($inventory->getItems() as $inventoryItem) {
-            $itemRepo->save($inventoryItem);
-        }
-
-        session()->flash("success", "You closed the Step Ladder.");
+        $itemRepo->save($item);
     }
 
     private function useQuarantineExtensionNotice(UseCommand $command): void
@@ -298,5 +255,23 @@ final class PostUse extends Controller
         $this->playerRepo->save($player);
 
         session()->flash("success", $use->getMessage());
+    }
+
+    private function useFlashlight(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+        $viewModel = $this->itemViewModelFactory->create($item);
+
+        if ($item->getState() === "on") {
+            $item->transitionState("off");
+            session()->flash("success", "You turned off the {$viewModel->label}.");
+
+        } elseif ($item->getState() === "off") {
+            $item->transitionState("on");
+            session()->flash("success", "You turned on the {$viewModel->label}.");
+        }
+
+        $itemRepo->save($item);
     }
 }
