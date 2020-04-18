@@ -164,4 +164,43 @@ final class PlayerRepositoryDb implements PlayerRepository
             }
         }
     }
+
+    public function create(UuidInterface $gameId, Player $player): void
+    {
+        DB::table("players")->insert([
+            'id'                => $player->getId()->toString(),
+            'game_id'           => $gameId->toString(),
+            'name'              => $player->getName(),
+            'location_id'       => $player->getLocationId(),
+            'xp'                => 0,
+            'is_dead'           => $player->isDead(),
+            'has_won'           => $player->hasWon(),
+            'eaten_items_count' => $player->getEatenItemsCount(),
+            'created_at'        => Carbon::now("Europe/Dublin"),
+        ]);
+
+        /** @var string $locationId */
+        foreach ($player->getEnteredLocations() as $locationId) {
+            DB::table("player_location_action_log")
+                ->insert([
+                    'id'          => Uuid::uuid4(),
+                    'player_id'   => $player->getId(),
+                    'location_id' => $locationId,
+                    'action'      => "entered",
+                    'created_at'  => Carbon::now("Europe/Dublin"),
+                ]);
+        }
+
+        /** @var Event $event */
+        foreach ($player->getEvents() as $event) {
+            DB::table("player_event_log")
+                ->insert([
+                    'id'          => Uuid::uuid4(),
+                    'player_id'   => $player->getId(),
+                    'event_id'    => $event->getId(),
+                    'location_id' => $event->getLocationId(),
+                    'created_at'  => Carbon::now("Europe/Dublin"),
+                ]);
+        }
+    }
 }

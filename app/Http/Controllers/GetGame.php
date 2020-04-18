@@ -72,7 +72,7 @@ final class GetGame extends Controller
             if ($item->isContainer()) {
                 $containerViewModels[] = $this->containerViewModelFactory->create(
                     $item,
-                    $itemRepo->findInventory($item->getTypeId())
+                    $itemRepo->findInventory($item->getId()->toString())
                 );
             }
         }
@@ -82,7 +82,7 @@ final class GetGame extends Controller
             if ($item->isContainer()) {
                 $containerViewModels[] = $this->containerViewModelFactory->create(
                     $item,
-                    $itemRepo->findInventory($item->getTypeId())
+                    $itemRepo->findInventory($item->getId()->toString())
                 );
             }
         }

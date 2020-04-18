@@ -205,6 +205,7 @@ final class Item
     {
         return $this->id !== $other->id
             && $this->typeId === $other->typeId
+            && !$this->isContainer()
             && $this->remainingPortions === $other->remainingPortions
             && $this->locationId === $other->locationId;
     }

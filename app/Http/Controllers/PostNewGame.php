@@ -3,13 +3,32 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Event;
+use App\Domain\Inventory;
+use App\Domain\Item;
+use App\Domain\Player;
+use App\Repositories\ItemRepositoryDbFactory;
+use App\Repositories\PlayerRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
 
 final class PostNewGame extends Controller
 {
+    /** @var PlayerRepository */
+    private $playerRepo;
+
+    /** @var ItemRepositoryDbFactory */
+    private $itemRepoFactory;
+
+    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
+    {
+        $this->playerRepo = $playerRepo;
+        $this->itemRepoFactory = $itemRepoFactory;
+    }
+
     public function __invoke(Request $request)
     {
         $objects = include __DIR__ . "/../../../config/objects.php";
@@ -20,6 +39,8 @@ final class PostNewGame extends Controller
 
         $gameId = Uuid::uuid4();
         $playerId = Uuid::uuid4();
+
+        $itemRepo = $this->itemRepoFactory->create($gameId);
 
         DB::table("games")->insert([
             'id'         => $gameId,
@@ -33,38 +54,46 @@ final class PostNewGame extends Controller
             return redirect("/");
         }
 
-        DB::table("players")->insert([
-            'id' => $playerId,
-            'game_id' => $gameId,
-            'name' => $name,
-            'location_id' => "master-bedroom",
-            'xp' => 0,
-            'is_dead' => false,
-            'has_won' => false,
-            'eaten_items_count' => 0,
-            'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
-        ]);
+        $player = new Player(
+            $playerId,
+            $name,
+            "master-bedroom",
+            0,
+            false,
+            false,
+            [
+                new Event("start", "master-bedroom"),
+            ],
+            [],
+            [],
+            0,
+            [
+                "master-bedroom",
+            ]
+        );
 
-        DB::table("player_location_action_log")->insert([
-            'id' => Uuid::uuid4(),
-            'player_id' => $playerId,
-            'location_id' => "master-bedroom",
-            'action' => "entered",
-            'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
-        ]);
+        $locationInventories = [];
+        $containerInventories = [];
 
         foreach ($locations as $locationId => $location) {
             if (array_key_exists('objects', $location)) {
+                $locationInventories[$locationId] = new Inventory($locationId, []);
                 foreach ($location['objects'] as $key => $value) {
                     if (is_string($value)) {
-                        $itemId = $value;
+                        $itemTypeId = $value;
                         $quantity = 1;
+                        $contents = [];
+                    } elseif (is_array($value)) {
+                        $itemTypeId = $value['id'];
+                        $quantity = Arr::get($value, 'quantity', 1);
+                        $contents = Arr::get($value, 'contents', []);
                     } else {
-                        $itemId = $key;
+                        $itemTypeId = $key;
                         $quantity = $value;
+                        $contents = [];
                     }
 
-                    $itemConfig = $objects[$itemId];
+                    $itemConfig = $objects[$itemTypeId];
 
                     if (array_key_exists('portions', $itemConfig)) {
                         $portions = $itemConfig['portions'];
@@ -72,58 +101,77 @@ final class PostNewGame extends Controller
                         $portions = 1;
                     }
 
-                    DB::table("objects")->insert([
-                        'id'          => Uuid::uuid4(),
-                        'game_id'     => $gameId,
-                        'object_id'   => $itemId,
-                        'location_id' => $locationId,
-                        'quantity'    => $quantity,
-                        'portions'    => $portions,
-                        'created_at'  => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
-                    ]);
+                    $item = new Item(
+                        $itemId = Uuid::uuid4(),
+                        $itemTypeId,
+                        $itemConfig['name'],
+                        $locationId,
+                        $quantity,
+                        $portions,
+                        $portions,
+                        Arr::get($itemConfig, 'attributes', []),
+                        null
+                    );
+
+                    $locationInventories[$locationId]->add($item);
+
+                    if (count($contents) > 0) {
+                        $containerInventories[$itemId->toString()] = new Inventory($itemId->toString(), []);
+                    }
+
+                    foreach ($contents as $contentsKey => $contentsValue) {
+
+                        if (is_int($contentsValue)) {
+                            $containedItemTypeId = $contentsKey;
+                            $quantity = $contentsValue;
+                        } else {
+                            $containedItemTypeId = $contentsValue;
+                            $quantity = 1;
+                        }
+
+                        $itemConfig = $objects[$containedItemTypeId];
+
+                        if (array_key_exists('portions', $itemConfig)) {
+                            $portions = $itemConfig['portions'];
+                        } else {
+                            $portions = 1;
+                        }
+
+                        $containedItem = new Item(
+                            Uuid::uuid4(),
+                            $containedItemTypeId,
+                            $itemConfig['name'],
+                            $itemId->toString(),
+                            $quantity,
+                            $portions,
+                            $portions,
+                            Arr::get($itemConfig, 'attributes', []),
+                            null
+                        );
+
+                        $containerInventories[$itemId->toString()]->add($containedItem);
+                    }
                 }
             }
         }
 
-        foreach ($objects as $containerId => $container) {
-            if (array_key_exists('objects', $container)) {
-                foreach ($container['objects'] as $key => $value) {
-                    if (is_string($value)) {
-                        $itemId = $value;
-                        $quantity = 1;
-                    } else {
-                        $itemId = $key;
-                        $quantity = $value;
-                    }
+        $this->playerRepo->create($gameId, $player);
 
-                    $itemConfig = $objects[$itemId];
-
-                    if (array_key_exists('portions', $itemConfig)) {
-                        $portions = $itemConfig['portions'];
-                    } else {
-                        $portions = 1;
-                    }
-
-                    DB::table("objects")->insert([
-                        'id'          => Uuid::uuid4(),
-                        'game_id'     => $gameId,
-                        'object_id'   => $itemId,
-                        'location_id' => $containerId,
-                        'quantity'    => $quantity,
-                        'portions'    => $portions,
-                        'created_at'  => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
-                    ]);
-                }
+        /** @var Inventory $inventory */
+        foreach ($locationInventories as $inventory) {
+            /** @var Item $item */
+            foreach ($inventory->getItems() as $item) {
+                $itemRepo->save($item);
             }
         }
 
-        DB::table("player_event_log")->insert([
-            'id' => Uuid::uuid4(),
-            'player_id' => $playerId,
-            'event_id' => "start",
-            'location_id' => "master-bedroom",
-            'created_at' => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
-        ]);
+        /** @var Inventory $inventory */
+        foreach ($containerInventories as $inventory) {
+            /** @var Item $item */
+            foreach ($inventory->getItems() as $item) {
+                $itemRepo->save($item);
+            }
+        }
 
         session()->flash("message", $events['start']['message']);
         return redirect("/{$gameId}");

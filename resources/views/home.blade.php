@@ -70,10 +70,6 @@
 
                 <div class="card-body">
 
-                    {{--
-                    <p>{{ $location->description }}</p>
-                    --}}
-
                     <div class="d-flex justify-content-center flex-wrap">
                         @foreach($location->egresses as $egress)
                             <form action="/{{ $gameId }}/go/{{ $egress->id }}" method="POST" class="action-button" style="margin: 0 0.2rem;">
@@ -195,50 +191,59 @@
     </a>
     <div class="container">
         <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
-                <button type="button"
-                        class="js-pick-up btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Pick Up
-                </button>
-                <button type="button"
-                        class="js-drop btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Drop
-                </button>
-                <button type="button"
-                        class="js-use btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Use
-                </button>
-                <button type="button"
-                        class="js-eat btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Eat
-                </button>
-                <button type="button"
-                        class="js-open btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Open
-                </button>
-                <button type="button"
-                        class="btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        data-toggle="modal"
-                        data-target="#menu-make"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                >
-                    Make
-                </button>
+            {{--
+            <button type="button"
+                    class="js-alt btn btn-action btn-sm"
+                    style="width: 3rem; margin: 0 0.1rem 0.2rem;"
+                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Alt
+            </button>
+            --}}
+            <button type="button"
+                    class="js-pick-up btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Pick Up
+            </button>
+            <button type="button"
+                    class="js-drop btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Drop
+            </button>
+            <button type="button"
+                    class="js-use btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Use
+            </button>
+            <button type="button"
+                    class="js-eat btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Eat
+            </button>
+            <button type="button"
+                    class="js-open btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Open
+            </button>
+            <button type="button"
+                    class="btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                    data-toggle="modal"
+                    data-target="#menu-make"
+                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Make
+            </button>
         </div>
         <div class="d-flex justify-content-center w-100 d-lg-none">
             <a class="navbar-brand"
@@ -255,7 +260,7 @@
     <div class="modal fade js-open-modal" data-id="{{ $container->id }}" id="container-{{ $container->typeId }}" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                <form action="/{{ $gameId }}/transfer/{{ $container->typeId }}" method="POST">
+                <form action="/{{ $gameId }}/transfer/{{ $container->id }}" method="POST">
                     {{ csrf_field() }}
                     <div class="modal-header">
                         <h5 class="modal-title" id="staticBackdropLabel">{{ $container->label }}</h5>
@@ -319,51 +324,53 @@
 
                     <ul class="list-group list-group-flush">
                         @foreach($player->inventory as $object)
-                            <div
-                                class="item list-group-item d-flex justify-content-between align-items-center js-item"
-                                data-available-quantity="{{ $object->quantity }}"
-                                data-selected-quantity="0"
-                                data-selected-portions="0"
-                            >
-                                <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $object->label }}
-                                    @if(!$object->hasAllPortions)
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                 style="width: {{ $object->remainingPortionsPercentage }}%;"
-                                            ></div>
-                                        </div>
-                                    @endif
-                                    @if($object->quantity > 1)
-                                        <span class="badge badge-primary">
-                                            {{ $object->quantity }}
-                                        </span>
-                                    @endif
-                                </div>
-                                <div>
-                                    <span class="badge badge-primary js-selected-quantity">
-                                        0
-                                    </span>
-                                    <div class="btn-group js-item-quantities">
-                                        <button type="button"
-                                                class="btn btn-action btn-sm js-decrement"
-                                        >
-                                            <i class="fas fa-fw fa-minus"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-action btn-sm js-take-all"
-                                        >
-                                            All
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-action btn-sm js-increment"
-                                        >
-                                            <i class="fas fa-fw fa-plus"></i>
-                                        </button>
+                            @if($object->id !== $container->id)
+                                <div
+                                    class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                                    data-available-quantity="{{ $object->quantity }}"
+                                    data-selected-quantity="0"
+                                    data-selected-portions="0"
+                                >
+                                    <div class="item-label d-flex justify-content-start align-items-center">
+                                        {{ $object->label }}
+                                        @if(!$object->hasAllPortions)
+                                            <div class="progress">
+                                                <div class="progress-bar"
+                                                     style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                                ></div>
+                                            </div>
+                                        @endif
+                                        @if($object->quantity > 1)
+                                            <span class="badge badge-primary">
+                                                {{ $object->quantity }}
+                                            </span>
+                                        @endif
                                     </div>
+                                    <div>
+                                        <span class="badge badge-primary js-selected-quantity">
+                                            0
+                                        </span>
+                                        <div class="btn-group js-item-quantities">
+                                            <button type="button"
+                                                    class="btn btn-action btn-sm js-decrement"
+                                            >
+                                                <i class="fas fa-fw fa-minus"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-action btn-sm js-take-all"
+                                            >
+                                                All
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-action btn-sm js-increment"
+                                            >
+                                                <i class="fas fa-fw fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" class="js-quantity-input" name="inventoryItems[{{ $object->id }}]" value="0">
                                 </div>
-                                <input type="hidden" class="js-quantity-input" name="inventoryItems[{{ $object->id }}]" value="0">
-                            </div>
+                            @endif
                         @endforeach
                     </ul>
                     <div class="modal-footer">

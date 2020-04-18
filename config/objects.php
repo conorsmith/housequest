@@ -29,22 +29,12 @@ return [
             "container",
             "heavy",
         ],
-        'objects' => [
-            "red-pepper",
-            "yellow-pepper" => 3,
-            "cheddar-cheese" => 2,
-            "milk" => 2,
-        ],
     ],
     'freezer' => [
         'name' => "Freezer",
         'attributes' => [
             "container",
             "heavy",
-        ],
-        'objects' => [
-            "phish-food",
-            "peanut-butter-cup",
         ],
     ],
     'red-pepper' => [
@@ -168,9 +158,6 @@ return [
             "heavy",
             "affixed",
         ],
-        'objects' => [
-            "coco-pops",
-        ],
     ],
     'step-ladder' => [
         'name' => "Step Ladder",
@@ -195,9 +182,6 @@ return [
         'attributes' => [
             "container",
             "affixed",
-        ],
-        'objects' => [
-            "quarantine-extension-notice"
         ],
     ],
     'quarantine-extension-notice' => [
@@ -260,6 +244,12 @@ return [
         'name' => "Chair Pyramid",
         'attributes' => [
             "dangerous",
+        ],
+    ],
+    'bedside-locker' => [
+        'name' => "Bedside Locker",
+        'attributes' => [
+            "container",
         ],
     ],
 ];

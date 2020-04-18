@@ -52,9 +52,28 @@ return [
             "utility-room",
         ],
         'objects' => [
-            "fridge",
-            "freezer",
-            "pantry",
+            [
+                'id' => "fridge",
+                'contents' => [
+                    "red-pepper",
+                    "yellow-pepper" => 3,
+                    "cheddar-cheese" => 2,
+                    "milk" => 2,
+                ],
+            ],
+            [
+                'id' => "freezer",
+                'contents' => [
+                    "phish-food",
+                    "peanut-butter-cup",
+                ],
+            ],
+            [
+                'id' => "pantry",
+                'contents' => [
+                    "coco-pops",
+                ],
+            ],
             "slice-of-bread" => 16,
             "pack-of-crisps" => 6,
         ],
@@ -129,7 +148,12 @@ return [
             "garage",
         ],
         'objects' => [
-            "letter-box",
+            [
+                'id' => "letter-box",
+                'contents' => [
+                    "quarantine-extension-notice",
+                ],
+            ],
         ],
     ],
     'landing' => [
@@ -153,6 +177,19 @@ return [
         'objects' => [
             "hairdryer",
             "bed",
+            [
+                'id' => "bedside-locker",
+                'contents' => [
+                    "cheddar-cheese-sandwich" => 2,
+                    "red-pepper",
+                ],
+            ],
+            [
+                'id' => "bedside-locker",
+                'contents' => [
+                    "yellow-pepper",
+                ],
+            ],
         ],
     ],
     'en-suite' => [

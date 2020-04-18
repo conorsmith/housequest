@@ -10,4 +10,5 @@ interface PlayerRepository
 {
     public function find(UuidInterface $gameId): Player;
     public function save(Player $player): void;
+    public function create(UuidInterface $gameId, Player $player): void;
 }

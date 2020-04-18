@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
@@ -81,34 +80,6 @@ final class PostTransfer extends Controller
         foreach ($playerInventory->getItems() as $inventoryItem) {
             $itemRepo->save($inventoryItem);
         }
-
-        /*
-        foreach ($itemIdsFromContainerToInventory as $itemId => $quantity) {
-            $itemFrom = $itemRepo->find($itemId);
-            $itemFrom->removeQuantity(intval($quantity));
-            $itemRepo->save($itemFrom);
-
-            $itemTo = $itemRepo->findInInventory($itemFrom);
-            if (is_null($itemTo)) {
-                $itemTo = $itemFrom->copyTo("player");
-            }
-            $itemTo->addQuantity(intval($quantity));
-            $itemRepo->save($itemTo);
-        }
-
-        foreach ($itemIdsFromInventoryToContainer as $itemId => $quantity) {
-            $itemFrom = $itemRepo->find($itemId);
-            $itemFrom->removeQuantity(intval($quantity));
-            $itemRepo->save($itemFrom);
-
-            $itemTo = $itemRepo->findInContainer($containerId, $itemFrom);
-            if (is_null($itemTo)) {
-                $itemTo = $itemFrom->copyTo($containerId);
-            }
-            $itemTo->addQuantity(intval($quantity));
-            $itemRepo->save($itemTo);
-        }
-        */
 
         return redirect("/{$gameId}");
     }
