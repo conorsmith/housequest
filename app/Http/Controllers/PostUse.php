@@ -96,6 +96,7 @@ final class PostUse extends Controller
         'telephone'                   => "useTelephone",
         'bed'                         => "useBed",
         'flashlight'                  => "useFlashlight",
+        'quarantine-barrier'          => "useQuarantineBarrier",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -272,6 +273,31 @@ final class PostUse extends Controller
             session()->flash("success", "You turned on the {$viewModel->label}.");
         }
 
+        $itemRepo->save($item);
+    }
+
+    private function useQuarantineBarrier(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+        $viewModel = $this->itemViewModelFactory->create($item);
+
+        if ($item->getState() === "closed") {
+            $item->transitionState("open");
+            $event = $player->experienceEvent("no-way-out");
+            if (is_null($event)) {
+                session()->flash("success", "You opened the {$viewModel->label}.");
+            } else {
+                session()->flash("messageRaw", $this->eventViewModelFactory->create($event)->message);
+            }
+
+        } elseif ($item->getState() === "open") {
+            $item->transitionState("closed");
+            session()->flash("success", "You closed the {$viewModel->label}.");
+        }
+
+        $this->playerRepo->save($player);
         $itemRepo->save($item);
     }
 }

@@ -8,8 +8,17 @@ return [
     'attic-noises' => [
         'message' => "You hear a strange noise. It's faint, but you can tell that it's coming from the attic. The sounds are disturbing, but this is the first interesting thing that's happened in weeks. How will you get up there?",
     ],
+    'no-way-out' => [
+        'message' => [
+            "As you open the quarantine barrier a passing military patrol drone comes to a stop hovering above you.",
+            "\"Citizen! Please stay in your home! Failure to comply with the quarantine protocol will result in a fine not exceeding €1,000 and/or immediate execution. Your compliance is appreciated.\"",
+        ],
+    ],
     'shot-to-death' => [
-        'message' => "You foolishly step out from your front garden into the street and are immediately torn asunder in a hail of bullets by a passing military patrol drone.",
+        'message' => [
+            "You foolishly step out from your front garden into the street and are immediately torn asunder in a hail of bullets by a military patrol drone.",
+            "The drone issues a €1,000 fine to your corpse.",
+        ],
     ],
     'a-brief-encounter' => [
         'message' => "You make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone. It looks like whatever it was dropped something...",

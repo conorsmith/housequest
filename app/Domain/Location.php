@@ -35,6 +35,14 @@ final class Location
                     $egresses[] = "attic";
                 }
             }
+        } elseif ($this->id === "front-garden") {
+            /** @var Item $item */
+            foreach ($inventory->getItems() as $item) {
+                if ($item->getTypeId() === "quarantine-barrier" && $item->getState() === "open") {
+                    array_unshift($egresses, "the-street");
+                }
+            }
+
         }
 
         return array_unique($egresses);

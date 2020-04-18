@@ -262,4 +262,11 @@ return [
             'on'  => "On",
         ],
     ],
+    'quarantine-barrier' => [
+        'name' => "Quarantine Barrier",
+        'states' => [
+            'closed' => "",
+            'open'   => "Open",
+        ],
+    ],
 ];

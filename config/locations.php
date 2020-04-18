@@ -127,6 +127,7 @@ return [
         'title' => "Back Garden",
         'description' => "The great outdoors!",
         'egresses' => [
+            "front-garden",
             "dining-room",
             "utility-room",
             "shed",
@@ -146,9 +147,9 @@ return [
         'title' => "Front Garden",
         'description' => "This doesn't count... right?",
         'egresses' => [
-            "the-street",
             "hallway",
             "garage",
+            "back-garden",
         ],
         'items' => [
             [
@@ -157,6 +158,7 @@ return [
                     "quarantine-extension-notice",
                 ],
             ],
+            "quarantine-barrier",
         ],
     ],
     'landing' => [
