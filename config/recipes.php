@@ -38,12 +38,12 @@ return [
         'input' => [
             "dining-chair" => ['quantity' => 3],
         ],
-        'output' => "chair-pyramid",
+        'output' => "chair-ladder",
         'location' => "room",
     ],
     [
         'input' => [
-            "chair-pyramid",
+            "chair-ladder",
         ],
         'output' => [
             "dining-chair" => ['quantity' => 3],

@@ -47,4 +47,9 @@ return [
         'title' => "Heinz 57",
         'body' => "You have eaten 57 different types of food",
     ],
+    [
+        'id' => "improvise_tool",
+        'title' => "Tonight on MacGyver",
+        'body' => "You have improvised a tool",
+    ],
 ];

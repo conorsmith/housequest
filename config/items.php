@@ -243,10 +243,11 @@ return [
             'message' => "You have a bit of a sit down. Thrilling stuff.",
         ],
     ],
-    'chair-pyramid' => [
-        'name' => "Chair Pyramid",
+    'chair-ladder' => [
+        'name' => "Chair Ladder",
         'attributes' => [
             "dangerous",
+            "improvised",
         ],
     ],
     'bedside-locker' => [

@@ -205,6 +205,12 @@
             >
                 Alt
             </button>
+            Pick Up +
+            Drop +
+            Use With
+            ???
+            Place
+            Break
             --}}
             <button type="button"
                     class="js-pick-up btn btn-action btn-sm"

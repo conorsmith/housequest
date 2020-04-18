@@ -156,13 +156,15 @@ final class Player
         return $event;
     }
 
-    public function unlockAchievement(string $achievementId): void
+    public function unlockAchievement(string $achievementId): bool
     {
         if (in_array($achievementId, $this->achievements)) {
-            return;
+            return false;
         }
 
         $this->achievements[] = $achievementId;
+
+        return true;
     }
 
     public function eat(Item $item): void

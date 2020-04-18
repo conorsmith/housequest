@@ -161,6 +161,11 @@ final class Item
         return in_array("dangerous", $this->attributes);
     }
 
+    public function isImprovised(): bool
+    {
+        return in_array("improvised", $this->attributes);
+    }
+
     public function isSinglePortionItem(): bool
     {
         return $this->totalPortions === 1;

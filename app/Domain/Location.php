@@ -30,7 +30,7 @@ final class Location
             /** @var Item $item */
             foreach ($inventory->getItems() as $item) {
                 if (($item->getTypeId() === "step-ladder" && $item->getState() === "open")
-                    || $item->getTypeId() === "chair-pyramid"
+                    || $item->getTypeId() === "chair-ladder"
                 ) {
                     $egresses[] = "attic";
                 }

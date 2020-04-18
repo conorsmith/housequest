@@ -12,6 +12,7 @@ use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
 use App\Repositories\RecipeRepositoryConfig;
+use App\ViewModels\AchievementFactory;
 use App\ViewModels\ItemFactory;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
@@ -30,16 +31,21 @@ final class PostMake extends Controller
     /** @var ItemFactory */
     private $itemViewModelFactory;
 
+    /** @var AchievementFactory */
+    private $achievementViewModelFactory;
+
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepositoryDb $playerRepo,
         RecipeRepositoryConfig $recipeRepo,
-        ItemFactory $itemViewModelFactory
+        ItemFactory $itemViewModelFactory,
+        AchievementFactory $achievementViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->recipeRepo = $recipeRepo;
         $this->itemViewModelFactory = $itemViewModelFactory;
+        $this->achievementViewModelFactory = $achievementViewModelFactory;
     }
 
     public function __invoke(Request $request, string $gameId)
@@ -66,6 +72,14 @@ final class PostMake extends Controller
         $endProduct->addQuantity($recipe->getEndProductQuantity());
         if ($recipe->getEndProductionLocationId() === "room") {
             $endProduct->moveTo($player->getLocationId());
+        }
+
+        if ($endProduct->isImprovised()) {
+            $unlocked = $player->unlockAchievement("improvise_tool");
+            if ($unlocked) {
+                $achievementViewModel = $this->achievementViewModelFactory->create("improvise_tool");
+                session()->flash("achievements", [$achievementViewModel]);
+            }
         }
 
         /** @var Inventory $inventory */
