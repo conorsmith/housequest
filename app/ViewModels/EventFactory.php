@@ -30,10 +30,8 @@ final class EventFactory
 
     public function create(Event $event): stdClass
     {
-        $eventConfig = $this->config[$event->getId()];
-
         return (object) [
-            'message'  => $eventConfig['message'],
+            'message'  => $this->createMessage($event->getId()),
             'location' => $this->locationViewModelFactory->create(
                 $this->locationRepo->find($event->getLocationId())
             ),

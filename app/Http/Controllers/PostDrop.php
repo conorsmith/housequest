@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
+use App\ViewModels\ItemFactory;
 use Ramsey\Uuid\Uuid;
 
 final class PostDrop extends Controller
@@ -18,10 +18,17 @@ final class PostDrop extends Controller
     /** @var ItemRepositoryDb */
     private $itemRepoFactory;
 
-    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
-    {
+    /** @var ItemFactory */
+    private $itemViewModelFactory;
+
+    public function __construct(
+        PlayerRepository $playerRepo,
+        ItemRepositoryDbFactory $itemRepoFactory,
+        ItemFactory $itemViewModelFactory
+    ) {
         $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
+        $this->itemViewModelFactory = $itemViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $itemId, string $locationId)
@@ -43,7 +50,8 @@ final class PostDrop extends Controller
 
         if (is_null($playerInventory->find($itemId))) {
             $item = $locationInventory->find($itemId);
-            session()->flash("info", "You cannot drop {$item->getName()}, you're not holding it.");
+            $viewModel = $this->itemViewModelFactory->create($item);
+            session()->flash("info", "You cannot drop {$viewModel->label}, you're not holding it.");
             return redirect("/{$gameId}");
         }
 

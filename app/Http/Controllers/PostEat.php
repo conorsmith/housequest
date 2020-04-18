@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\Player;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\AchievementFactory;
+use App\ViewModels\ItemFactory;
 use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
 
@@ -24,14 +24,19 @@ final class PostEat extends Controller
     /** @var AchievementFactory */
     private $achievementViewModelFactory;
 
+    /** @var ItemFactory */
+    private $itemViewModelFactory;
+
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepository $playerRepo,
-        AchievementFactory $achievementViewModelFactory
+        AchievementFactory $achievementViewModelFactory,
+        ItemFactory $itemViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->achievementViewModelFactory = $achievementViewModelFactory;
+        $this->itemViewModelFactory = $itemViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $itemId)
@@ -60,8 +65,10 @@ final class PostEat extends Controller
             }
         }
 
+        $viewModel = $this->itemViewModelFactory->create($item);
+
         if (!$item->isEdible()) {
-            session()->flash("info", "You fail to eat {$item->getName()}.");
+            session()->flash("info", "You fail to eat {$viewModel->label}.");
             return redirect("/{$gameId}");
         }
 
@@ -87,7 +94,7 @@ final class PostEat extends Controller
             session()->flash("achievements", $achievementSessionData);
         }
 
-        session()->flash("success", "You ate {$item->getName()}.");
+        session()->flash("success", "You ate {$viewModel->label}.");
         return redirect("/{$gameId}");
     }
 

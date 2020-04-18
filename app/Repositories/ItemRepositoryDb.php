@@ -27,7 +27,7 @@ final class ItemRepositoryDb implements ItemRepository
         $this->config = $config;
     }
 
-    public function find(string $id): ?Item
+    public function find(UuidInterface $id): ?Item
     {
         $row = DB::selectOne("SELECT * FROM objects WHERE game_id = ? AND id = ?", [
             $this->gameId,
@@ -56,14 +56,22 @@ final class ItemRepositoryDb implements ItemRepository
         return new Inventory($locationId, $items);
     }
 
-    public function createForInventory(string $itemId): Item
+    public function createType(string $itemTypeId): Item
     {
+        $itemConfig = $this->config[$itemTypeId];
+
+        if (array_key_exists('portions', $itemConfig)) {
+            $portions = $itemConfig['portions'];
+        } else {
+            $portions = 1;
+        }
+
         return $this->createItemFromRow((object)([
             'id'          => Uuid::uuid4()->toString(),
-            'object_id'   => $itemId,
-            'location_id' => "player",
+            'object_id'   => $itemTypeId,
+            'location_id' => "",
             'quantity'    => 0,
-            'portions'    => 1,
+            'portions'    => $portions,
         ]));
     }
 
@@ -145,7 +153,6 @@ final class ItemRepositoryDb implements ItemRepository
         return new Item(
             Uuid::fromString($row->id),
             $row->object_id,
-            $itemConfig['name'],
             $row->location_id,
             intval($row->quantity),
             intval($row->portions),

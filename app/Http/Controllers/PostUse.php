@@ -3,14 +3,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Inventory;
 use App\Domain\Item;
-use App\Domain\Player;
-use App\Repositories\ItemRepository;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
+use App\UseCases\UseCommand;
 use App\ViewModels\EventFactory;
+use App\ViewModels\ItemFactory;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
@@ -25,14 +24,19 @@ final class PostUse extends Controller
     /** @var EventFactory */
     private $eventViewModelFactory;
 
+    /** @var ItemFactory */
+    private $itemViewModelFactory;
+
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepositoryDb $playerRepo,
-        EventFactory $eventViewModelFactory
+        EventFactory $eventViewModelFactory,
+        ItemFactory $itemViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->eventViewModelFactory = $eventViewModelFactory;
+        $this->itemViewModelFactory = $itemViewModelFactory;
     }
 
     public function __invoke(Request $request, string $gameId, string $itemId)
@@ -46,10 +50,10 @@ final class PostUse extends Controller
             return redirect("/{$gameId}");
         }
 
-        $item = $itemRepo->find($itemId);
+        $item = $itemRepo->find(Uuid::fromString($itemId));
 
         if ($this->hasCustomUse($item)) {
-            $this->executeCustomUse($request, $player, $item, $itemRepo);
+            $this->executeCustomUse($request, $item);
             return redirect("/{$gameId}");
         }
 
@@ -58,6 +62,8 @@ final class PostUse extends Controller
             return redirect("/{$gameId}");
         }
 
+        $viewModel = $this->itemViewModelFactory->create($item);
+
         $use = $item->getUse();
 
         if ($use->hasRestrictions()) {
@@ -65,14 +71,14 @@ final class PostUse extends Controller
             if ($use->fromRoom()
                 && $item->getLocationId() !== $player->getLocationId()
             ) {
-                session()->flash("info", "You cannot use {$item->getName()} from your inventory.");
+                session()->flash("info", "You cannot use {$viewModel->label} from your inventory.");
                 return redirect("/{$gameId}");
             }
 
             if ($use->fromInventory()
                 && $item->getLocationId() !== "player"
             ) {
-                session()->flash("info", "You can only use {$item->getName()} from your inventory.");
+                session()->flash("info", "You can only use {$viewModel->label} from your inventory.");
                 return redirect("/{$gameId}");
             }
         }
@@ -97,14 +103,22 @@ final class PostUse extends Controller
         return array_key_exists($item->getTypeId(), self::CUSTOM_USES);
     }
 
-    private function executeCustomUse(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function executeCustomUse(Request $request, Item $item): void
     {
         $customUseFunction = self::CUSTOM_USES[$item->getTypeId()];
-        $this->$customUseFunction($request, $player, $item, $itemRepo);
+        $this->$customUseFunction(new UseCommand(
+            Uuid::fromString($request->route("gameId")),
+            Uuid::fromString($request->route("itemId")),
+            $request->input()
+        ));
     }
 
-    private function useStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useStepLadder(UseCommand $command): void
     {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+
         $ladderInventory = $itemRepo->findInventory($item->getLocationId());
         if ($item->getLocationId() !== $player->getLocationId()) {
             $locationInventory = $itemRepo->findInventory($player->getLocationId());
@@ -119,7 +133,7 @@ final class PostUse extends Controller
             }
         }
 
-        $item = $itemRepo->createForInventory("deployed-step-ladder");
+        $item = $itemRepo->createType("deployed-step-ladder");
         $item->moveTo($player->getLocationId());
         $item->incrementQuantity();
         $locationInventory->add($item);
@@ -137,8 +151,11 @@ final class PostUse extends Controller
         session()->flash("success", "You deployed the Step Ladder.");
     }
 
-    private function useDeployedStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useDeployedStepLadder(UseCommand $command): void
     {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+
         $inventory = $itemRepo->findInventory($item->getLocationId());
 
         /** @var Item $inventoryItem */
@@ -148,7 +165,7 @@ final class PostUse extends Controller
             }
         }
 
-        $alteredItem = $itemRepo->createForInventory("step-ladder");
+        $alteredItem = $itemRepo->createType("step-ladder");
         $alteredItem->moveTo($item->getLocationId());
         $alteredItem->incrementQuantity();
         $inventory->add($alteredItem);
@@ -161,7 +178,7 @@ final class PostUse extends Controller
         session()->flash("success", "You closed the Step Ladder.");
     }
 
-    private function useQuarantineExtensionNotice(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useQuarantineExtensionNotice(UseCommand $command): void
     {
         session()->flash(
             "messageRaw",
@@ -173,8 +190,12 @@ final class PostUse extends Controller
         );
     }
 
-    private function useCovid19Cure(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useCovid19Cure(UseCommand $command): void
     {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+
         $inventory = $itemRepo->findInventory($item->getLocationId());
 
         /** @var Item $inventoryItem */
@@ -195,11 +216,14 @@ final class PostUse extends Controller
         $this->playerRepo->save($player);
     }
 
-    private function useTelephone(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useTelephone(UseCommand $command): void
     {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+
         $inventory = $itemRepo->findInventory("player");
 
-        $number = $request->get("number");
+        $number = $command->getAdditionalData()['number'];
 
         if (is_null($number)) {
             $message = "<p class=\"mb-0\">That did nothing.</p>";
@@ -228,8 +252,12 @@ final class PostUse extends Controller
         $this->playerRepo->save($player);
     }
 
-    private function useBed(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
+    private function useBed(UseCommand $command): void
     {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+
         if ($player->experiencedEvent("the-right-call")
             && !$player->experiencedEvent("prank-call")
         ) {
@@ -248,7 +276,7 @@ final class PostUse extends Controller
 
             $frontGardenInventory->removeByType("letter-box");
 
-            $item = $itemRepo->createForInventory("dented-letter-box");
+            $item = $itemRepo->createType("dented-letter-box");
             $item->moveTo("front-garden");
             $item->incrementQuantity();
             $frontGardenInventory->add($item);

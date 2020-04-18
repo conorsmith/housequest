@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ItemRepositoryDbFactory::class, function ($app) {
             return new ItemRepositoryDbFactory(
-                include __DIR__ . "/../../config/objects.php"
+                include __DIR__ . "/../../config/items.php"
             );
         });
 
@@ -55,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(ItemFactory::class, function ($app) {
             return new ItemFactory(
-                include __DIR__ . "/../../config/objects.php"
+                include __DIR__ . "/../../config/items.php"
             );
         });
 
@@ -75,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(ContainerFactory::class, function ($app) {
             return new ContainerFactory(
-                include __DIR__ . "/../../config/objects.php"
+                include __DIR__ . "/../../config/items.php"
             );
         });
 

@@ -11,7 +11,7 @@ return [
             "staircase",
             "kitchen",
         ],
-        'objects' => [
+        'items' => [
             "windbreaker",
             "overcoat",
             "scarf",
@@ -25,7 +25,7 @@ return [
             "hallway",
             "dining-room",
         ],
-        'objects' => [
+        'items' => [
             "couch",
             "wool-blanket",
             "linen-blanket",
@@ -51,7 +51,7 @@ return [
             "dining-room",
             "utility-room",
         ],
-        'objects' => [
+        'items' => [
             [
                 'id' => "fridge",
                 'contents' => [
@@ -86,7 +86,7 @@ return [
             "kitchen",
             "back-garden",
         ],
-        'objects' => [
+        'items' => [
             "dinner-table",
             "dining-chair" => 4,
         ],
@@ -107,7 +107,7 @@ return [
         'egresses' => [
             "utility-room",
         ],
-        'objects' => [
+        'items' => [
             "toilet",
             "sink",
         ],
@@ -135,7 +135,7 @@ return [
         'egresses' => [
             "back-garden",
         ],
-        'objects' => [
+        'items' => [
             "step-ladder",
         ],
     ],
@@ -147,7 +147,7 @@ return [
             "hallway",
             "garage",
         ],
-        'objects' => [
+        'items' => [
             [
                 'id' => "letter-box",
                 'contents' => [
@@ -174,7 +174,7 @@ return [
             "en-suite",
             "landing",
         ],
-        'objects' => [
+        'items' => [
             "hairdryer",
             "bed",
             [
@@ -198,7 +198,7 @@ return [
         'egresses' => [
             "master-bedroom",
         ],
-        'objects' => [
+        'items' => [
             "toilet",
             "sink",
             "shower",
@@ -210,7 +210,7 @@ return [
         'egresses' => [
             "landing",
         ],
-        'objects' => [
+        'items' => [
             "bed",
         ],
     ],
@@ -220,7 +220,7 @@ return [
         'egresses' => [
             "landing",
         ],
-        'objects' => [
+        'items' => [
             "bed",
         ],
     ],
@@ -230,7 +230,7 @@ return [
         'egresses' => [
             "landing",
         ],
-        'objects' => [
+        'items' => [
             "toilet",
             "sink",
             "bath",
@@ -255,7 +255,7 @@ return [
         'egresses' => [
             "landing",
         ],
-        'objects' => [
+        'items' => [
             "covid-19-cure",
         ],
     ],

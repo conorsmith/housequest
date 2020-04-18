@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
+use App\ViewModels\ItemFactory;
 use Ramsey\Uuid\Uuid;
 
 final class PostPickUp extends Controller
@@ -18,10 +18,17 @@ final class PostPickUp extends Controller
     /** @var ItemRepositoryDb */
     private $itemRepoFactory;
 
-    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
-    {
+    /** @var ItemFactory */
+    private $itemViewModelFactory;
+
+    public function __construct(
+        PlayerRepository $playerRepo,
+        ItemRepositoryDbFactory $itemRepoFactory,
+        ItemFactory $itemViewModelFactory
+    ) {
         $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
+        $this->itemViewModelFactory = $itemViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $itemId)
@@ -38,25 +45,26 @@ final class PostPickUp extends Controller
 
         $playerInventory = $itemRepo->findInventory("player");
 
-        $item = $itemRepo->find($itemId);
+        $item = $itemRepo->find(Uuid::fromString($itemId));
+        $viewModel = $this->itemViewModelFactory->create($item);
 
         if ($item->getLocationId() === "player") {
-            session()->flash("info", "You cannot pick up {$item->getName()}, you're already holding it.");
+            session()->flash("info", "You cannot pick up {$viewModel->label}, you're already holding it.");
             return redirect("/{$gameId}");
         }
 
         if ($item->isDangerous()) {
-            session()->flash("info", "You cannot pick up {$item->getName()}, it's too dangerous to do so.");
+            session()->flash("info", "You cannot pick up {$viewModel->label}, it's too dangerous to do so.");
             return redirect("/{$gameId}");
         }
 
         if ($item->isAffixed()) {
-            session()->flash("info", "You cannot pick up {$item->getName()}, it's fixed in place.");
+            session()->flash("info", "You cannot pick up {$viewModel->label}, it's fixed in place.");
             return redirect("/{$gameId}");
         }
 
         if ($item->isHeavy()) {
-            session()->flash("info", "You cannot pick up {$item->getName()}, it's too heavy.");
+            session()->flash("info", "You cannot pick up {$viewModel->label}, it's too heavy.");
             return redirect("/{$gameId}");
         }
 

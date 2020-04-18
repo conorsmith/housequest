@@ -87,27 +87,27 @@
 
                 </div>
 
-                @if(count($location->objects) > 0)
+                @if(count($location->items) > 0)
                     <ul class="list-group list-group-flush additional-border-top">
-                        @foreach($location->objects as $object)
+                        @foreach($location->items as $item)
                             <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                data-id="{{ $object->id }}"
-                                data-type-id="{{ $object->typeId }}"
-                                data-label="{{ $object->label }}"
-                                data-is-container="{{ $object->isContainer }}"
+                                data-id="{{ $item->id }}"
+                                data-type-id="{{ $item->typeId }}"
+                                data-label="{{ $item->label }}"
+                                data-is-container="{{ $item->isContainer }}"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $object->label }}
-                                    @if(!$object->hasAllPortions)
+                                    {{ $item->label }}
+                                    @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
-                                                 style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                                 style="width: {{ $item->remainingPortionsPercentage }}%;"
                                             ></div>
                                         </div>
                                     @endif
-                                    @if($object->quantity > 1)
+                                    @if($item->quantity > 1)
                                         <span class="badge badge-primary">
-                                        {{ $object->quantity }}
+                                        {{ $item->quantity }}
                                     </span>
                                     @endif
                                 </div>
@@ -148,25 +148,25 @@
                     @endif
 
                     <ul class="list-group list-group-flush">
-                        @foreach($player->inventory as $object)
+                        @foreach($player->inventory as $item)
                             <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                data-id="{{ $object->id }}"
-                                data-type-id="{{ $object->typeId }}"
-                                data-label="{{ $object->label }}"
-                                data-is-container="{{ $object->isContainer }}"
+                                data-id="{{ $item->id }}"
+                                data-type-id="{{ $item->typeId }}"
+                                data-label="{{ $item->label }}"
+                                data-is-container="{{ $item->isContainer }}"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $object->label }}
-                                    @if(!$object->hasAllPortions)
+                                    {{ $item->label }}
+                                    @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
-                                                 style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                                 style="width: {{ $item->remainingPortionsPercentage }}%;"
                                             ></div>
                                         </div>
                                     @endif
-                                    @if($object->quantity > 1)
+                                    @if($item->quantity > 1)
                                         <span class="badge badge-primary">
-                                            {{ $object->quantity }}
+                                            {{ $item->quantity }}
                                         </span>
                                     @endif
                                 </div>
@@ -270,25 +270,25 @@
                     </div>
 
                     <ul class="list-group list-group-flush additional-border-top">
-                        @foreach($container->contents as $object)
+                        @foreach($container->contents as $item)
                             <div
                                class="item list-group-item d-flex justify-content-between align-items-center js-item"
-                               data-available-quantity="{{ $object->quantity }}"
+                               data-available-quantity="{{ $item->quantity }}"
                                data-selected-quantity="0"
                                data-selected-portions="0"
                             >
                                 <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $object->label }}
-                                    @if(!$object->hasAllPortions)
+                                    {{ $item->label }}
+                                    @if(!$item->hasAllPortions)
                                         <div class="progress">
                                             <div class="progress-bar"
-                                                 style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                                 style="width: {{ $item->remainingPortionsPercentage }}%;"
                                             ></div>
                                         </div>
                                     @endif
-                                    @if($object->quantity > 1)
+                                    @if($item->quantity > 1)
                                         <span class="badge badge-primary">
-                                            {{ $object->quantity }}
+                                            {{ $item->quantity }}
                                         </span>
                                     @endif
                                 </div>
@@ -314,7 +314,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <input type="hidden" class="js-quantity-input" name="containerItems[{{ $object->id }}]" value="0">
+                                <input type="hidden" class="js-quantity-input" name="containerItems[{{ $item->id }}]" value="0">
                             </div>
                         @endforeach
                     </ul>
@@ -323,26 +323,26 @@
                     </div>
 
                     <ul class="list-group list-group-flush">
-                        @foreach($player->inventory as $object)
-                            @if($object->id !== $container->id)
+                        @foreach($player->inventory as $item)
+                            @if($item->id !== $container->id)
                                 <div
                                     class="item list-group-item d-flex justify-content-between align-items-center js-item"
-                                    data-available-quantity="{{ $object->quantity }}"
+                                    data-available-quantity="{{ $item->quantity }}"
                                     data-selected-quantity="0"
                                     data-selected-portions="0"
                                 >
                                     <div class="item-label d-flex justify-content-start align-items-center">
-                                        {{ $object->label }}
-                                        @if(!$object->hasAllPortions)
+                                        {{ $item->label }}
+                                        @if(!$item->hasAllPortions)
                                             <div class="progress">
                                                 <div class="progress-bar"
-                                                     style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                                     style="width: {{ $item->remainingPortionsPercentage }}%;"
                                                 ></div>
                                             </div>
                                         @endif
-                                        @if($object->quantity > 1)
+                                        @if($item->quantity > 1)
                                             <span class="badge badge-primary">
-                                                {{ $object->quantity }}
+                                                {{ $item->quantity }}
                                             </span>
                                         @endif
                                     </div>
@@ -368,7 +368,7 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <input type="hidden" class="js-quantity-input" name="inventoryItems[{{ $object->id }}]" value="0">
+                                    <input type="hidden" class="js-quantity-input" name="inventoryItems[{{ $item->id }}]" value="0">
                                 </div>
                             @endif
                         @endforeach
@@ -396,38 +396,38 @@
                 </div>
 
                 <ul class="list-group list-group-flush">
-                    @foreach($location->objects as $object)
+                    @foreach($location->items as $item)
                         <div
                             class="item list-group-item d-flex justify-content-between align-items-center js-item"
-                            data-available-quantity="{{ $object->quantity }}"
+                            data-available-quantity="{{ $item->quantity }}"
                             data-selected-quantity="0"
-                            data-total-portions="{{ $object->totalPortions }}"
-                            data-available-portions="{{ $object->remainingPortions }}"
+                            data-total-portions="{{ $item->totalPortions }}"
+                            data-available-portions="{{ $item->remainingPortions }}"
                             data-selected-portions="0"
                         >
                             <div class="item-label d-flex justify-content-start align-items-center">
-                                {{ $object->label }}
-                                @if(!$object->hasAllPortions)
+                                {{ $item->label }}
+                                @if(!$item->hasAllPortions)
                                     <div class="progress">
                                         <div class="progress-bar"
-                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                             style="width: {{ $item->remainingPortionsPercentage }}%;"
                                         ></div>
                                     </div>
                                 @endif
-                                @if($object->quantity > 1)
+                                @if($item->quantity > 1)
                                     <span class="badge badge-primary">
-                                        {{ $object->quantity }}
+                                        {{ $item->quantity }}
                                     </span>
                                 @endif
                             </div>
                             <div class="item-controls d-flex justify-content-start align-items-center">
-                                @if($object->isMultiPortionItem)
+                                @if($item->isMultiPortionItem)
                                     <div class="progress" style="margin-right: 0.6rem;">
                                         <div class="progress-bar bg-selected js-selected-portions"
                                              style="width: 0;"
                                         ></div>
                                         <div class="progress-bar js-unselected-portions"
-                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                             style="width: {{ $item->remainingPortionsPercentage }}%;"
                                         ></div>
                                     </div>
                                     <div class="btn-group js-item-portions" style="margin-right: 1rem;">
@@ -466,8 +466,8 @@
                                     </button>
                                 </div>
                             </div>
-                            <input type="hidden" class="js-quantity-input" name="itemQuantities[{{ $object->id }}]" value="0">
-                            <input type="hidden" class="js-portions-input" name="itemPortions[{{ $object->id }}]" value="0">
+                            <input type="hidden" class="js-quantity-input" name="itemQuantities[{{ $item->id }}]" value="0">
+                            <input type="hidden" class="js-portions-input" name="itemPortions[{{ $item->id }}]" value="0">
                         </div>
                     @endforeach
                 </ul>
@@ -477,38 +477,38 @@
                 </div>
 
                 <ul class="list-group list-group-flush">
-                    @foreach($player->inventory as $object)
+                    @foreach($player->inventory as $item)
                         <div
                             class="item list-group-item d-flex justify-content-between align-items-center js-item"
-                            data-available-quantity="{{ $object->quantity }}"
+                            data-available-quantity="{{ $item->quantity }}"
                             data-selected-quantity="0"
-                            data-total-portions="{{ $object->totalPortions }}"
-                            data-available-portions="{{ $object->remainingPortions }}"
+                            data-total-portions="{{ $item->totalPortions }}"
+                            data-available-portions="{{ $item->remainingPortions }}"
                             data-selected-portions="0"
                         >
                             <div class="item-label d-flex justify-content-start align-items-center">
-                                {{ $object->label }}
-                                @if(!$object->hasAllPortions)
+                                {{ $item->label }}
+                                @if(!$item->hasAllPortions)
                                     <div class="progress">
                                         <div class="progress-bar"
-                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                             style="width: {{ $item->remainingPortionsPercentage }}%;"
                                         ></div>
                                     </div>
                                 @endif
-                                @if($object->quantity > 1)
+                                @if($item->quantity > 1)
                                     <span class="badge badge-primary">
-                                        {{ $object->quantity }}
+                                        {{ $item->quantity }}
                                     </span>
                                 @endif
                             </div>
                             <div class="item-controls d-flex justify-content-start align-items-center">
-                                @if($object->isMultiPortionItem)
+                                @if($item->isMultiPortionItem)
                                     <div class="progress" style="margin-right: 0.6rem;">
                                         <div class="progress-bar bg-selected js-selected-portions"
                                              style="width: 0;"
                                         ></div>
                                         <div class="progress-bar js-unselected-portions"
-                                             style="width: {{ $object->remainingPortionsPercentage }}%;"
+                                             style="width: {{ $item->remainingPortionsPercentage }}%;"
                                         ></div>
                                     </div>
                                     <div class="btn-group js-item-portions" style="margin-right: 1rem;">
@@ -547,8 +547,8 @@
                                     </button>
                                 </div>
                             </div>
-                            <input type="hidden" class="js-quantity-input" name="itemQuantities[{{ $object->id }}]" value="0">
-                            <input type="hidden" class="js-portions-input" name="itemPortions[{{ $object->id }}]" value="0">
+                            <input type="hidden" class="js-quantity-input" name="itemQuantities[{{ $item->id }}]" value="0">
+                            <input type="hidden" class="js-portions-input" name="itemPortions[{{ $item->id }}]" value="0">
                         </div>
                     @endforeach
                 </ul>

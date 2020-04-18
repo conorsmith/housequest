@@ -165,7 +165,7 @@ final class PlayerRepositoryDb implements PlayerRepository
         }
     }
 
-    public function create(UuidInterface $gameId, Player $player): void
+    public function saveNew(UuidInterface $gameId, Player $player): void
     {
         DB::table("players")->insert([
             'id'                => $player->getId()->toString(),

@@ -12,6 +12,7 @@ use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
 use App\Repositories\RecipeRepositoryConfig;
+use App\ViewModels\ItemFactory;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
@@ -23,16 +24,22 @@ final class PostMake extends Controller
     /** @var PlayerRepositoryDb */
     private $playerRepo;
 
+    /** @var RecipeRepositoryConfig */
     private $recipeRepo;
+
+    /** @var ItemFactory */
+    private $itemViewModelFactory;
 
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepositoryDb $playerRepo,
-        RecipeRepositoryConfig $recipeRepo
+        RecipeRepositoryConfig $recipeRepo,
+        ItemFactory $itemViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->recipeRepo = $recipeRepo;
+        $this->itemViewModelFactory = $itemViewModelFactory;
     }
 
     public function __invoke(Request $request, string $gameId)
@@ -72,10 +79,12 @@ final class PostMake extends Controller
         $itemRepo->save($endProduct);
         $this->playerRepo->save($player);
 
+        $viewModel = $this->itemViewModelFactory->create($endProduct);
+
         if ($recipe->getEndProductQuantity() > 1) {
-            $output = "{$endProduct->getName()} ({$recipe->getEndProductQuantity()})";
+            $output = "{$viewModel->label} ({$recipe->getEndProductQuantity()})";
         } else {
-            $output = $endProduct->getName();
+            $output = $viewModel->label;
         }
 
         session()->flash("success", "You made {$output}.");
@@ -166,7 +175,9 @@ final class PostMake extends Controller
             }
         }
 
-        return $itemRepo->createForInventory($recipe->getEndProduct());
+        $item = $itemRepo->createType($recipe->getEndProduct());
+        $item->moveTo("player");
+        return $item;
     }
 
     private function getSubmittedItemQuantitiesById(Request $request): array

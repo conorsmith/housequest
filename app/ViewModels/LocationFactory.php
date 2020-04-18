@@ -44,7 +44,7 @@ final class LocationFactory
     {
         $viewModel = $this->create($location);
         $viewModel->egresses = [];
-        $viewModel->objects = [];
+        $viewModel->items = [];
 
         foreach ($location->getEgresses($inventory) as $egressLocationId) {
             $viewModel->egresses[] = $this->create(
@@ -54,7 +54,7 @@ final class LocationFactory
 
         /** @var Item $item */
         foreach ($inventory->getItems() as $item) {
-            $viewModel->objects[] = $this->itemViewModelFactory->create($item);
+            $viewModel->items[] = $this->itemViewModelFactory->create($item);
         }
 
         return $viewModel;

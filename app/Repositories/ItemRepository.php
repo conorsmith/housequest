@@ -5,11 +5,12 @@ namespace App\Repositories;
 
 use App\Domain\Inventory;
 use App\Domain\Item;
+use Ramsey\Uuid\UuidInterface;
 
 interface ItemRepository
 {
-    public function find(string $id): ?Item;
+    public function find(UuidInterface $id): ?Item;
     public function findInventory(string $locationId): Inventory;
-    public function createForInventory(string $itemId): Item;
+    public function createType(string $itemTypeId): Item;
     public function save(Item $item): void;
 }

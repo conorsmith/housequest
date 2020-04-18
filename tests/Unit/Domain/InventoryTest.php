@@ -179,7 +179,6 @@ final class InventoryTest extends TestCase
         return new Item(
             $id,
             "some-item-type",
-            "Some Item",
             "player",
             $quantity,
             $remainingPortions,

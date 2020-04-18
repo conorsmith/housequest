@@ -16,9 +16,6 @@ final class Item
     private $typeId;
 
     /** @var string */
-    private $name;
-
-    /** @var string */
     private $locationId;
 
     /** @var int */
@@ -39,7 +36,6 @@ final class Item
     public function __construct(
         UuidInterface $id,
         string $typeId,
-        string $name,
         string $locationId,
         int $quantity,
         int $remainingPortions,
@@ -49,7 +45,6 @@ final class Item
     ) {
         $this->id = $id;
         $this->typeId = $typeId;
-        $this->name = $name;
         $this->locationId = $locationId;
         $this->quantity = $quantity;
         $this->remainingPortions = $remainingPortions;
@@ -65,24 +60,8 @@ final class Item
         return new self(
             Uuid::uuid4(),
             $this->typeId,
-            $this->name,
             $this->locationId,
             $quantity,
-            $this->remainingPortions,
-            $this->totalPortions,
-            $this->attributes,
-            $this->use
-        );
-    }
-
-    public function copyTo(string $locationId): self
-    {
-        return new self(
-            Uuid::uuid4(),
-            $this->typeId,
-            $this->name,
-            $locationId,
-            0,
             $this->remainingPortions,
             $this->totalPortions,
             $this->attributes,
@@ -95,7 +74,6 @@ final class Item
         return new self(
             Uuid::uuid4(),
             $this->typeId,
-            $this->name,
             $this->locationId,
             0,
             $this->remainingPortions,
@@ -113,11 +91,6 @@ final class Item
     public function getTypeId(): string
     {
         return $this->typeId;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     public function getLocationId(): string
@@ -210,11 +183,6 @@ final class Item
             && $this->locationId === $other->locationId;
     }
 
-    public function pickup(): void
-    {
-        $this->locationId = "player";
-    }
-
     public function moveTo(string $locationId): void
     {
         $this->locationId = $locationId;
@@ -236,11 +204,6 @@ final class Item
     public function decrementQuantity(): void
     {
         $this->quantity--;
-    }
-
-    public function decrementPortions(): void
-    {
-        $this->remainingPortions--;
     }
 
     public function addQuantity(int $quantity): void

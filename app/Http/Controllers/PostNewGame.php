@@ -9,11 +9,13 @@ use App\Domain\Item;
 use App\Domain\Player;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
+use App\ViewModels\EventFactory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 final class PostNewGame extends Controller
 {
@@ -23,20 +25,21 @@ final class PostNewGame extends Controller
     /** @var ItemRepositoryDbFactory */
     private $itemRepoFactory;
 
-    public function __construct(PlayerRepository $playerRepo, ItemRepositoryDbFactory $itemRepoFactory)
-    {
+    /** @var EventFactory */
+    private $eventViewModelFactory;
+
+    public function __construct(
+        PlayerRepository $playerRepo,
+        ItemRepositoryDbFactory $itemRepoFactory,
+        EventFactory $eventViewModelFactory
+    ) {
         $this->playerRepo = $playerRepo;
         $this->itemRepoFactory = $itemRepoFactory;
+        $this->eventViewModelFactory = $eventViewModelFactory;
     }
 
     public function __invoke(Request $request)
     {
-        $objects = include __DIR__ . "/../../../config/objects.php";
-
-        $locations = include __DIR__ . "/../../../config/locations.php";
-
-        $events = include __DIR__ . "/../../../config/events.php";
-
         $gameId = Uuid::uuid4();
         $playerId = Uuid::uuid4();
 
@@ -54,31 +57,56 @@ final class PostNewGame extends Controller
             return redirect("/");
         }
 
+        $startingLocationId = "master-bedroom";
+        $startEvent = new Event("start", $startingLocationId);
+
         $player = new Player(
             $playerId,
             $name,
-            "master-bedroom",
+            $startingLocationId,
             0,
             false,
             false,
             [
-                new Event("start", "master-bedroom"),
+                $startEvent,
             ],
             [],
             [],
             0,
             [
-                "master-bedroom",
+                $startingLocationId,
             ]
         );
 
-        $locationInventories = [];
-        $containerInventories = [];
+        $inventories = $this->createInventoriesForGame($gameId);
+
+        $this->playerRepo->saveNew($gameId, $player);
+
+        /** @var Inventory $inventory */
+        foreach ($inventories as $inventory) {
+            /** @var Item $item */
+            foreach ($inventory->getItems() as $item) {
+                $itemRepo->save($item);
+            }
+        }
+
+        $eventViewModel = $this->eventViewModelFactory->create($startEvent);
+        session()->flash("message", $eventViewModel->message);
+        return redirect("/{$gameId}");
+    }
+
+    private function createInventoriesForGame(UuidInterface $gameId)
+    {
+        $locations = include __DIR__ . "/../../../config/locations.php";
+
+        $itemRepo = $this->itemRepoFactory->create($gameId);
+
+        $inventories = [];
 
         foreach ($locations as $locationId => $location) {
-            if (array_key_exists('objects', $location)) {
-                $locationInventories[$locationId] = new Inventory($locationId, []);
-                foreach ($location['objects'] as $key => $value) {
+            if (array_key_exists('items', $location)) {
+                $locationInventory = new Inventory($locationId, []);
+                foreach ($location['items'] as $key => $value) {
                     if (is_string($value)) {
                         $itemTypeId = $value;
                         $quantity = 1;
@@ -93,87 +121,39 @@ final class PostNewGame extends Controller
                         $contents = [];
                     }
 
-                    $itemConfig = $objects[$itemTypeId];
+                    $item = $itemRepo->createType($itemTypeId);
+                    $item->moveTo($locationId);
+                    $item->addQuantity($quantity);
 
-                    if (array_key_exists('portions', $itemConfig)) {
-                        $portions = $itemConfig['portions'];
-                    } else {
-                        $portions = 1;
-                    }
-
-                    $item = new Item(
-                        $itemId = Uuid::uuid4(),
-                        $itemTypeId,
-                        $itemConfig['name'],
-                        $locationId,
-                        $quantity,
-                        $portions,
-                        $portions,
-                        Arr::get($itemConfig, 'attributes', []),
-                        null
-                    );
-
-                    $locationInventories[$locationId]->add($item);
+                    $locationInventory->add($item);
 
                     if (count($contents) > 0) {
-                        $containerInventories[$itemId->toString()] = new Inventory($itemId->toString(), []);
-                    }
+                        $containerInventory = new Inventory($item->getId()->toString(), []);
 
-                    foreach ($contents as $contentsKey => $contentsValue) {
+                        foreach ($contents as $contentsKey => $contentsValue) {
 
-                        if (is_int($contentsValue)) {
-                            $containedItemTypeId = $contentsKey;
-                            $quantity = $contentsValue;
-                        } else {
-                            $containedItemTypeId = $contentsValue;
-                            $quantity = 1;
+                            if (is_int($contentsValue)) {
+                                $containedItemTypeId = $contentsKey;
+                                $quantity = $contentsValue;
+                            } else {
+                                $containedItemTypeId = $contentsValue;
+                                $quantity = 1;
+                            }
+
+                            $containedItem = $itemRepo->createType($containedItemTypeId);
+                            $containedItem->moveTo($item->getId()->toString());
+                            $containedItem->addQuantity($quantity);
+
+                            $containerInventory->add($containedItem);
                         }
 
-                        $itemConfig = $objects[$containedItemTypeId];
-
-                        if (array_key_exists('portions', $itemConfig)) {
-                            $portions = $itemConfig['portions'];
-                        } else {
-                            $portions = 1;
-                        }
-
-                        $containedItem = new Item(
-                            Uuid::uuid4(),
-                            $containedItemTypeId,
-                            $itemConfig['name'],
-                            $itemId->toString(),
-                            $quantity,
-                            $portions,
-                            $portions,
-                            Arr::get($itemConfig, 'attributes', []),
-                            null
-                        );
-
-                        $containerInventories[$itemId->toString()]->add($containedItem);
+                        $inventories[] = $containerInventory;
                     }
                 }
+                $inventories[] = $locationInventory;
             }
         }
 
-        $this->playerRepo->create($gameId, $player);
-
-        /** @var Inventory $inventory */
-        foreach ($locationInventories as $inventory) {
-            /** @var Item $item */
-            foreach ($inventory->getItems() as $item) {
-                $itemRepo->save($item);
-            }
-        }
-
-        /** @var Inventory $inventory */
-        foreach ($containerInventories as $inventory) {
-            /** @var Item $item */
-            foreach ($inventory->getItems() as $item) {
-                $itemRepo->save($item);
-            }
-        }
-
-        session()->flash("message", $events['start']['message']);
-        return redirect("/{$gameId}");
+        return $inventories;
     }
 }
