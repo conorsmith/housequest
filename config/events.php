@@ -12,7 +12,13 @@ return [
         'message' => "You foolishly step out from your front garden into the street and are immediately torn asunder in a hail of bullets by a passing military patrol drone.",
     ],
     'a-brief-encounter' => [
-        'message' => "Your make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone. It looks like whatever it was dropped something...",
+        'message' => "You make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone. It looks like whatever it was dropped something...",
+    ],
+    'an-illuminating-encounter' => [
+        'message' => [
+            "You make your way up into the attic and look around with your flashlight. You spot the source of the noise: a creature that bares a striking resemblance to 1980s mainstay ALF.",
+            "It has some sort of syringe in its hand. The being looks at you and emits a haunting squeal. It emits a blinding flash of light. After regaining your vision you see the creature is gone. However, it did drop that syringe.",
+        ],
     ],
     'selfish-act' => [
         'message' => "You inject yourself with the cure for Covid-19 without handing it over to scientists for study. You are now immune to the virus and everybody else is still fucked. Well done.",

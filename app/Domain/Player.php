@@ -143,13 +143,17 @@ final class Player
         $this->hasWon = true;
     }
 
-    public function experienceEvent(string $eventId): void
+    public function experienceEvent(string $eventId): ?Event
     {
         if ($this->experiencedEvent($eventId)) {
-            return;
+            return null;
         }
 
-        $this->events[] = new Event($eventId, $this->locationId);
+        $event = new Event($eventId, $this->locationId);
+
+        $this->events[] = $event;
+
+        return $event;
     }
 
     public function unlockAchievement(string $achievementId): void
