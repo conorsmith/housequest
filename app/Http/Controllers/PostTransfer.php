@@ -39,8 +39,8 @@ final class PostTransfer extends Controller
         $itemIdsFromContainerToPlayer = $request->input("containerItems", []);
         $itemIdsFromPlayerToContainer = $request->input("inventoryItems", []);
 
-        $playerInventory = new Inventory("player", $itemRepo->getInventory());
-        $containerInventory = new Inventory($containerId, $itemRepo->findAtLocation($containerId));
+        $playerInventory = $itemRepo->findInventory("player");
+        $containerInventory = $itemRepo->findInventory($containerId);
 
         /** @var Item $fromItem */
         foreach ($containerInventory->getItems() as $fromItem) {

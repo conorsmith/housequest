@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Repositories\EventRepositoryConfig;
 use App\Repositories\PlayerRepository;
+use App\ViewModels\EventFactory;
 use Ramsey\Uuid\Uuid;
 
 final class PostGo extends Controller
@@ -12,13 +12,13 @@ final class PostGo extends Controller
     /** @var PlayerRepository */
     private $playerRepo;
 
-    /** @var EventRepositoryConfig */
-    private $eventRepo;
+    /** @var EventFactory */
+    private $eventViewModelFactory;
 
-    public function __construct(PlayerRepository $playerRepo, EventRepositoryConfig $eventRepo)
+    public function __construct(PlayerRepository $playerRepo, EventFactory $eventViewModelFactory)
     {
         $this->playerRepo = $playerRepo;
-        $this->eventRepo = $eventRepo;
+        $this->eventViewModelFactory = $eventViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $locationId)
@@ -32,17 +32,17 @@ final class PostGo extends Controller
         if ($locationId === "the-street") {
             $player->kill();
             $player->experienceEvent("shot-to-death");
-            session()->flash("message", $this->eventRepo->findMessage("shot-to-death"));
+            session()->flash("message", $this->eventViewModelFactory->createMessage("shot-to-death"));
         }
 
         if ($isNewLocation && $locationId === "landing") {
             $player->experienceEvent("attic-noises");
-            session()->flash("message", $this->eventRepo->findMessage("attic-noises"));
+            session()->flash("message", $this->eventViewModelFactory->createMessage("attic-noises"));
         }
 
         if ($isNewLocation && $locationId === "attic") {
             $player->experienceEvent("a-brief-encounter");
-            session()->flash("message", $this->eventRepo->findMessage("a-brief-encounter"));
+            session()->flash("message", $this->eventViewModelFactory->createMessage("a-brief-encounter"));
         }
 
         $this->playerRepo->save($player);

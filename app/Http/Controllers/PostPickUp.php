@@ -36,7 +36,7 @@ final class PostPickUp extends Controller
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
-        $playerInventory = new Inventory("player", $itemRepo->getInventory());
+        $playerInventory = $itemRepo->findInventory("player");
 
         $item = $itemRepo->find($itemId);
 

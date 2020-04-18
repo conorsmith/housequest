@@ -6,11 +6,11 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\Player;
-use App\Repositories\EventRepositoryConfig;
 use App\Repositories\ItemRepository;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
+use App\ViewModels\EventFactory;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
@@ -22,14 +22,17 @@ final class PostUse extends Controller
     /** @var PlayerRepositoryDb */
     private $playerRepo;
 
-    /** @var EventRepositoryConfig */
-    private $eventRepo;
+    /** @var EventFactory */
+    private $eventViewModelFactory;
 
-    public function __construct(ItemRepositoryDbFactory $itemRepoFactory, PlayerRepositoryDb $playerRepo, EventRepositoryConfig $eventRepo)
-    {
+    public function __construct(
+        ItemRepositoryDbFactory $itemRepoFactory,
+        PlayerRepositoryDb $playerRepo,
+        EventFactory $eventViewModelFactory
+    ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
-        $this->eventRepo = $eventRepo;
+        $this->eventViewModelFactory = $eventViewModelFactory;
     }
 
     public function __invoke(Request $request, string $gameId, string $itemId)
@@ -102,9 +105,9 @@ final class PostUse extends Controller
 
     private function useStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
-        $ladderInventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
+        $ladderInventory = $itemRepo->findInventory($item->getLocationId());
         if ($item->getLocationId() !== $player->getLocationId()) {
-            $locationInventory = new Inventory($player->getLocationId(), $itemRepo->findAtLocation($player->getLocationId()));
+            $locationInventory = $itemRepo->findInventory($player->getLocationId());
         } else {
             $locationInventory = $ladderInventory;
         }
@@ -136,7 +139,7 @@ final class PostUse extends Controller
 
     private function useDeployedStepLadder(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
-        $inventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
+        $inventory = $itemRepo->findInventory($item->getLocationId());
 
         /** @var Item $inventoryItem */
         foreach ($inventory->getItems() as $inventoryItem) {
@@ -172,7 +175,7 @@ final class PostUse extends Controller
 
     private function useCovid19Cure(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
-        $inventory = new Inventory($item->getLocationId(), $itemRepo->findAtLocation($item->getLocationId()));
+        $inventory = $itemRepo->findInventory($item->getLocationId());
 
         /** @var Item $inventoryItem */
         foreach ($inventory->getItems() as $inventoryItem) {
@@ -187,14 +190,14 @@ final class PostUse extends Controller
         }
 
         $player->experienceEvent("selfish-act");
-        session()->flash("message", $this->eventRepo->findMessage("selfish-act"));
+        session()->flash("message", $this->eventViewModelFactory->createMessage("selfish-act"));
 
         $this->playerRepo->save($player);
     }
 
     private function useTelephone(Request $request, Player $player, Item $item, ItemRepository $itemRepo): void
     {
-        $inventory = new Inventory("player", $itemRepo->findAtLocation("player"));
+        $inventory = $itemRepo->findInventory("player");
 
         $number = $request->get("number");
 
@@ -210,7 +213,7 @@ final class PostUse extends Controller
         } elseif ($number === "08002684319") {
             if ($inventory->hasItemType("covid-19-cure")) {
                 $player->experienceEvent("the-right-call");
-                $message = $this->eventRepo->findMessage("the-right-call");
+                $message = $this->eventViewModelFactory->createMessage("the-right-call");
             } else {
                 $message = "<p>You get through to the quarantine hotline. After several hours of waiting a human finally answers your call. You cannot remember the query you wanted to make and sheepishly hang up without saying anything.</p>"
                     . "<p class=\"mb-0\">Maybe write it down next time?</p>";
@@ -230,18 +233,18 @@ final class PostUse extends Controller
         if ($player->experiencedEvent("the-right-call")
             && !$player->experiencedEvent("prank-call")
         ) {
-            $letterBoxInventory = new Inventory("letter-box", $itemRepo->findAtLocation("letter-box"));
+            $letterBoxInventory = $itemRepo->findInventory("letter-box");
 
             if ($letterBoxInventory->hasItemType("covid-19-cure")) {
                 $player->experienceEvent("save-the-world");
                 $player->win();
                 $this->playerRepo->save($player);
 
-                session()->flash("messageRaw", $this->eventRepo->findMessage("save-the-world"));
+                session()->flash("messageRaw", $this->eventViewModelFactory->createMessage("save-the-world"));
                 return;
             }
 
-            $frontGardenInventory = new Inventory("front-garden", $itemRepo->findAtLocation("front-garden"));
+            $frontGardenInventory = $itemRepo->findInventory("front-garden");
 
             $frontGardenInventory->removeByType("letter-box");
 
@@ -258,7 +261,7 @@ final class PostUse extends Controller
             $player->experienceEvent("prank-call");
             $this->playerRepo->save($player);
 
-            session()->flash("messageRaw", $this->eventRepo->findMessage("prank-call"));
+            session()->flash("messageRaw", $this->eventViewModelFactory->createMessage("prank-call"));
             return;
         }
 

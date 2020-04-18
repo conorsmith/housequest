@@ -6,10 +6,10 @@ namespace App\Http\Controllers;
 use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\Player;
-use App\Repositories\AchievementRepositoryConfig;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
+use App\ViewModels\AchievementFactory;
 use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
 
@@ -21,17 +21,17 @@ final class PostEat extends Controller
     /** @var PlayerRepository */
     private $playerRepo;
 
-    /** @var AchievementRepositoryConfig */
-    private $achievementRepo;
+    /** @var AchievementFactory */
+    private $achievementViewModelFactory;
 
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepository $playerRepo,
-        AchievementRepositoryConfig $achievementRepo
+        AchievementFactory $achievementViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
-        $this->achievementRepo = $achievementRepo;
+        $this->achievementViewModelFactory = $achievementViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $itemId)
@@ -47,12 +47,12 @@ final class PostEat extends Controller
             return redirect("/{$gameId}");
         }
 
-        $inventory = new Inventory("player", $itemRepo->getInventory());
+        $inventory = $itemRepo->findInventory("player");
 
         $item = $inventory->find($itemId);
 
         if (is_null($item)) {
-            $inventory = new Inventory($player->getLocationId(), $itemRepo->findAtLocation($player->getLocationId()));
+            $inventory = $itemRepo->findInventory($player->getLocationId());
             $item = $inventory->find($itemId);
 
             if (is_null($item)) {
@@ -69,7 +69,7 @@ final class PostEat extends Controller
 
         $player->eat($item);
 
-        $achievements = $this->unlockAchievements($player);
+        $achievementIds = $this->unlockAchievements($player);
 
         $this->playerRepo->save($player);
         /** @var Item $inventoryItem */
@@ -79,11 +79,8 @@ final class PostEat extends Controller
 
         $achievementSessionData = [];
 
-        foreach ($achievements as $achievement) {
-            $achievementSessionData[] = [
-                'title' => $achievement['title'],
-                'body'  => $achievement['body'],
-            ];
+        foreach ($achievementIds as $achievementId) {
+            $achievementSessionData[] = $this->achievementViewModelFactory->create($achievementId);
         }
 
         if (count($achievementSessionData) > 0) {
@@ -120,14 +117,14 @@ final class PostEat extends Controller
             $player->unlockAchievement("eat_types_57");
         }
 
-        $unlockedAchievements = [];
+        $unlockedAchievementIds = [];
 
         foreach ($player->getAchievements() as $achievementId) {
             if (!in_array($achievementId, $existingAchievementIds)) {
-                $unlockedAchievements[] = $this->achievementRepo->find($achievementId);
+                $unlockedAchievementIds[] = $achievementId;
             }
         }
 
-        return $unlockedAchievements;
+        return $unlockedAchievementIds;
     }
 }

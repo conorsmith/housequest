@@ -41,8 +41,8 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                         <p style="font-size: 0.75rem; opacity: 0.75; margin-bottom: 0.4rem;">Achievement Unlocked</p>
-                        <strong>{{ $achievement['title'] }}</strong>
-                        <p class="mb-0">{{ $achievement['body'] }}</p>
+                        <strong>{{ $achievement->title }}</strong>
+                        <p class="mb-0">{{ $achievement->body }}</p>
                     </div>
                 @endforeach
             @endif
@@ -83,7 +83,7 @@
                                         style="margin-bottom: 0.4rem;"
                                         {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                                 >
-                                    Go to {{ $egress->label }}
+                                    Go to {{ $egress->title }}
                                 </button>
                             </form>
                         @endforeach
@@ -121,7 +121,7 @@
                 @endif
             </div>
 
-            @if($player->inventory or $player->xp or $player->isDead or $player->hasWon)
+            @if($player->inventory or $player->isDead or $player->hasWon)
                 <div class="card" style="margin-top: 2rem;">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>{{ $player->name }}</div>
@@ -633,7 +633,7 @@
             <div class="modal-body">
                 @foreach($player->events as $event)
                     <div class="review-event">
-                        <div class="review-event-title">{{ $event->location }}</div>
+                        <div class="review-event-title">{{ $event->location->title }}</div>
                         {!! $event->message !!}
                     </div>
                 @endforeach

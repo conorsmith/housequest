@@ -92,15 +92,15 @@ final class PostMake extends Controller
         $submittedItemsPortionsById = $this->getSubmittedItemPortionsById($request);
 
         $inventories = [
-            $itemRepo->findAtLocation("player"),
-            $itemRepo->findAtLocation($player->getLocationId()),
+            $itemRepo->findInventory("player"),
+            $itemRepo->findInventory($player->getLocationId()),
         ];
 
         $submittedIngredients = [];
 
-        foreach ($inventories as $inventoryItems) {
+        foreach ($inventories as $inventory) {
             /** @var Item $inventoryItem */
-            foreach ($inventoryItems as $inventoryItem) {
+            foreach ($inventory->getItems() as $inventoryItem) {
                 if (array_key_exists($inventoryItem->getId()->toString(), $submittedItemsQuantitiesById)) {
                     $submittedIngredients[] = new RecipeIngredient(
                         $inventoryItem->getTypeId(),
@@ -124,8 +124,8 @@ final class PostMake extends Controller
     private function removeUsedItemsFromInventory(Request $request, ItemRepositoryDb $itemRepo, Player $player): array
     {
         $inventories = [
-            new Inventory("player", $itemRepo->getInventory()),
-            new Inventory($player->getLocationId(), $itemRepo->findAtLocation($player->getLocationId()))
+            $itemRepo->findInventory("player"),
+            $itemRepo->findInventory($player->getLocationId()),
         ];
 
         $submittedItemsQuantitiesById = $this->getSubmittedItemQuantitiesById($request);
@@ -157,7 +157,7 @@ final class PostMake extends Controller
 
     private function getEndProduct(ItemRepositoryDb $itemRepo, Recipe $recipe): Item
     {
-        $inventoryItems = $itemRepo->getInventory();
+        $inventoryItems = $itemRepo->findInventory("player")->getItems();
 
         /** @var Item $item */
         foreach ($inventoryItems as $item) {

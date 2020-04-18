@@ -38,8 +38,8 @@ final class PostDrop extends Controller
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
-        $playerInventory = new Inventory("player", $itemRepo->getInventory());
-        $locationInventory = new Inventory($locationId, $itemRepo->findAtLocation($locationId));
+        $playerInventory = $itemRepo->findInventory("player");
+        $locationInventory = $itemRepo->findInventory($locationId);
 
         if (is_null($playerInventory->find($itemId))) {
             $item = $locationInventory->find($itemId);

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\ItemUse;
 use Carbon\Carbon;
@@ -40,99 +41,19 @@ final class ItemRepositoryDb implements ItemRepository
         return $this->createItemFromRow($row);
     }
 
-    public function findInInventory(Item $item): ?Item
+    public function findInventory(string $locationId): Inventory
     {
-        $row = DB::selectOne(
-            "SELECT * FROM objects WHERE game_id = ? AND location_id = ? AND object_id = ? AND portions = ?",
-            [
-                $this->gameId,
-                "player",
-                $item->getTypeId(),
-                $item->getRemainingPortions(),
-            ]
-        );
-
-        if (is_null($row)) {
-            return null;
-        }
-
-        return $this->createItemFromRow($row);
-    }
-
-    public function findInContainer(string $containerId, Item $item): ?Item
-    {
-        $row = DB::selectOne(
-            "SELECT * FROM objects WHERE game_id = ? AND location_id = ? AND object_id = ?",
-            [
-                $this->gameId,
-                $containerId,
-                $item->getTypeId(),
-                $item->getRemainingPortions(),
-            ]
-        );
-
-        if (is_null($row)) {
-            return null;
-        }
-
-        return $this->createItemFromRow($row);
-    }
-
-    public function findOneOfType(string $typeId): ?Item
-    {
-        $row = DB::selectOne("SELECT * FROM objects WHERE game_id = ? AND object_id = ?", [
-            $this->gameId,
-            $typeId,
-        ]);
-
-        if (is_null($row)) {
-            return null;
-        }
-
-        return $this->createItemFromRow($row);
-    }
-
-    public function getInventory(): array
-    {
-        $rows = DB::select("SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC", [
-            $this->gameId,
-            "player",
-        ]);
-
-        return $this->createItemsFromRows($rows);
-    }
-
-    public function findAtLocation(string $locationId): array
-    {
-        $rows = DB::select("SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC", [
-            $this->gameId,
-            $locationId,
-        ]);
-
-        return $this->createItemsFromRows($rows);
-    }
-
-    public function findAllInContainer(Item $container): array
-    {
-        $rows = DB::select("SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC", [
-            $this->gameId,
-            $container->getTypeId(),
-        ]);
-
-        return $this->createItemsFromRows($rows);
-    }
-
-    public function findMultiple(array $ids): array
-    {
-        $whereExpressions = array_fill(0, count($ids), "id = ?");
-        $whereString = implode(" OR ", $whereExpressions);
-
         $rows = DB::select(
-            "SELECT * FROM objects WHERE ({$whereString})",
-            $ids
+            "SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC",
+            [
+                $this->gameId,
+                $locationId,
+            ]
         );
 
-        return $this->createItemsFromRows($rows);
+        $items = $this->createItemsFromRows($rows);
+
+        return new Inventory($locationId, $items);
     }
 
     public function createForInventory(string $itemId): Item
