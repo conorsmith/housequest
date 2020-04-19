@@ -136,6 +136,7 @@ window.EventBus = new EventBus();
 
 ActionFormController.fromFormEl(document.querySelector("#js-action"));
 
+ActionButtonController.fromAction("look-at");
 ActionButtonController.fromAction("pick-up");
 ActionButtonController.fromAction("drop");
 ActionButtonController.fromAction("use");

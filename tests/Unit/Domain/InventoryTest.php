@@ -20,7 +20,7 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item = $this->createEdibleItem($itemId, 1, 1, 1)
+            $item = $this->createIngestibleItem($itemId, 1, 1, 1)
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -44,7 +44,7 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item = $this->createEdibleItem($itemId, 1, 100, 100)
+            $item = $this->createIngestibleItem($itemId, 1, 100, 100)
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -68,7 +68,7 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item = $this->createEdibleItem($itemId, 1, 1, 100)
+            $item = $this->createIngestibleItem($itemId, 1, 1, 100)
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -92,8 +92,8 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item      = $this->createEdibleItem($itemId, 1, 50, 100),
-            $otherItem = $this->createEdibleItem(Uuid::uuid4(), 1, 49, 100),
+            $item      = $this->createIngestibleItem($itemId, 1, 50, 100),
+            $otherItem = $this->createIngestibleItem(Uuid::uuid4(), 1, 49, 100),
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -121,7 +121,7 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item = $this->createEdibleItem($itemId, 100, 50, 100),
+            $item = $this->createIngestibleItem($itemId, 100, 50, 100),
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -149,8 +149,8 @@ final class InventoryTest extends TestCase
         $itemId = Uuid::uuid4();
 
         $inventory = new Inventory("player", [
-            $item      = $this->createEdibleItem($itemId, 100, 50, 100),
-            $otherItem = $this->createEdibleItem(Uuid::uuid4(), 1, 49, 100)
+            $item      = $this->createIngestibleItem($itemId, 100, 50, 100),
+            $otherItem = $this->createIngestibleItem(Uuid::uuid4(), 1, 49, 100)
         ]);
 
         $inventory->removeEatenItem($itemId);
@@ -174,7 +174,7 @@ final class InventoryTest extends TestCase
         );
     }
 
-    private function createEdibleItem(UuidInterface $id, int $quantity, int $remainingPortions, int $totalPortions): Item
+    private function createIngestibleItem(UuidInterface $id, int $quantity, int $remainingPortions, int $totalPortions): Item
     {
         return new Item(
             $id,
@@ -183,8 +183,9 @@ final class InventoryTest extends TestCase
             $quantity,
             $remainingPortions,
             $totalPortions,
+            null,
             [
-                "edible",
+                "ingestible",
             ],
             null
         );

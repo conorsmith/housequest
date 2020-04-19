@@ -21,12 +21,75 @@ return [
         ],
     ],
     'a-brief-encounter' => [
-        'message' => "You make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone. It looks like whatever it was dropped something...",
+        'message' => [
+            "You make your way up into the attic and look around. You hear a haunting squeal and are briefly blinded by a bright flash of light. After regaining your vision you realise that whatever had been up here is now gone.",
+            "However, it appears to have dropped something."
+        ],
     ],
     'an-illuminating-encounter' => [
         'message' => [
-            "You make your way up into the attic and look around with your flashlight. You spot the source of the noise: a creature that bares a striking resemblance to 1980s mainstay ALF.",
-            "It has some sort of syringe in its hand. The being looks at you and emits a haunting squeal. It emits a blinding flash of light. After regaining your vision you see the creature is gone. However, it did drop that syringe.",
+            "You make your way up into the attic and look around with your flashlight. You spot the source of the noise: a creature that bares a striking resemblance to 1980s mainstay ALF. It is rooting through a tattered box.",
+            "It is holding what appears to be a sandwich. The being looks at you and lets out a haunting squeal. A blinding flash of light is emitted from a device in its hand. After regaining your vision you see the creature is gone.",
+            "However, it dropped its sandwich.",
+        ],
+    ],
+    'alien-grub' => [
+        'message' => [
+            "You eat the mysterious sandwich that some bizarre intruder left in your attic. Almost immediately after you finish eating it you keel over in agony. You feel like you're being burned from the inside out.",
+            "Your final moments are filled with anguish and regret over eating a mysterious sandwich that some bizarre intruder left in your attic.",
+        ],
+    ],
+    'page-inside' => [
+        'message' => [
+            "You switch on the ALF-branded pager. The display flashes and a number of strange characters appear, scrolling across the screen. They don't appear to be from any language you are familiar with.",
+            "A few moments later a message appears in English:",
+            "\"UPLINK FAILED. WEAK SIGNAL.\"",
+        ],
+    ],
+    'page-outside-first-try' => [
+        'message' => [
+            "You switch on the ALF-branded pager. The display flashes and a number of strange characters appear, scrolling across the screen. They don't appear to be from any language you are familiar with.",
+            "A few moments later a message appears in English:",
+            "\"UPLINK ESTABLISHED...\"",
+            "The eyes of the ALF face to the left of the display light up.",
+        ],
+    ],
+    'page-outside-try-again' => [
+        'message' => [
+            "You switch the pager back on. The display flashes and those same strange characters scroll across the screen.",
+            "A few moments later a message appears:",
+            "\"UPLINK ESTABLISHED...\"",
+            "The eyes of the ALF face to the left of the display light up.",
+        ],
+    ],
+    'beam-in-first-glance' => [
+        'message' => [
+            "As you leave the garden you notice a bright flash of light behind you. You turn to see a creature that bares a striking resemblance to 1980s mainstay ALF. It is looking around, trying to find something.",
+            "The being clocks you. It makes the same haunting squeal you heard in the attic. It clutches some device in its hand before disappearing in another flash.",
+            "However, this time it appears to have dropped something."
+        ],
+    ],
+    'beam-in-second-glance' => [
+        'message' => [
+            "As you leave the garden you notice a bright flash of light behind you. You turn to see the ALF creature has returned. It is looking around, trying to find something.",
+            "The being clocks you. It howls again and clutches that device in its hand before disappearing in another flash.",
+            "However, this time it appears to have dropped something."
+        ],
+    ],
+    'beam-in-first-glance-sandwich-retrieval' => [
+        'message' => [
+            "As you leave the garden you notice a bright flash of light behind you. You turn to see a creature that bares a striking resemblance to 1980s mainstay ALF. It is looking around, trying to find something.",
+            "It notices the sandwich that you left on the ground and picks it up.",
+            "The being clocks you. It makes the same haunting squeal you heard in the attic. It clutches some device in its hand before disappearing in another flash.",
+            "However, this time it appears to have dropped something."
+        ],
+    ],
+    'beam-in-second-glance-sandwich-retrieval' => [
+        'message' => [
+            "As you leave the garden you notice a bright flash of light behind you. You turn to see the ALF creature has returned. It is looking around, trying to find something.",
+            "It notices its sandwich that you left on the ground and picks it up.",
+            "The being clocks you. It howls again and clutches that device in its hand before disappearing in another flash.",
+            "However, this time it appears to have dropped something."
         ],
     ],
     'selfish-act' => [

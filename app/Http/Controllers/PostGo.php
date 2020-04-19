@@ -34,9 +34,12 @@ final class PostGo extends Controller
     {
         $gameId = Uuid::fromString($gameId);
 
+        $itemRepo = $this->itemRepoFactory->create($gameId);
+
         $player = $this->playerRepo->find($gameId);
 
         $isNewLocation = !in_array($locationId, $player->getEnteredLocations());
+        $startingLocationId = $player->getLocationId();
 
         $player->move($locationId);
 
@@ -48,7 +51,7 @@ final class PostGo extends Controller
             $event = $player->experienceEvent("attic-noises");
 
         } elseif ($isNewLocation && $locationId === "attic") {
-            $playerInventory = $this->itemRepoFactory->create($gameId)->findInventory("player");
+            $playerInventory = $itemRepo->findInventory("player");
 
             /** @var Item $item */
             foreach ($playerInventory->getItems() as $item) {
@@ -59,6 +62,51 @@ final class PostGo extends Controller
 
             if (!isset($event)) {
                 $event = $player->experienceEvent("a-brief-encounter");
+            }
+
+        } elseif (($startingLocationId === "front-garden" || $startingLocationId === "back-garden")
+            && ($player->experiencedEvent("page-outside-first-try") || $player->experiencedEvent("page-outside-try-again"))
+            && !$player->experiencedEvent("beam-in-first-glance")
+            && !$player->experiencedEvent("beam-in-second-glance")
+            && !$player->experiencedEvent("beam-in-first-glance-sandwich-retrieval")
+            && !$player->experiencedEvent("beam-in-second-glance-sandwich-retrieval")
+        ) {
+            $player->move($startingLocationId);
+
+            $locationInventory = $itemRepo->findInventory($startingLocationId);
+
+            /** @var Item $item */
+            foreach ($locationInventory->getItems() as $item) {
+                if ($item->getTypeId() === "mysterious-sandwich") {
+                    $mysteriousSandwich = $item;
+                }
+            }
+
+            if (isset($mysteriousSandwich)) {
+                $mysteriousSandwich->decrementQuantity();
+                if ($player->experiencedEvent("a-brief-encounter")) {
+                    $event = $player->experienceEvent("beam-in-first-glance-sandwich-retrieval");
+
+                } elseif ($player->experiencedEvent("an-illuminating-encounter")) {
+                    $event = $player->experienceEvent("beam-in-second-glance-sandwich-retrieval");
+                }
+            } else {
+                if ($player->experiencedEvent("a-brief-encounter")) {
+                    $event = $player->experienceEvent("beam-in-first-glance");
+
+                } elseif ($player->experiencedEvent("an-illuminating-encounter")) {
+                    $event = $player->experienceEvent("beam-in-second-glance");
+                }
+            }
+
+            $item = $itemRepo->createType("covid-19-cure");
+            $item->moveTo($startingLocationId);
+            $item->incrementQuantity();
+            $itemRepo->save($item);
+
+            /** @var Item $item */
+            foreach ($locationInventory->getItems() as $item) {
+                $itemRepo->save($item);
             }
         } else {
             $event = null;

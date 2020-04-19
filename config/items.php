@@ -40,25 +40,25 @@ return [
     'red-pepper' => [
         'name' => "Red Pepper",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'yellow-pepper' => [
         'name' => "Yellow Pepper",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'phish-food' => [
         'name' => "Ben & Jerry's Phish Food",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'peanut-butter-cup' => [
         'name' => "Ben & Jerry's Peanut Butter Cup",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'hairdryer' => [
@@ -91,64 +91,64 @@ return [
     'slice-of-bread' => [
         'name' => "Slice of Bread",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'pack-of-crisps' => [
         'name' => "Pack of Crisps",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'crisp-half-sandwich' => [
         'name' => "Crisp Half-Sandwich",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'crisp-sandwich' => [
         'name' => "Crisp Sandwich",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'cheddar-cheese' => [
         'name' => "Cheddar Cheese",
         'portions' => 4,
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'cheddar-cheese-half-sandwich' => [
         'name' => "Cheddar Cheese Half-Sandwich",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'cheddar-cheese-sandwich' => [
         'name' => "Cheddar Cheese Sandwich",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'milk' => [
         'name' => "Milk",
         'portions' => 10,
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'coco-pops' => [
         'name' => "Coco Pops",
         'portions' => 12,
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'bowl-of-coco-pops' => [
         'name' => "Bowl of Coco Pops",
         'attributes' => [
-            "edible",
+            "ingestible",
         ],
     ],
     'pantry' => [
@@ -192,12 +192,14 @@ return [
     ],
     'covid-19-cure' => [
         'name' => "Covid-19 Cure",
+        'description' => "It's a syringe filled with an amber liquid. It has a label reading \"Covid-19 Cure\" written with a thick black marker.",
     ],
     'telephone' => [
         'name' => "Telephone",
     ],
     'dented-letter-box' => [
         'name' => "Severely Dented Letter Box",
+        'description' => "A letter box bearing the damage from a severe bat-beating. Good luck getting that open.",
         'attributes' => [
             "affixed",
         ],
@@ -256,6 +258,9 @@ return [
             "container",
         ],
     ],
+    'passport' => [
+        'name' => "Passport",
+    ],
     'flashlight' => [
         'name' => "Flashlight",
         'states' => [
@@ -265,6 +270,7 @@ return [
     ],
     'quarantine-barrier' => [
         'name' => "Quarantine Barrier",
+        'description' => "It's the barrier that was erected outside your home and everybody else's home when this whole thing started. There's a gate built in for essential passage.",
         'attributes' => [
             "affixed",
         ],
@@ -272,5 +278,91 @@ return [
             'closed' => "",
             'open'   => "Open",
         ],
+    ],
+    'tattered-box' => [
+        'name' => "Tattered Box",
+        'description' => "It's a damaged cardboard box with the words \"Cyrpian Aebersold\" written on the side. It probably belonged to the former residents of the house, as you do not recognise it.",
+        'attributes' => [
+            "container",
+        ],
+    ],
+    'pager' => [
+        'name' => "Pager",
+        'description' => "It's an old pager adorned with ALF branding. It's switched off.",
+        'states' => [
+            'off' => "",
+            'on'  => [
+                'label' => "On",
+                'description' => "It's an old pager adorned with ALF branding. It's switched on.",
+            ],
+        ],
+    ],
+    'cardboard-box' => [
+        'name' => "Cardboard Box",
+        'attributes' => [
+            "container",
+        ],
+    ],
+    'christmas-lights' => [
+        'name' => "Christmas Lights",
+    ],
+    'christmas-bauble' => [
+        'name' => "Christmas Bauble",
+    ],
+    'tinsel' => [
+        'name' => "Tinsel",
+    ],
+    'christmas-tree-star' => [
+        'name' => "Christmas Tree Star",
+    ],
+    'storage-container' => [
+        'name' => "Storage Container",
+        'attributes' => [
+            "container",
+        ],
+    ],
+    'water-tank' => [
+        'name' => "Water Tank",
+    ],
+    'fur-coat' => [
+        'name' => "Fur Coat",
+    ],
+    'mysterious-sandwich' => [
+        'name' => "Mysterious Sandwich",
+        'description' => "It's a sandwich. The bread appears to be bread, basically. The filling is an indiscernible spongy grey paste.",
+        'attributes' => [
+            "ingestible",
+            "toxic",
+        ],
+    ],
+    'medicine-cabinet' => [
+        'name' => "Medicine Cabinet",
+        'attributes' => [
+            "container",
+        ],
+    ],
+    'sleeping-pills' => [
+        'name' => "Sleeping Pills",
+        'portions' => 12,
+        'attributes' => [
+            "ingestible",
+        ],
+    ],
+    'toothpaste' => [
+        'name' => "Toothpaste",
+        'portions' => 30,
+        'attributes' => [
+            "ingestible",
+        ],
+    ],
+    'toothbrush' => [
+        'name' => "Toothbrush",
+    ],
+    'disposable-razor' => [
+        'name' => "Disposable Razor",
+    ],
+    'dental-floss' => [
+        'name' => "Dental Floss",
+        'portions' => 50,
     ],
 ];

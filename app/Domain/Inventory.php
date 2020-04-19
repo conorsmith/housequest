@@ -29,8 +29,8 @@ final class Inventory
             throw new InvalidArgumentException("Item '{$itemId}' not found in inventory.");
         }
 
-        if (!$item->isEdible()) {
-            throw new DomainException("Item type '{$item->getTypeId()}' is not edible");
+        if (!$item->isIngestible()) {
+            throw new DomainException("Item type '{$item->getTypeId()}' cannot be eaten.");
         }
 
         if ($item->isSinglePortionItem()) {

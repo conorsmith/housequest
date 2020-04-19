@@ -136,14 +136,19 @@ final class Item
             || $this->quantity === 1 && $this->remainingPortions === 0;
     }
 
+    public function hasAttribute(string $attribute): bool
+    {
+        return in_array($attribute, $this->attributes);
+    }
+
     public function isContainer(): bool
     {
         return in_array("container", $this->attributes);
     }
 
-    public function isEdible(): bool
+    public function isIngestible(): bool
     {
-        return in_array("edible", $this->attributes);
+        return in_array("ingestible", $this->attributes);
     }
 
     public function isAffixed(): bool

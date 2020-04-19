@@ -311,11 +311,15 @@ var Model = /*#__PURE__*/function () {
   _createClass(Model, [{
     key: "isSupportedAction",
     value: function isSupportedAction() {
-      return ["drop", "pick-up", "use", "eat"].includes(this.action);
+      return ["look-at", "drop", "pick-up", "use", "eat"].includes(this.action);
     }
   }, {
     key: "createActionUrl",
     value: function createActionUrl(itemId) {
+      if (this.action === "look-at") {
+        return "/" + this.gameId + "/look-at/" + itemId;
+      }
+
       if (this.action === "drop") {
         return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
       }
@@ -1114,6 +1118,7 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("look-at");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("drop");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("use");

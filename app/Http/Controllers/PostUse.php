@@ -97,6 +97,7 @@ final class PostUse extends Controller
         'bed'                         => "useBed",
         'flashlight'                  => "useFlashlight",
         'quarantine-barrier'          => "useQuarantineBarrier",
+        'pager'                       => "usePager",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -303,6 +304,43 @@ final class PostUse extends Controller
         } elseif ($item->getState() === "open") {
             $item->transitionState("closed");
             session()->flash("success", "You closed the {$viewModel->label}.");
+        }
+
+        $this->playerRepo->save($player);
+        $itemRepo->save($item);
+    }
+
+    private function usePager(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $item = $itemRepo->find($command->getItemId());
+        $viewModel = $this->itemViewModelFactory->create($item);
+
+        if ($item->getState() === "on") {
+            $item->transitionState("off");
+            session()->flash("success", "You turned off the {$viewModel->label}.");
+
+        } elseif ($item->getState() === "off") {
+            $item->transitionState("on");
+
+            if ($player->getLocationId() === "front-garden"
+                || $player->getLocationId() === "back-garden"
+            ) {
+                if ($player->experiencedEvent("page-inside")) {
+                    $event = $player->experienceEvent("page-outside-try-again");
+                } else {
+                    $event = $player->experienceEvent("page-outside-first-try");
+                }
+            } else {
+                $event = $player->experienceEvent("page-inside");
+            }
+
+            if (is_null($event)) {
+                session()->flash("success", "You turned on the {$viewModel->label}.");
+            } else {
+                session()->flash("messageRaw", $this->eventViewModelFactory->create($event)->message);
+            }
         }
 
         $this->playerRepo->save($player);

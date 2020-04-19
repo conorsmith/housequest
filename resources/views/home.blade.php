@@ -205,13 +205,21 @@
             >
                 Alt
             </button>
+            ???
             Pick Up +
             Drop +
             Use With
-            ???
+            ??? (Kill?)
             Place
             Break
             --}}
+            <button type="button"
+                    class="js-look-at btn btn-action btn-sm"
+                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                Look At
+            </button>
             <button type="button"
                     class="js-pick-up btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"

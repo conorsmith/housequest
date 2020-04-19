@@ -9,6 +9,7 @@ use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\AchievementFactory;
+use App\ViewModels\EventFactory;
 use App\ViewModels\ItemFactory;
 use InvalidArgumentException;
 use Ramsey\Uuid\Uuid;
@@ -27,16 +28,21 @@ final class PostEat extends Controller
     /** @var ItemFactory */
     private $itemViewModelFactory;
 
+    /** @var EventFactory */
+    private $eventViewModelFactory;
+
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepository $playerRepo,
         AchievementFactory $achievementViewModelFactory,
-        ItemFactory $itemViewModelFactory
+        ItemFactory $itemViewModelFactory,
+        EventFactory $eventViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->achievementViewModelFactory = $achievementViewModelFactory;
         $this->itemViewModelFactory = $itemViewModelFactory;
+        $this->eventViewModelFactory = $eventViewModelFactory;
     }
 
     public function __invoke(string $gameId, string $itemId)
@@ -67,7 +73,7 @@ final class PostEat extends Controller
 
         $viewModel = $this->itemViewModelFactory->create($item);
 
-        if (!$item->isEdible()) {
+        if (!$item->isIngestible()) {
             session()->flash("info", "You fail to eat {$viewModel->label}.");
             return redirect("/{$gameId}");
         }
@@ -77,6 +83,13 @@ final class PostEat extends Controller
         $player->eat($item);
 
         $achievementIds = $this->unlockAchievements($player);
+
+        if ($item->hasAttribute("toxic")) {
+            $player->kill();
+            $event = $player->experienceEvent("alien-grub");
+            $eventViewModel = $this->eventViewModelFactory->create($event);
+            session()->flash("messageRaw", $eventViewModel->message);
+        }
 
         $this->playerRepo->save($player);
         /** @var Item $inventoryItem */
@@ -94,7 +107,9 @@ final class PostEat extends Controller
             session()->flash("achievements", $achievementSessionData);
         }
 
-        session()->flash("success", "You ate {$viewModel->label}.");
+        if (!isset($event)) {
+            session()->flash("success", "You ate {$viewModel->label}.");
+        }
         return redirect("/{$gameId}");
     }
 

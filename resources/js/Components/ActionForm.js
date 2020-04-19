@@ -73,10 +73,14 @@ class Model {
     }
 
     isSupportedAction() {
-        return ["drop", "pick-up", "use", "eat"].includes(this.action);
+        return ["look-at", "drop", "pick-up", "use", "eat"].includes(this.action);
     }
 
     createActionUrl(itemId) {
+        if (this.action === "look-at") {
+            return "/" + this.gameId + "/look-at/" + itemId;
+        }
+
         if (this.action === "drop") {
             return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
         }

@@ -30,6 +30,8 @@ final class ItemFactory
             'id'                          => $item->getId(),
             'typeId'                      => $item->getTypeId(),
             'label'                       => $itemConfig['name'],
+            'hasDescription'              => array_key_exists('description', $itemConfig),
+            'description'                 => Arr::get($itemConfig, 'description', ""),
             'quantity'                    => $item->getQuantity(),
             'hasAllPortions'              => $item->hasAllPortions(),
             'remainingPortions'           => $item->getRemainingPortions(),

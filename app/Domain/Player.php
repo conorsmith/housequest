@@ -169,8 +169,8 @@ final class Player
 
     public function eat(Item $item): void
     {
-        if (!$item->isEdible()) {
-            throw new DomainException("Player cannot eat inedible item {$item->getTypeId()}.");
+        if (!$item->isIngestible()) {
+            throw new DomainException("Player cannot eat non-ingestible item {$item->getTypeId()}.");
         }
 
         $this->eatenItemsCount++;

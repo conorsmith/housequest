@@ -185,14 +185,13 @@ return [
             [
                 'id' => "bedside-locker",
                 'contents' => [
-                    "cheddar-cheese-sandwich" => 2,
-                    "red-pepper",
+                    "passport",
                 ],
             ],
             [
                 'id' => "bedside-locker",
                 'contents' => [
-                    "yellow-pepper",
+                    //
                 ],
             ],
         ],
@@ -207,6 +206,16 @@ return [
             "toilet",
             "sink",
             "shower",
+            [
+                'id' => "medicine-cabinet",
+                'contents' => [
+                    "sleeping-pills",
+                    "toothpaste",
+                    "toothbrush" => 2,
+                    "dental-floss",
+                    "disposable-razor" => 5,
+                ],
+            ],
         ],
     ],
     'guest-bedroom' => [
@@ -239,6 +248,14 @@ return [
             "toilet",
             "sink",
             "bath",
+            [
+                'id' => "medicine-cabinet",
+                'contents' => [
+                    "toothpaste",
+                    "toothbrush" => 2,
+                    "dental-floss",
+                ],
+            ],
         ],
     ],
     'the-street' => [
@@ -261,7 +278,44 @@ return [
             "landing",
         ],
         'items' => [
-            "covid-19-cure",
+            "mysterious-sandwich",
+            "water-tank",
+            [
+                'id' => "tattered-box",
+                'contents' => [
+                    "pager",
+                ],
+            ],
+            [
+                'id' => "cardboard-box",
+                'contents' => [
+                    'fur-coat',
+                ],
+            ],
+            [
+                'id' => "cardboard-box",
+                'contents' => [
+                    'christmas-lights' => 3,
+                    'christmas-bauble' => 43,
+                    'tinsel' => 6,
+                    'christmas-tree-star',
+                ],
+            ],
+            [
+                'id' => "cardboard-box",
+                'contents' => [
+                ],
+            ],
+            [
+                'id' => "storage-container",
+                'contents' => [
+                ],
+            ],
+            [
+                'id' => "storage-container",
+                'contents' => [
+                ],
+            ],
         ],
     ],
 ];
