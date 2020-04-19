@@ -219,29 +219,37 @@ final class PostUse extends Controller
         if ($player->experiencedEvent("the-right-call")
             && !$player->experiencedEvent("prank-call")
         ) {
-            $letterBoxInventory = $itemRepo->findInventory("letter-box");
-
-            if ($letterBoxInventory->hasItemType("covid-19-cure")) {
-                $player->experienceEvent("save-the-world");
-                $player->win();
-                $this->playerRepo->save($player);
-
-                session()->flash("messageRaw", $this->eventViewModelFactory->createMessage("save-the-world"));
-                return;
-            }
-
             $frontGardenInventory = $itemRepo->findInventory("front-garden");
 
-            $frontGardenInventory->removeByType("letter-box");
+            if ($frontGardenInventory->hasItemType("letter-box")) {
 
-            $item = $itemRepo->createType("dented-letter-box");
-            $item->moveTo("front-garden");
-            $item->incrementQuantity();
-            $frontGardenInventory->add($item);
+                /** @var Item $item */
+                foreach ($frontGardenInventory->getItems() as $item) {
+                    if ($item->getTypeId() === "letter-box") {
+                        $letterBoxInventory = $itemRepo->findInventory($item->getId()->toString());
+                    }
+                }
 
-            /** @var Item $inventoryItem */
-            foreach ($frontGardenInventory->getItems() as $inventoryItem) {
-                $itemRepo->save($inventoryItem);
+                if ($letterBoxInventory->hasItemType("covid-19-cure")) {
+                    $player->experienceEvent("save-the-world");
+                    $player->win();
+                    $this->playerRepo->save($player);
+
+                    session()->flash("messageRaw", $this->eventViewModelFactory->createMessage("save-the-world"));
+                    return;
+                }
+
+                $frontGardenInventory->removeByType("letter-box");
+
+                $item = $itemRepo->createType("dented-letter-box");
+                $item->moveTo("front-garden");
+                $item->incrementQuantity();
+                $frontGardenInventory->add($item);
+
+                /** @var Item $inventoryItem */
+                foreach ($frontGardenInventory->getItems() as $inventoryItem) {
+                    $itemRepo->save($inventoryItem);
+                }
             }
 
             $player->experienceEvent("prank-call");

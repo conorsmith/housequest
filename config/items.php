@@ -265,6 +265,9 @@ return [
     ],
     'quarantine-barrier' => [
         'name' => "Quarantine Barrier",
+        'attributes' => [
+            "affixed",
+        ],
         'states' => [
             'closed' => "",
             'open'   => "Open",
