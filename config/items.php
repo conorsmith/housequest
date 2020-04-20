@@ -365,4 +365,34 @@ return [
         'name' => "Dental Floss",
         'portions' => 50,
     ],
+    'mouthwash' => [
+        'name' => "Mouthwash",
+        'portions' => 25,
+        'attributes' => [
+            "ingestible",
+        ],
+    ],
+    'moisturiser' => [
+        'name' => "Moisturiser",
+        'portions' => 30,
+        'attributes' => [
+            "ingestible",
+        ],
+    ],
+    'cotton-pad' => [
+        'name' => "Cotton Pad",
+    ],
+    'nail-clippers' => [
+        'name' => "Nail Clippers",
+    ],
+    'table-lamp' => [
+        'name' => "Table Lamp",
+        'states' => [
+            'off' => "",
+            'on'  => "On",
+        ],
+    ],
+    'alarm-clock' => [
+        'name' => "Alarm Clock",
+    ],
 ];

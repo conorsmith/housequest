@@ -112,14 +112,17 @@ final class PostNewGame extends Controller
                         $itemTypeId = $value;
                         $quantity = 1;
                         $contents = [];
+                        $surface = [];
                     } elseif (is_array($value)) {
                         $itemTypeId = $value['id'];
                         $quantity = Arr::get($value, 'quantity', 1);
                         $contents = Arr::get($value, 'contents', []);
+                        $surface = Arr::get($value, 'surface', []);
                     } else {
                         $itemTypeId = $key;
                         $quantity = $value;
                         $contents = [];
+                        $surface = [];
                     }
 
                     $item = $itemRepo->createType($itemTypeId);
@@ -149,6 +152,29 @@ final class PostNewGame extends Controller
                         }
 
                         $inventories[] = $containerInventory;
+                    }
+
+                    if (count($surface) > 0) {
+                        $surfaceInventory = new Inventory(ItemWhereabouts::itemSurface($item->getId()->toString()), []);
+
+                        foreach ($surface as $surfaceKey => $surfaceValue) {
+
+                            if (is_int($surfaceValue)) {
+                                $containedItemTypeId = $surfaceKey;
+                                $quantity = $surfaceValue;
+                            } else {
+                                $containedItemTypeId = $surfaceValue;
+                                $quantity = 1;
+                            }
+
+                            $containedItem = $itemRepo->createType($containedItemTypeId);
+                            $containedItem->moveTo(ItemWhereabouts::itemSurface($item->getId()->toString()));
+                            $containedItem->addQuantity($quantity);
+
+                            $surfaceInventory->add($containedItem);
+                        }
+
+                        $inventories[] = $surfaceInventory;
                     }
                 }
                 $inventories[] = $locationInventory;

@@ -20,6 +20,11 @@ final class ItemWhereabouts
         return new self($itemId, "item-contents");
     }
 
+    public static function itemSurface(string $itemId): self
+    {
+        return new self($itemId, "item-surface");
+    }
+
     /** @var string */
     private $id;
 
@@ -42,6 +47,12 @@ final class ItemWhereabouts
         return $this->type;
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->id === $other->id
+            && $this->type === $other->type;
+    }
+
     public function isPlayer(): bool
     {
         return $this->id === "player"
@@ -52,5 +63,11 @@ final class ItemWhereabouts
     {
         return $this->id === $locationId
             && $this->type === "location";
+    }
+
+    public function isForItem(Item $item): bool
+    {
+        return $this->id === $item->getId()->toString()
+            && in_array($this->type, ["item-contents", "item-surface"]);
     }
 }

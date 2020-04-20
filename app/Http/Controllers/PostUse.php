@@ -96,9 +96,10 @@ final class PostUse extends Controller
         'covid-19-cure'               => "useCovid19Cure",
         'telephone'                   => "useTelephone",
         'bed'                         => "useBed",
-        'flashlight'                  => "useFlashlight",
+        'flashlight'                  => "useOnOffItem",
         'quarantine-barrier'          => "useQuarantineBarrier",
         'pager'                       => "usePager",
+        'table-lamp'                  => "useOnOffItem",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -268,7 +269,7 @@ final class PostUse extends Controller
         session()->flash("success", $use->getMessage());
     }
 
-    private function useFlashlight(UseCommand $command): void
+    private function useOnOffItem(UseCommand $command): void
     {
         $itemRepo = $this->itemRepoFactory->create($command->getGameId());
         $item = $itemRepo->find($command->getItemId());

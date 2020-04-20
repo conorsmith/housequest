@@ -30,7 +30,7 @@ final class PlayerFactory
         $this->achievementViewModelFactory = $achievementViewModelFactory;
     }
 
-    public function create(Player $player, Inventory $inventory): stdClass
+    public function create(Player $player, Inventory $inventory, array $locationItemSurfaceInventories): stdClass
     {
         $viewModel = (object) [
             'name'         => $player->getName(),
@@ -43,7 +43,9 @@ final class PlayerFactory
 
         /** @var Item $item */
         foreach ($inventory->getItems() as $item) {
-            $viewModel->inventory[] = $this->itemViewModelFactory->create($item);
+            $itemViewModel = $this->itemViewModelFactory->create($item);
+            $itemViewModel->surface = $this->createSurface($item, $locationItemSurfaceInventories);
+            $viewModel->inventory[] = $itemViewModel;
         }
 
         /** @var Event $event */
@@ -57,5 +59,22 @@ final class PlayerFactory
         }
 
         return $viewModel;
+    }
+
+    private function createSurface(Item $item, array $locationItemSurfaceInventories): array
+    {
+        $surfaceItems = [];
+
+        /** @var Inventory $surfaceInventory */
+        foreach ($locationItemSurfaceInventories as $surfaceInventory) {
+            if ($surfaceInventory->isForItem($item)) {
+                /** @var Item $item */
+                foreach ($surfaceInventory->getItems() as $item) {
+                    $surfaceItems[] = $this->itemViewModelFactory->create($item);
+                }
+            }
+        }
+
+        return $surfaceItems;
     }
 }

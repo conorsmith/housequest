@@ -187,11 +187,18 @@ return [
                 'contents' => [
                     "passport",
                 ],
+                'surface' => [
+                    "table-lamp",
+                    "alarm-clock",
+                ],
             ],
             [
                 'id' => "bedside-locker",
                 'contents' => [
                     //
+                ],
+                'surface' => [
+                    "table-lamp",
                 ],
             ],
         ],
@@ -214,6 +221,9 @@ return [
                     "toothbrush" => 2,
                     "dental-floss",
                     "disposable-razor" => 5,
+                    "moisturiser" => 3,
+                    "mouthwash",
+                    "nail-clippers",
                 ],
             ],
         ],
@@ -254,6 +264,8 @@ return [
                     "toothpaste",
                     "toothbrush" => 2,
                     "dental-floss",
+                    "cotton-pad" => 46,
+                    "moisturiser" => 2,
                 ],
             ],
         ],

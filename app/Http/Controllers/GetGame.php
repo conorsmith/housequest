@@ -62,9 +62,23 @@ final class GetGame extends Controller
         $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
         $locationInventory = $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId()));
 
-        $locationViewModel = $this->locationViewModelFactory->createPlayerLocation($location, $locationInventory);
+        $locationItemSurfaceInventories = [];
 
-        $playerViewModel = $this->playerViewModelFactory->create($player, $playerInventory);
+        /** @var Item $item */
+        foreach ($locationInventory->getItems() as $item) {
+            $locationItemSurfaceInventories[] = $itemRepo->findInventory(ItemWhereabouts::itemSurface($item->getId()->toString()));
+        }
+
+        $locationViewModel = $this->locationViewModelFactory->createPlayerLocation($location, $locationInventory, $locationItemSurfaceInventories);
+
+        $playerItemSurfaceInventories = [];
+
+        /** @var Item $item */
+        foreach ($playerInventory->getItems() as $item) {
+            $playerItemSurfaceInventories[] = $itemRepo->findInventory(ItemWhereabouts::itemSurface($item->getId()->toString()));
+        }
+
+        $playerViewModel = $this->playerViewModelFactory->create($player, $playerInventory, $playerItemSurfaceInventories);
 
         $containerViewModels = [];
 

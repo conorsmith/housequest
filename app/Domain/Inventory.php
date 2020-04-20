@@ -9,7 +9,7 @@ use Ramsey\Uuid\UuidInterface;
 
 final class Inventory
 {
-    /** @var string */
+    /** @var ItemWhereabouts */
     private $whereabouts;
 
     /** @var array */
@@ -129,6 +129,11 @@ final class Inventory
         }
 
         return false;
+    }
+
+    public function isForItem(Item $item): bool
+    {
+        return $this->whereabouts->isForItem($item);
     }
 
     public function getItems(): array

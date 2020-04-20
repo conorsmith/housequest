@@ -115,6 +115,34 @@
                                     @endif
                                 </div>
                             </li>
+                            @foreach($item->surface as $surfaceItem)
+                                <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
+                                    data-id="{{ $surfaceItem->id }}"
+                                    data-type-id="{{ $surfaceItem->typeId }}"
+                                    data-label="{{ $surfaceItem->label }}"
+                                    data-is-container="{{ $surfaceItem->isContainer }}"
+                                    style="padding-left: 2.5rem;"
+                                >
+                                    <div class="item-label d-flex justify-content-start align-items-center">
+                                        {{ $surfaceItem->label }}
+                                        @if($surfaceItem->state)
+                                            <span class="badge badge-primary">{{ $surfaceItem->state }}</span>
+                                        @endif
+                                        @if(!$surfaceItem->hasAllPortions)
+                                            <div class="progress">
+                                                <div class="progress-bar"
+                                                     style="width: {{ $surfaceItem->remainingPortionsPercentage }}%;"
+                                                ></div>
+                                            </div>
+                                        @endif
+                                        @if($surfaceItem->quantity > 1)
+                                            <span class="badge badge-primary">
+                                                {{ $surfaceItem->quantity }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
                         @endforeach
                     </ul>
                 @endif
@@ -177,6 +205,34 @@
                                     @endif
                                 </div>
                             </li>
+                            @foreach($item->surface as $surfaceItem)
+                                <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
+                                    data-id="{{ $surfaceItem->id }}"
+                                    data-type-id="{{ $surfaceItem->typeId }}"
+                                    data-label="{{ $surfaceItem->label }}"
+                                    data-is-container="{{ $surfaceItem->isContainer }}"
+                                    style="padding-left: 2.5rem;"
+                                >
+                                    <div class="item-label d-flex justify-content-start align-items-center">
+                                        {{ $surfaceItem->label }}
+                                        @if($surfaceItem->state)
+                                            <span class="badge badge-primary">{{ $surfaceItem->state }}</span>
+                                        @endif
+                                        @if(!$surfaceItem->hasAllPortions)
+                                            <div class="progress">
+                                                <div class="progress-bar"
+                                                     style="width: {{ $surfaceItem->remainingPortionsPercentage }}%;"
+                                                ></div>
+                                            </div>
+                                        @endif
+                                        @if($surfaceItem->quantity > 1)
+                                            <span class="badge badge-primary">
+                                                {{ $surfaceItem->quantity }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
                         @endforeach
                     </ul>
                 </div>

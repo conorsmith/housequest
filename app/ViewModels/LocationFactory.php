@@ -40,7 +40,7 @@ final class LocationFactory
         ];
     }
 
-    public function createPlayerLocation(Location $location, Inventory $inventory): stdClass
+    public function createPlayerLocation(Location $location, Inventory $inventory, array $locationItemSurfaceInventories): stdClass
     {
         $viewModel = $this->create($location);
         $viewModel->egresses = [];
@@ -54,9 +54,28 @@ final class LocationFactory
 
         /** @var Item $item */
         foreach ($inventory->getItems() as $item) {
-            $viewModel->items[] = $this->itemViewModelFactory->create($item);
+            $itemViewModel = $this->itemViewModelFactory->create($item);
+            $itemViewModel->surface = $this->createSurface($item, $locationItemSurfaceInventories);
+            $viewModel->items[] = $itemViewModel;
         }
 
         return $viewModel;
+    }
+
+    private function createSurface(Item $item, array $locationItemSurfaceInventories): array
+    {
+        $surfaceItems = [];
+
+        /** @var Inventory $surfaceInventory */
+        foreach ($locationItemSurfaceInventories as $surfaceInventory) {
+            if ($surfaceInventory->isForItem($item)) {
+                /** @var Item $item */
+                foreach ($surfaceInventory->getItems() as $item) {
+                    $surfaceItems[] = $this->itemViewModelFactory->create($item);
+                }
+            }
+        }
+
+        return $surfaceItems;
     }
 }
