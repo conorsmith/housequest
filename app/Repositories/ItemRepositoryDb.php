@@ -45,10 +45,11 @@ final class ItemRepositoryDb implements ItemRepository
     public function findInventory(ItemWhereabouts $whereabouts): Inventory
     {
         $rows = DB::select(
-            "SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC",
+            "SELECT * FROM objects WHERE game_id = ? AND location_id = ? AND whereabouts_type = ? ORDER BY object_id ASC, portions DESC",
             [
                 $this->gameId,
-                $whereabouts->__toString(),
+                $whereabouts->getId(),
+                $whereabouts->getType(),
             ]
         );
 
@@ -74,12 +75,13 @@ final class ItemRepositoryDb implements ItemRepository
         }
 
         return $this->createItemFromRow((object) [
-            'id'          => Uuid::uuid4()->toString(),
-            'object_id'   => $itemTypeId,
-            'location_id' => "",
-            'quantity'    => 0,
-            'portions'    => $portions,
-            'state'       => $state,
+            'id'               => Uuid::uuid4()->toString(),
+            'object_id'        => $itemTypeId,
+            'location_id'      => "",
+            'whereabouts_type' => "",
+            'quantity'         => 0,
+            'portions'         => $portions,
+            'state'            => $state,
         ]);
     }
 
@@ -99,14 +101,15 @@ final class ItemRepositoryDb implements ItemRepository
             if (is_null($itemRow)) {
                 DB::table("objects")
                     ->insert([
-                        'id'          => $item->getId(),
-                        'game_id'     => $this->gameId,
-                        'object_id'   => $item->getTypeId(),
-                        'location_id' => $item->getWhereabouts()->__toString(),
-                        'quantity'    => $item->getQuantity(),
-                        'portions'    => $item->getRemainingPortions(),
-                        'state'       => $item->getState(),
-                        'created_at'  => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
+                        'id'               => $item->getId(),
+                        'game_id'          => $this->gameId,
+                        'object_id'        => $item->getTypeId(),
+                        'location_id'      => $item->getWhereabouts()->getId(),
+                        'whereabouts_type' => $item->getWhereabouts()->getType(),
+                        'quantity'         => $item->getQuantity(),
+                        'portions'         => $item->getRemainingPortions(),
+                        'state'            => $item->getState(),
+                        'created_at'       => Carbon::now("Europe/Dublin")->format("Y-m-d H:i:s"),
                     ]);
             } else {
                 DB::table("objects")
@@ -114,10 +117,11 @@ final class ItemRepositoryDb implements ItemRepository
                         'id' => $item->getId(),
                     ])
                     ->update([
-                        'location_id' => $item->getWhereabouts()->__toString(),
-                        'quantity'    => $item->getQuantity(),
-                        'portions'    => $item->getRemainingPortions(),
-                        'state'       => $item->getState(),
+                        'location_id'      => $item->getWhereabouts()->getId(),
+                        'whereabouts_type' => $item->getWhereabouts()->getType(),
+                        'quantity'         => $item->getQuantity(),
+                        'portions'         => $item->getRemainingPortions(),
+                        'state'            => $item->getState(),
                     ]);
             }
         }
@@ -174,7 +178,7 @@ final class ItemRepositoryDb implements ItemRepository
         return new Item(
             Uuid::fromString($row->id),
             $row->object_id,
-            new ItemWhereabouts($row->location_id),
+            new ItemWhereabouts($row->location_id, $row->whereabouts_type),
             intval($row->quantity),
             intval($row->portions),
             $totalPortions,
