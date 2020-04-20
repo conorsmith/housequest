@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\EventFactory;
@@ -51,7 +52,7 @@ final class PostGo extends Controller
             $event = $player->experienceEvent("attic-noises");
 
         } elseif ($isNewLocation && $locationId === "attic") {
-            $playerInventory = $itemRepo->findInventory("player");
+            $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
 
             /** @var Item $item */
             foreach ($playerInventory->getItems() as $item) {
@@ -73,7 +74,7 @@ final class PostGo extends Controller
         ) {
             $player->move($startingLocationId);
 
-            $locationInventory = $itemRepo->findInventory($startingLocationId);
+            $locationInventory = $itemRepo->findInventory(ItemWhereabouts::location($startingLocationId));
 
             /** @var Item $item */
             foreach ($locationInventory->getItems() as $item) {
@@ -100,7 +101,7 @@ final class PostGo extends Controller
             }
 
             $item = $itemRepo->createType("covid-19-cure");
-            $item->moveTo($startingLocationId);
+            $item->moveTo(ItemWhereabouts::location($startingLocationId));
             $item->incrementQuantity();
             $itemRepo->save($item);
 

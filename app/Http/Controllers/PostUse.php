@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
@@ -69,14 +70,14 @@ final class PostUse extends Controller
         if ($use->hasRestrictions()) {
 
             if ($use->fromRoom()
-                && $item->getLocationId() !== $player->getLocationId()
+                && !$item->getWhereabouts()->isLocation($player->getLocationId())
             ) {
                 session()->flash("info", "You cannot use {$viewModel->label} from your inventory.");
                 return redirect("/{$gameId}");
             }
 
             if ($use->fromInventory()
-                && $item->getLocationId() !== "player"
+                && !$item->getWhereabouts()->isPlayer()
             ) {
                 session()->flash("info", "You can only use {$viewModel->label} from your inventory.");
                 return redirect("/{$gameId}");
@@ -125,7 +126,7 @@ final class PostUse extends Controller
         if ($item->getState() === "closed") {
             $item->transitionState("open");
 
-            $item->moveTo($player->getLocationId());
+            $item->moveTo(ItemWhereabouts::location($player->getLocationId()));
 
             session()->flash("success", "You deployed the {$viewModel->label}.");
 
@@ -155,7 +156,7 @@ final class PostUse extends Controller
         $player = $this->playerRepo->find($command->getGameId());
         $item = $itemRepo->find($command->getItemId());
 
-        $inventory = $itemRepo->findInventory($item->getLocationId());
+        $inventory = $itemRepo->findInventory($item->getWhereabouts());
 
         /** @var Item $inventoryItem */
         foreach ($inventory->getItems() as $inventoryItem) {
@@ -180,7 +181,7 @@ final class PostUse extends Controller
         $itemRepo = $this->itemRepoFactory->create($command->getGameId());
         $player = $this->playerRepo->find($command->getGameId());
 
-        $inventory = $itemRepo->findInventory("player");
+        $inventory = $itemRepo->findInventory(ItemWhereabouts::player());
 
         $number = $command->getAdditionalData()['number'];
 
@@ -220,14 +221,14 @@ final class PostUse extends Controller
         if ($player->experiencedEvent("the-right-call")
             && !$player->experiencedEvent("prank-call")
         ) {
-            $frontGardenInventory = $itemRepo->findInventory("front-garden");
+            $frontGardenInventory = $itemRepo->findInventory(ItemWhereabouts::location("front-garden"));
 
             if ($frontGardenInventory->hasItemType("letter-box")) {
 
                 /** @var Item $item */
                 foreach ($frontGardenInventory->getItems() as $item) {
                     if ($item->getTypeId() === "letter-box") {
-                        $letterBoxInventory = $itemRepo->findInventory($item->getId()->toString());
+                        $letterBoxInventory = $itemRepo->findInventory(ItemWhereabouts::itemContents($item->getId()->toString()));
                     }
                 }
 
@@ -243,7 +244,7 @@ final class PostUse extends Controller
                 $frontGardenInventory->removeByType("letter-box");
 
                 $item = $itemRepo->createType("dented-letter-box");
-                $item->moveTo("front-garden");
+                $item->moveTo(ItemWhereabouts::location("front-garden"));
                 $item->incrementQuantity();
                 $frontGardenInventory->add($item);
 

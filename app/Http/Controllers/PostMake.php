@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Inventory;
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Domain\Player;
 use App\Domain\Recipe;
 use App\Domain\RecipeIngredient;
@@ -71,7 +72,7 @@ final class PostMake extends Controller
         $endProduct = $this->getEndProduct($itemRepo, $recipe);
         $endProduct->addQuantity($recipe->getEndProductQuantity());
         if ($recipe->getEndProductionLocationId() === "room") {
-            $endProduct->moveTo($player->getLocationId());
+            $endProduct->moveTo(ItemWhereabouts::location($player->getLocationId()));
         }
 
         if ($endProduct->isImprovised()) {
@@ -115,8 +116,8 @@ final class PostMake extends Controller
         $submittedItemsPortionsById = $this->getSubmittedItemPortionsById($request);
 
         $inventories = [
-            $itemRepo->findInventory("player"),
-            $itemRepo->findInventory($player->getLocationId()),
+            $itemRepo->findInventory(ItemWhereabouts::player()),
+            $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId())),
         ];
 
         $submittedIngredients = [];
@@ -147,8 +148,8 @@ final class PostMake extends Controller
     private function removeUsedItemsFromInventory(Request $request, ItemRepositoryDb $itemRepo, Player $player): array
     {
         $inventories = [
-            $itemRepo->findInventory("player"),
-            $itemRepo->findInventory($player->getLocationId()),
+            $itemRepo->findInventory(ItemWhereabouts::player()),
+            $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId())),
         ];
 
         $submittedItemsQuantitiesById = $this->getSubmittedItemQuantitiesById($request);
@@ -180,7 +181,7 @@ final class PostMake extends Controller
 
     private function getEndProduct(ItemRepositoryDb $itemRepo, Recipe $recipe): Item
     {
-        $inventoryItems = $itemRepo->findInventory("player")->getItems();
+        $inventoryItems = $itemRepo->findInventory(ItemWhereabouts::player())->getItems();
 
         /** @var Item $item */
         foreach ($inventoryItems as $item) {
@@ -190,7 +191,7 @@ final class PostMake extends Controller
         }
 
         $item = $itemRepo->createType($recipe->getEndProduct());
-        $item->moveTo("player");
+        $item->moveTo(ItemWhereabouts::player());
         return $item;
     }
 

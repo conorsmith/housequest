@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Domain\Event;
 use App\Domain\Inventory;
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Domain\Player;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
@@ -105,7 +106,7 @@ final class PostNewGame extends Controller
 
         foreach ($locations as $locationId => $location) {
             if (array_key_exists('items', $location)) {
-                $locationInventory = new Inventory($locationId, []);
+                $locationInventory = new Inventory(ItemWhereabouts::location($locationId), []);
                 foreach ($location['items'] as $key => $value) {
                     if (is_string($value)) {
                         $itemTypeId = $value;
@@ -122,13 +123,13 @@ final class PostNewGame extends Controller
                     }
 
                     $item = $itemRepo->createType($itemTypeId);
-                    $item->moveTo($locationId);
+                    $item->moveTo(ItemWhereabouts::location($locationId));
                     $item->addQuantity($quantity);
 
                     $locationInventory->add($item);
 
                     if (count($contents) > 0) {
-                        $containerInventory = new Inventory($item->getId()->toString(), []);
+                        $containerInventory = new Inventory(ItemWhereabouts::itemContents($item->getId()->toString()), []);
 
                         foreach ($contents as $contentsKey => $contentsValue) {
 
@@ -141,7 +142,7 @@ final class PostNewGame extends Controller
                             }
 
                             $containedItem = $itemRepo->createType($containedItemTypeId);
-                            $containedItem->moveTo($item->getId()->toString());
+                            $containedItem->moveTo(ItemWhereabouts::itemContents($item->getId()->toString()));
                             $containedItem->addQuantity($quantity);
 
                             $containerInventory->add($containedItem);

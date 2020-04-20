@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Domain\Player;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
@@ -58,12 +59,12 @@ final class PostEat extends Controller
             return redirect("/{$gameId}");
         }
 
-        $inventory = $itemRepo->findInventory("player");
+        $inventory = $itemRepo->findInventory(ItemWhereabouts::player());
 
         $item = $inventory->find($itemId);
 
         if (is_null($item)) {
-            $inventory = $itemRepo->findInventory($player->getLocationId());
+            $inventory = $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId()));
             $item = $inventory->find($itemId);
 
             if (is_null($item)) {

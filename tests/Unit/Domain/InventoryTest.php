@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain;
 
 use App\Domain\Inventory;
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Domain\RecipeIngredient;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -19,7 +20,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item = $this->createIngestibleItem($itemId, 1, 1, 1)
         ]);
 
@@ -43,7 +44,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item = $this->createIngestibleItem($itemId, 1, 100, 100)
         ]);
 
@@ -67,7 +68,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item = $this->createIngestibleItem($itemId, 1, 1, 100)
         ]);
 
@@ -91,7 +92,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item      = $this->createIngestibleItem($itemId, 1, 50, 100),
             $otherItem = $this->createIngestibleItem(Uuid::uuid4(), 1, 49, 100),
         ]);
@@ -120,7 +121,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item = $this->createIngestibleItem($itemId, 100, 50, 100),
         ]);
 
@@ -148,7 +149,7 @@ final class InventoryTest extends TestCase
     {
         $itemId = Uuid::uuid4();
 
-        $inventory = new Inventory("player", [
+        $inventory = new Inventory(ItemWhereabouts::player(), [
             $item      = $this->createIngestibleItem($itemId, 100, 50, 100),
             $otherItem = $this->createIngestibleItem(Uuid::uuid4(), 1, 49, 100)
         ]);
@@ -179,7 +180,7 @@ final class InventoryTest extends TestCase
         return new Item(
             $id,
             "some-item-type",
-            "player",
+            ItemWhereabouts::player(),
             $quantity,
             $remainingPortions,
             $totalPortions,

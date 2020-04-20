@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
@@ -45,8 +46,8 @@ final class PostDrop extends Controller
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
-        $playerInventory = $itemRepo->findInventory("player");
-        $locationInventory = $itemRepo->findInventory($locationId);
+        $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
+        $locationInventory = $itemRepo->findInventory(ItemWhereabouts::location($locationId));
 
         if (is_null($playerInventory->find($itemId))) {
             $item = $locationInventory->find($itemId);

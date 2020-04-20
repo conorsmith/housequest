@@ -6,6 +6,7 @@ namespace App\Repositories;
 use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\ItemUse;
+use App\Domain\ItemWhereabouts;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -41,19 +42,19 @@ final class ItemRepositoryDb implements ItemRepository
         return $this->createItemFromRow($row);
     }
 
-    public function findInventory(string $locationId): Inventory
+    public function findInventory(ItemWhereabouts $whereabouts): Inventory
     {
         $rows = DB::select(
             "SELECT * FROM objects WHERE game_id = ? AND location_id = ? ORDER BY object_id ASC, portions DESC",
             [
                 $this->gameId,
-                $locationId,
+                $whereabouts->__toString(),
             ]
         );
 
         $items = $this->createItemsFromRows($rows);
 
-        return new Inventory($locationId, $items);
+        return new Inventory($whereabouts, $items);
     }
 
     public function createType(string $itemTypeId): Item
@@ -101,7 +102,7 @@ final class ItemRepositoryDb implements ItemRepository
                         'id'          => $item->getId(),
                         'game_id'     => $this->gameId,
                         'object_id'   => $item->getTypeId(),
-                        'location_id' => $item->getLocationId(),
+                        'location_id' => $item->getWhereabouts()->__toString(),
                         'quantity'    => $item->getQuantity(),
                         'portions'    => $item->getRemainingPortions(),
                         'state'       => $item->getState(),
@@ -113,7 +114,7 @@ final class ItemRepositoryDb implements ItemRepository
                         'id' => $item->getId(),
                     ])
                     ->update([
-                        'location_id' => $item->getLocationId(),
+                        'location_id' => $item->getWhereabouts()->__toString(),
                         'quantity'    => $item->getQuantity(),
                         'portions'    => $item->getRemainingPortions(),
                         'state'       => $item->getState(),
@@ -173,7 +174,7 @@ final class ItemRepositoryDb implements ItemRepository
         return new Item(
             Uuid::fromString($row->id),
             $row->object_id,
-            $row->location_id,
+            new ItemWhereabouts($row->location_id),
             intval($row->quantity),
             intval($row->portions),
             $totalPortions,

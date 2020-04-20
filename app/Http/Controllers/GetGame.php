@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\LocationRepositoryConfig;
 use App\Repositories\PlayerRepository;
@@ -58,8 +59,8 @@ final class GetGame extends Controller
         $player = $this->playerRepo->find($gameId);
         $location = $this->locationRepo->findForPlayer($player);
 
-        $playerInventory = $itemRepo->findInventory("player");
-        $locationInventory = $itemRepo->findInventory($player->getLocationId());
+        $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
+        $locationInventory = $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId()));
 
         $locationViewModel = $this->locationViewModelFactory->createPlayerLocation($location, $locationInventory);
 
@@ -72,7 +73,7 @@ final class GetGame extends Controller
             if ($item->isContainer()) {
                 $containerViewModels[] = $this->containerViewModelFactory->create(
                     $item,
-                    $itemRepo->findInventory($item->getId()->toString())
+                    $itemRepo->findInventory(ItemWhereabouts::itemContents($item->getId()->toString()))
                 );
             }
         }
@@ -82,7 +83,7 @@ final class GetGame extends Controller
             if ($item->isContainer()) {
                 $containerViewModels[] = $this->containerViewModelFactory->create(
                     $item,
-                    $itemRepo->findInventory($item->getId()->toString())
+                    $itemRepo->findInventory(ItemWhereabouts::itemContents($item->getId()->toString()))
                 );
             }
         }

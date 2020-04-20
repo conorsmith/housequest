@@ -10,14 +10,14 @@ use Ramsey\Uuid\UuidInterface;
 final class Inventory
 {
     /** @var string */
-    private $locationId;
+    private $whereabouts;
 
     /** @var array */
     private $items;
 
-    public function __construct(string $locationId, array $items)
+    public function __construct(ItemWhereabouts $whereabouts, array $items)
     {
-        $this->locationId = $locationId;
+        $this->whereabouts = $whereabouts;
         $this->items = $items;
     }
 
@@ -70,7 +70,7 @@ final class Inventory
 
     public function add(Item $item): void
     {
-        $item->moveTo($this->locationId);
+        $item->moveTo($this->whereabouts);
         $this->items[] = $item;
 
         /** @var Item $inventoryItem */

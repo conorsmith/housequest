@@ -15,8 +15,8 @@ final class Item
     /** @var string */
     private $typeId;
 
-    /** @var string */
-    private $locationId;
+    /** @var ItemWhereabouts */
+    private $whereabouts;
 
     /** @var int */
     private $quantity;
@@ -39,7 +39,7 @@ final class Item
     public function __construct(
         UuidInterface $id,
         string $typeId,
-        string $locationId,
+        ItemWhereabouts $whereabouts,
         int $quantity,
         int $remainingPortions,
         int $totalPortions,
@@ -49,7 +49,7 @@ final class Item
     ) {
         $this->id = $id;
         $this->typeId = $typeId;
-        $this->locationId = $locationId;
+        $this->whereabouts = $whereabouts;
         $this->quantity = $quantity;
         $this->remainingPortions = $remainingPortions;
         $this->totalPortions = $totalPortions;
@@ -65,7 +65,7 @@ final class Item
         return new self(
             Uuid::uuid4(),
             $this->typeId,
-            $this->locationId,
+            $this->whereabouts,
             $quantity,
             $this->remainingPortions,
             $this->totalPortions,
@@ -80,7 +80,7 @@ final class Item
         return new self(
             Uuid::uuid4(),
             $this->typeId,
-            $this->locationId,
+            $this->whereabouts,
             0,
             $this->remainingPortions,
             $this->totalPortions,
@@ -100,9 +100,9 @@ final class Item
         return $this->typeId;
     }
 
-    public function getLocationId(): string
+    public function getWhereabouts(): ItemWhereabouts
     {
-        return $this->locationId;
+        return $this->whereabouts;
     }
 
     public function getQuantity(): int
@@ -202,12 +202,12 @@ final class Item
             && $this->typeId === $other->typeId
             && !$this->isContainer()
             && $this->remainingPortions === $other->remainingPortions
-            && $this->locationId === $other->locationId;
+            && $this->whereabouts === $other->whereabouts;
     }
 
-    public function moveTo(string $locationId): void
+    public function moveTo(ItemWhereabouts $whereabouts): void
     {
-        $this->locationId = $locationId;
+        $this->whereabouts = $whereabouts;
     }
 
     public function merge(self $other): void

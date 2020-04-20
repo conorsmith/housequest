@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
@@ -38,8 +39,8 @@ final class PostTransfer extends Controller
         $itemIdsFromContainerToPlayer = $request->input("containerItems", []);
         $itemIdsFromPlayerToContainer = $request->input("inventoryItems", []);
 
-        $playerInventory = $itemRepo->findInventory("player");
-        $containerInventory = $itemRepo->findInventory($containerId);
+        $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
+        $containerInventory = $itemRepo->findInventory(ItemWhereabouts::itemContents($containerId));
 
         /** @var Item $fromItem */
         foreach ($containerInventory->getItems() as $fromItem) {

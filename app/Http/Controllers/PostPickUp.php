@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Item;
+use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
@@ -43,12 +44,12 @@ final class PostPickUp extends Controller
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create(Uuid::fromString($gameId));
 
-        $playerInventory = $itemRepo->findInventory("player");
+        $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
 
         $item = $itemRepo->find(Uuid::fromString($itemId));
         $viewModel = $this->itemViewModelFactory->create($item);
 
-        if ($item->getLocationId() === "player") {
+        if ($item->getWhereabouts()->isPlayer()) {
             session()->flash("info", "You cannot pick up {$viewModel->label}, you're already holding it.");
             return redirect("/{$gameId}");
         }
