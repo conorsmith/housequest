@@ -1387,7 +1387,9 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
-_Components_AltButton__WEBPACK_IMPORTED_MODULE_7__["default"].fromEl(document.querySelector(".js-alt"));
+document.querySelectorAll(".js-alt").forEach(function (el) {
+  _Components_AltButton__WEBPACK_IMPORTED_MODULE_7__["default"].fromEl(el);
+});
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("look-at");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("drop");

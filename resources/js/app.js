@@ -137,7 +137,9 @@ window.EventBus = new EventBus();
 
 ActionFormController.fromFormEl(document.querySelector("#js-action"));
 
-AltButtonController.fromEl(document.querySelector(".js-alt"));
+document.querySelectorAll(".js-alt").forEach(el => {
+    AltButtonController.fromEl(el);
+});
 ActionButtonController.fromAction("look-at");
 ActionButtonController.fromAction("pick-up");
 ActionButtonController.fromAction("drop");

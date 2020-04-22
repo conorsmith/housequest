@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="container" style="padding-bottom: 8rem;">
+<div class="container" style="padding-bottom: 10rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
             @if(session("message"))
@@ -254,7 +254,7 @@
     <div class="container">
         <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
             <button type="button"
-                    class="js-alt btn btn-action btn-sm"
+                    class="js-alt btn btn-action btn-sm d-none d-sm-block"
                     style="width: 3rem; margin: 0 0.1rem 0.2rem;"
                 {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
             >
@@ -316,6 +316,13 @@
                 Open
             </button>
             <button type="button"
+                    class="js-alt btn btn-action btn-sm d-sm-none"
+                    style="width: 3rem; margin: 0 0.1rem 0.2rem 3.1rem;"
+                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+            >
+                ALT
+            </button>
+            <button type="button"
                     class="js-make btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     data-toggle="modal"
@@ -324,6 +331,7 @@
             >
                 Make
             </button>
+            <div style="width: 6rem; margin: 0 0.1rem 0.2rem;"></div>
         </div>
         <div class="d-flex justify-content-center w-100 d-lg-none">
             <a class="navbar-brand"
