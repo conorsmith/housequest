@@ -90,59 +90,7 @@
                 @if(count($location->items) > 0)
                     <ul class="list-group list-group-flush additional-border-top">
                         @foreach($location->items as $item)
-                            <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                data-id="{{ $item->id }}"
-                                data-type-id="{{ $item->typeId }}"
-                                data-label="{{ $item->label }}"
-                                data-is-container="{{ $item->isContainer }}"
-                            >
-                                <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $item->label }}
-                                    @if($item->state)
-                                        <span class="badge badge-primary">{{ $item->state }}</span>
-                                    @endif
-                                    @if(!$item->hasAllPortions)
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                 style="width: {{ $item->remainingPortionsPercentage }}%;"
-                                            ></div>
-                                        </div>
-                                    @endif
-                                    @if($item->quantity > 1)
-                                        <span class="badge badge-primary">
-                                        {{ $item->quantity }}
-                                    </span>
-                                    @endif
-                                </div>
-                            </li>
-                            @foreach($item->surface as $surfaceItem)
-                                <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                    data-id="{{ $surfaceItem->id }}"
-                                    data-type-id="{{ $surfaceItem->typeId }}"
-                                    data-label="{{ $surfaceItem->label }}"
-                                    data-is-container="{{ $surfaceItem->isContainer }}"
-                                    style="padding-left: 2.5rem;"
-                                >
-                                    <div class="item-label d-flex justify-content-start align-items-center">
-                                        {{ $surfaceItem->label }}
-                                        @if($surfaceItem->state)
-                                            <span class="badge badge-primary">{{ $surfaceItem->state }}</span>
-                                        @endif
-                                        @if(!$surfaceItem->hasAllPortions)
-                                            <div class="progress">
-                                                <div class="progress-bar"
-                                                     style="width: {{ $surfaceItem->remainingPortionsPercentage }}%;"
-                                                ></div>
-                                            </div>
-                                        @endif
-                                        @if($surfaceItem->quantity > 1)
-                                            <span class="badge badge-primary">
-                                                {{ $surfaceItem->quantity }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </li>
-                            @endforeach
+                            @include('inventory-item', ['item' => $item])
                         @endforeach
                     </ul>
                 @endif
@@ -180,59 +128,7 @@
 
                     <ul class="list-group list-group-flush">
                         @foreach($player->inventory as $item)
-                            <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                data-id="{{ $item->id }}"
-                                data-type-id="{{ $item->typeId }}"
-                                data-label="{{ $item->label }}"
-                                data-is-container="{{ $item->isContainer }}"
-                            >
-                                <div class="item-label d-flex justify-content-start align-items-center">
-                                    {{ $item->label }}
-                                    @if($item->state)
-                                        <span class="badge badge-primary">{{ $item->state }}</span>
-                                    @endif
-                                    @if(!$item->hasAllPortions)
-                                        <div class="progress">
-                                            <div class="progress-bar"
-                                                 style="width: {{ $item->remainingPortionsPercentage }}%;"
-                                            ></div>
-                                        </div>
-                                    @endif
-                                    @if($item->quantity > 1)
-                                        <span class="badge badge-primary">
-                                            {{ $item->quantity }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </li>
-                            @foreach($item->surface as $surfaceItem)
-                                <li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
-                                    data-id="{{ $surfaceItem->id }}"
-                                    data-type-id="{{ $surfaceItem->typeId }}"
-                                    data-label="{{ $surfaceItem->label }}"
-                                    data-is-container="{{ $surfaceItem->isContainer }}"
-                                    style="padding-left: 2.5rem;"
-                                >
-                                    <div class="item-label d-flex justify-content-start align-items-center">
-                                        {{ $surfaceItem->label }}
-                                        @if($surfaceItem->state)
-                                            <span class="badge badge-primary">{{ $surfaceItem->state }}</span>
-                                        @endif
-                                        @if(!$surfaceItem->hasAllPortions)
-                                            <div class="progress">
-                                                <div class="progress-bar"
-                                                     style="width: {{ $surfaceItem->remainingPortionsPercentage }}%;"
-                                                ></div>
-                                            </div>
-                                        @endif
-                                        @if($surfaceItem->quantity > 1)
-                                            <span class="badge badge-primary">
-                                                {{ $surfaceItem->quantity }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </li>
-                            @endforeach
+                            @include('inventory-item', ['item' => $item])
                         @endforeach
                     </ul>
                 </div>

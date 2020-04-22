@@ -4,49 +4,41 @@ declare(strict_types=1);
 namespace App\ViewModels;
 
 use App\Domain\Event;
-use App\Domain\Inventory;
-use App\Domain\Item;
+use App\Domain\InventoryTreeNode;
 use App\Domain\Player;
 use stdClass;
 
 final class PlayerFactory
 {
-    /** @var ItemFactory */
-    private $itemViewModelFactory;
-
     /** @var EventFactory */
     private $eventViewModelFactory;
 
     /** @var AchievementFactory */
     private $achievementViewModelFactory;
 
+    /** @var InventoryFactory */
+    private $inventoryViewModelFactory;
+
     public function __construct(
-        ItemFactory $itemViewModelFactory,
         EventFactory $eventViewModelFactory,
-        AchievementFactory $achievementViewModelFactory
+        AchievementFactory $achievementViewModelFactory,
+        InventoryFactory $inventoryViewModelFactory
     ) {
-        $this->itemViewModelFactory = $itemViewModelFactory;
         $this->eventViewModelFactory = $eventViewModelFactory;
         $this->achievementViewModelFactory = $achievementViewModelFactory;
+        $this->inventoryViewModelFactory = $inventoryViewModelFactory;
     }
 
-    public function create(Player $player, Inventory $inventory, array $locationItemSurfaceInventories): stdClass
+    public function create(Player $player, InventoryTreeNode $inventoryTree): stdClass
     {
         $viewModel = (object) [
             'name'         => $player->getName(),
             'isDead'       => $player->isDead(),
             'hasWon'       => $player->hasWon(),
-            'inventory'    => [],
+            'inventory'    => $this->inventoryViewModelFactory->fromInventoryTree($inventoryTree),
             'events'       => [],
             'achievements' => [],
         ];
-
-        /** @var Item $item */
-        foreach ($inventory->getItems() as $item) {
-            $itemViewModel = $this->itemViewModelFactory->create($item);
-            $itemViewModel->surface = $this->createSurface($item, $locationItemSurfaceInventories);
-            $viewModel->inventory[] = $itemViewModel;
-        }
 
         /** @var Event $event */
         foreach ($player->getEvents() as $event) {
@@ -59,22 +51,5 @@ final class PlayerFactory
         }
 
         return $viewModel;
-    }
-
-    private function createSurface(Item $item, array $locationItemSurfaceInventories): array
-    {
-        $surfaceItems = [];
-
-        /** @var Inventory $surfaceInventory */
-        foreach ($locationItemSurfaceInventories as $surfaceInventory) {
-            if ($surfaceInventory->isForItem($item)) {
-                /** @var Item $item */
-                foreach ($surfaceInventory->getItems() as $item) {
-                    $surfaceItems[] = $this->itemViewModelFactory->create($item);
-                }
-            }
-        }
-
-        return $surfaceItems;
     }
 }

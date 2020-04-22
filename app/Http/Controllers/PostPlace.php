@@ -64,22 +64,6 @@ final class PostPlace extends Controller
             return redirect("/{$gameId}");
         }
 
-        $subjectItemSurfaceInventory = $itemRepo->findInventory(
-            ItemWhereabouts::itemSurface($subjectItem->getId()->toString())
-        );
-
-        if (!$targetItem->getWhereabouts()->isSomeLocation()
-            && !$targetItem->getWhereabouts()->isPlayer()
-        ) {
-            session()->flash("info", "You cannot place {$subjectViewModel->label} on {$targetViewModel->label}.");
-            return redirect("/{$gameId}");
-        }
-
-        if (!$subjectItemSurfaceInventory->isEmpty()) {
-            session()->flash("info", "You cannot place {$subjectViewModel->label} on {$targetViewModel->label}.");
-            return redirect("/{$gameId}");
-        }
-
         $subjectItem->moveTo(ItemWhereabouts::itemSurface($targetItem->getId()->toString()));
 
         $itemRepo->save($subjectItem);

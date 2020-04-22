@@ -14,6 +14,7 @@ use App\Repositories\RecipeRepositoryConfig;
 use App\ViewModels\AchievementFactory;
 use App\ViewModels\ContainerFactory;
 use App\ViewModels\EventFactory;
+use App\ViewModels\InventoryFactory;
 use App\ViewModels\ItemFactory;
 use App\ViewModels\LocationFactory;
 use Illuminate\Support\ServiceProvider;
@@ -49,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
             return new LocationFactory(
                 include __DIR__ . "/../../config/locations.php",
                 $app[LocationRepositoryConfig::class],
-                $app[ItemFactory::class]
+                $app[InventoryFactory::class]
             );
         });
 

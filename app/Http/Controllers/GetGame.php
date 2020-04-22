@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\InventoryTreeFactory;
 use App\Domain\Item;
 use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDbFactory;
@@ -55,6 +56,7 @@ final class GetGame extends Controller
         $gameId = Uuid::fromString($request->route("gameId"));
 
         $itemRepo = $this->itemRepoFactory->create($gameId);
+        $inventoryTreeFactory = new InventoryTreeFactory($itemRepo);
 
         $player = $this->playerRepo->find($gameId);
         $location = $this->locationRepo->findForPlayer($player);
@@ -62,23 +64,11 @@ final class GetGame extends Controller
         $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
         $locationInventory = $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId()));
 
-        $locationItemSurfaceInventories = [];
+        $playerInventoryTree = $inventoryTreeFactory->fromInventory($playerInventory);
+        $locationInventoryTree = $inventoryTreeFactory->fromInventory($locationInventory);
 
-        /** @var Item $item */
-        foreach ($locationInventory->getItems() as $item) {
-            $locationItemSurfaceInventories[] = $itemRepo->findInventory(ItemWhereabouts::itemSurface($item->getId()->toString()));
-        }
-
-        $locationViewModel = $this->locationViewModelFactory->createPlayerLocation($location, $locationInventory, $locationItemSurfaceInventories);
-
-        $playerItemSurfaceInventories = [];
-
-        /** @var Item $item */
-        foreach ($playerInventory->getItems() as $item) {
-            $playerItemSurfaceInventories[] = $itemRepo->findInventory(ItemWhereabouts::itemSurface($item->getId()->toString()));
-        }
-
-        $playerViewModel = $this->playerViewModelFactory->create($player, $playerInventory, $playerItemSurfaceInventories);
+        $playerViewModel = $this->playerViewModelFactory->create($player, $playerInventoryTree);
+        $locationViewModel = $this->locationViewModelFactory->createPlayerLocation($location, $locationInventoryTree);
 
         $containerViewModels = [];
 
