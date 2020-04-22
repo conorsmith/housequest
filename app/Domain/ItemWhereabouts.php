@@ -65,6 +65,11 @@ final class ItemWhereabouts
             && $this->type === "location";
     }
 
+    public function isSomeLocation(): bool
+    {
+        return $this->type === "location";
+    }
+
     public function isForItem(Item $item): bool
     {
         return $this->id === $item->getId()->toString()

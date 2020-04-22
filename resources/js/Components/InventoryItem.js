@@ -21,6 +21,8 @@ export default class Controller {
 
         window.EventBus.addEventListener("action.selected", e => { this.model.setSelectable(e.detail.action); });
         window.EventBus.addEventListener("action.deselected", e => { this.model.setNotSelectable(); });
+        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
         window.EventBus.addEventListener("action.completed", e => {
             this.model.setNotSelectable();
             this.model.setNotSelected(e.detail.itemId);
@@ -33,6 +35,7 @@ export default class Controller {
         }
 
         if (this.model.action === "open"
+            && this.model.altMode === false
             && !this.model.isContainer
         ) {
             window.EventBus.dispatchEvent("action.failed", {
@@ -43,6 +46,15 @@ export default class Controller {
                 itemId: this.model.id
             });
             return;
+        }
+
+        if (this.model.action === "open"
+            && this.model.altMode === true
+        ) {
+            window.EventBus.dispatchEvent("item.selected", {
+                itemId: this.model.id,
+                itemTypeId: this.model.typeId
+            });
         }
 
         this.model.setSelected();
@@ -87,6 +99,7 @@ class Model {
         this.isSelectable = false;
         this.isSelected = false;
         this.action = null;
+        this.altMode = false;
 
         this.bus = new EventBus();
     }
@@ -116,5 +129,13 @@ class Model {
         this.isSelectable = false;
         this.action = null;
         this.bus.dispatchEvent("setNotSelected");
+    }
+
+    activateAltMode() {
+        this.altMode = true;
+    }
+
+    deactivateAltMode() {
+        this.altMode = false;
     }
 }

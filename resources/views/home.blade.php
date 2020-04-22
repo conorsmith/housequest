@@ -253,17 +253,17 @@
     </a>
     <div class="container">
         <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
-            {{--
             <button type="button"
                     class="js-alt btn btn-action btn-sm"
                     style="width: 3rem; margin: 0 0.1rem 0.2rem;"
                 {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
             >
-                Alt
+                ALT
             </button>
+            {{--
             ???
-            Pick Up +
-            Drop +
+            Pick Up Some
+            Drop Some
             Use With
             ??? (Kill?)
             Place
@@ -280,6 +280,7 @@
                     class="js-pick-up btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                    data-alt-label="Pick Up ±"
             >
                 Pick Up
             </button>
@@ -287,6 +288,7 @@
                     class="js-drop btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                    data-alt-label="Drop ±"
             >
                 Drop
             </button>
@@ -294,6 +296,7 @@
                     class="js-use btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                    data-alt-label="Use With"
             >
                 Use
             </button>
@@ -308,11 +311,12 @@
                     class="js-open btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                    data-alt-label="Place"
             >
                 Open
             </button>
             <button type="button"
-                    class="btn btn-action btn-sm"
+                    class="js-make btn btn-action btn-sm"
                     style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     data-toggle="modal"
                     data-target="#menu-make"

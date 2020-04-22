@@ -22,7 +22,7 @@
                             {{ csrf_field() }}
                             <div class="form-group row">
                                 <div class="col-sm-12">
-                                    <input type="text" class="form-control" name="playerName" placeholder="Name">
+                                    <input type="text" class="form-control" name="playerName" placeholder="Name" autocomplete="off">
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-primary btn-block">

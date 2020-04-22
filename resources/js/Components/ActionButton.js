@@ -2,10 +2,11 @@ import EventBus from "../EventBus";
 
 export default class Controller {
     static fromAction(action) {
+        const el = document.querySelector(".js-" + action);
         return new Controller(
             action,
-            new Model(),
-            new View(document.querySelector(".js-" + action))
+            new Model(el.dataset.altLabel),
+            new View(el)
         );
     }
 
@@ -25,14 +26,19 @@ export default class Controller {
 
         window.EventBus.addEventListener("action.selected", e => {
             if (this.action !== e.detail.action) {
-                this.model.deactivate();
+                this.model.deactivateAction();
             }
         });
 
-        window.EventBus.addEventListener("action.completed", e => { this.model.deactivate(); });
+        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
 
-        this.model.bus.addEventListener("activated", e => { this.view.activate(); });
-        this.model.bus.addEventListener("deactivated", e => { this.view.deactivate(); });
+        window.EventBus.addEventListener("action.completed", e => { this.model.deactivateAction(); });
+
+        this.model.bus.addEventListener("action.activated", e => { this.view.activateAction(); });
+        this.model.bus.addEventListener("action.deactivated", e => { this.view.deactivateAction(); });
+        this.model.bus.addEventListener("alt.activated", e => { this.view.activateAlt(); });
+        this.model.bus.addEventListener("alt.deactivated", e => { this.view.deactivateAlt(); });
     }
 }
 
@@ -41,37 +47,72 @@ class View {
         this.el = el;
     }
 
-    activate() {
+    activateAction() {
         this.el.classList.add("selected");
     }
 
-    deactivate() {
+    deactivateAction() {
         this.el.classList.remove("selected");
+    }
+
+    activateAlt() {
+        if (this.el.dataset.altLabel !== "Place") {
+            this.el.disabled = true;
+            document.querySelector(".js-make").disabled = true;
+            return;
+        }
+
+        this.originalLabel = this.el.innerHTML;
+        if (this.el.dataset.altLabel !== undefined) {
+            this.el.innerHTML = this.el.dataset.altLabel;
+        }
+    }
+
+    deactivateAlt() {
+        if (this.el.dataset.altLabel !== "Place") {
+            this.el.disabled = false;
+            document.querySelector(".js-make").disabled = false;
+            return;
+        }
+
+        this.el.innerHTML = this.originalLabel;
     }
 }
 
 class Model {
-    constructor() {
-        this.isActive = false;
+    constructor(altLabel) {
+        this.altLabel = altLabel;
+        this.isActionActive = false;
+        this.isAltActive = false;
 
         this.bus = new EventBus();
     }
 
     toggle() {
         if (this.isActive) {
-            this.deactivate();
+            this.deactivateAction();
         } else {
-            this.activate();
+            this.activateAction();
         }
     }
 
-    activate() {
+    activateAction() {
         this.isActive = true;
-        this.bus.dispatchEvent("activated");
+        this.bus.dispatchEvent("action.activated");
     }
 
-    deactivate() {
+    deactivateAction() {
         this.isActive = false;
-        this.bus.dispatchEvent("deactivated");
+        this.bus.dispatchEvent("action.deactivated");
+    }
+
+    activateAltMode() {
+        this.isAltActive = true;
+        this.bus.dispatchEvent("alt.activated");
+    }
+
+    deactivateAltMode() {
+        this.isAltActive = false;
+        this.bus.dispatchEvent("alt.deactivated");
     }
 }

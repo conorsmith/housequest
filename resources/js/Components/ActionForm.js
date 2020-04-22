@@ -1,3 +1,5 @@
+import EventBus from "../EventBus";
+
 export default class Controller {
     static fromFormEl(formEl) {
         return new Controller(
@@ -39,6 +41,24 @@ export default class Controller {
                 this.model.createUseUrl(e.detail.itemId)
             )
         });
+
+        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
+
+        window.EventBus.addEventListener("item.selected", e => {
+            this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
+        });
+
+        this.model.bus.addEventListener("item.selected", e => {
+            if (e.detail.action === "open"
+                && e.detail.altMode === true
+                && e.detail.selectedItems.length === 2
+            ) {
+                this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
+                this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
+                this.view.submit(this.model.createPlaceUrl());
+            }
+        });
     }
 }
 
@@ -70,10 +90,18 @@ class Model {
         this.gameId = gameId;
         this.currentLocationId = currentLocationId;
         this.action = null;
+        this.altMode = false;
+        this.selectedItems = [];
+
+        this.bus = new EventBus();
     }
 
     isSupportedAction() {
         return ["look-at", "drop", "pick-up", "use", "eat"].includes(this.action);
+    }
+
+    createPlaceUrl() {
+        return `/${this.gameId}/place`;
     }
 
     createActionUrl(itemId) {
@@ -103,5 +131,26 @@ class Model {
 
     createUseUrl(itemId) {
         return "/" + this.gameId + "/use/" + itemId;
+    }
+
+    addSelectedItem(itemId, itemTypeId) {
+        this.selectedItems.push({
+            itemId: itemId,
+            itemTypeId: itemTypeId,
+        });
+
+        this.bus.dispatchEvent("item.selected", {
+            action: this.action,
+            altMode: this.altMode,
+            selectedItems: this.selectedItems
+        });
+    }
+
+    activateAltMode() {
+        this.altMode = true;
+    }
+
+    deactivateAltMode() {
+        this.altMode = false;
     }
 }

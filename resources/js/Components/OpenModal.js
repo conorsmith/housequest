@@ -20,6 +20,9 @@ export default class Controller {
             this.model.open(e.detail.itemId);
         });
 
+        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
+
         this.view.$el.on("hide.bs.modal", e => {
             this.model.close();
             window.EventBus.dispatchEvent("action.completed", {
@@ -48,12 +51,17 @@ class Model {
         this.id = id;
         this.isOpen = false;
         this.action = null;
+        this.altMode = false;
 
         this.bus = new EventBus();
     }
 
     open(id) {
         if (this.action !== "open") {
+            return;
+        }
+
+        if (this.altMode === true) {
             return;
         }
 
@@ -68,5 +76,13 @@ class Model {
     close() {
         this.isOpen = false;
         this.bus.dispatchEvent("closed");
+    }
+
+    activateAltMode() {
+        this.altMode = true;
+    }
+
+    deactivateAltMode() {
+        this.altMode = false;
     }
 }

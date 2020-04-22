@@ -26,11 +26,21 @@ return [
             "dining-room",
         ],
         'items' => [
-            "couch",
-            "wool-blanket",
-            "linen-blanket",
-            "tv-remote",
-            "digital-remote",
+            [
+                'id' => "couch",
+                'surface' => [
+                    "wool-blanket",
+                    "linen-blanket",
+                ],
+            ],
+            [
+                'id' => "coffee-table",
+                'surface' => [
+                    "tv-remote",
+                    "digital-remote",
+                    "pack-of-crisps",
+                ],
+            ],
             "entertainment-unit",
             "television",
         ],

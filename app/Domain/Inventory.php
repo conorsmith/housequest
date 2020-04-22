@@ -140,4 +140,9 @@ final class Inventory
     {
         return $this->items;
     }
+
+    public function isEmpty(): bool
+    {
+        return count($this->items) === 0;
+    }
 }

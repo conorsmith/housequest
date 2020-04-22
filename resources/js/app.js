@@ -131,11 +131,13 @@ import InventoryItemController from "./Components/InventoryItem";
 import OpenModalController from "./Components/OpenModal";
 import AlertController from "./Components/Alert";
 import PhoneModalController from "./Components/PhoneModal";
+import AltButtonController from "./Components/AltButton";
 
 window.EventBus = new EventBus();
 
 ActionFormController.fromFormEl(document.querySelector("#js-action"));
 
+AltButtonController.fromEl(document.querySelector(".js-alt"));
 ActionButtonController.fromAction("look-at");
 ActionButtonController.fromAction("pick-up");
 ActionButtonController.fromAction("drop");

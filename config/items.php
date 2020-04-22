@@ -395,4 +395,7 @@ return [
     'alarm-clock' => [
         'name' => "Alarm Clock",
     ],
+    'coffee-table' => [
+        'name' => "Coffee Table",
+    ],
 ];

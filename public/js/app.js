@@ -109,7 +109,8 @@ var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromAction",
     value: function fromAction(action) {
-      return new Controller(action, new Model(), new View(document.querySelector(".js-" + action)));
+      var el = document.querySelector(".js-" + action);
+      return new Controller(action, new Model(el.dataset.altLabel), new View(el));
     }
   }]);
 
@@ -134,17 +135,29 @@ var Controller = /*#__PURE__*/function () {
     });
     window.EventBus.addEventListener("action.selected", function (e) {
       if (_this.action !== e.detail.action) {
-        _this.model.deactivate();
+        _this.model.deactivateAction();
       }
     });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.activateAltMode();
+    });
+    window.EventBus.addEventListener("alt.deactivated", function (e) {
+      _this.model.deactivateAltMode();
+    });
     window.EventBus.addEventListener("action.completed", function (e) {
-      _this.model.deactivate();
+      _this.model.deactivateAction();
     });
-    this.model.bus.addEventListener("activated", function (e) {
-      _this.view.activate();
+    this.model.bus.addEventListener("action.activated", function (e) {
+      _this.view.activateAction();
     });
-    this.model.bus.addEventListener("deactivated", function (e) {
-      _this.view.deactivate();
+    this.model.bus.addEventListener("action.deactivated", function (e) {
+      _this.view.deactivateAction();
+    });
+    this.model.bus.addEventListener("alt.activated", function (e) {
+      _this.view.activateAlt();
+    });
+    this.model.bus.addEventListener("alt.deactivated", function (e) {
+      _this.view.deactivateAlt();
     });
   }
 
@@ -161,14 +174,40 @@ var View = /*#__PURE__*/function () {
   }
 
   _createClass(View, [{
-    key: "activate",
-    value: function activate() {
+    key: "activateAction",
+    value: function activateAction() {
       this.el.classList.add("selected");
     }
   }, {
-    key: "deactivate",
-    value: function deactivate() {
+    key: "deactivateAction",
+    value: function deactivateAction() {
       this.el.classList.remove("selected");
+    }
+  }, {
+    key: "activateAlt",
+    value: function activateAlt() {
+      if (this.el.dataset.altLabel !== "Place") {
+        this.el.disabled = true;
+        document.querySelector(".js-make").disabled = true;
+        return;
+      }
+
+      this.originalLabel = this.el.innerHTML;
+
+      if (this.el.dataset.altLabel !== undefined) {
+        this.el.innerHTML = this.el.dataset.altLabel;
+      }
+    }
+  }, {
+    key: "deactivateAlt",
+    value: function deactivateAlt() {
+      if (this.el.dataset.altLabel !== "Place") {
+        this.el.disabled = false;
+        document.querySelector(".js-make").disabled = false;
+        return;
+      }
+
+      this.el.innerHTML = this.originalLabel;
     }
   }]);
 
@@ -176,10 +215,12 @@ var View = /*#__PURE__*/function () {
 }();
 
 var Model = /*#__PURE__*/function () {
-  function Model() {
+  function Model(altLabel) {
     _classCallCheck(this, Model);
 
-    this.isActive = false;
+    this.altLabel = altLabel;
+    this.isActionActive = false;
+    this.isAltActive = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
@@ -187,22 +228,34 @@ var Model = /*#__PURE__*/function () {
     key: "toggle",
     value: function toggle() {
       if (this.isActive) {
-        this.deactivate();
+        this.deactivateAction();
       } else {
-        this.activate();
+        this.activateAction();
       }
     }
   }, {
-    key: "activate",
-    value: function activate() {
+    key: "activateAction",
+    value: function activateAction() {
       this.isActive = true;
-      this.bus.dispatchEvent("activated");
+      this.bus.dispatchEvent("action.activated");
     }
   }, {
-    key: "deactivate",
-    value: function deactivate() {
+    key: "deactivateAction",
+    value: function deactivateAction() {
       this.isActive = false;
-      this.bus.dispatchEvent("deactivated");
+      this.bus.dispatchEvent("action.deactivated");
+    }
+  }, {
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.isAltActive = true;
+      this.bus.dispatchEvent("alt.activated");
+    }
+  }, {
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.isAltActive = false;
+      this.bus.dispatchEvent("alt.deactivated");
     }
   }]);
 
@@ -221,11 +274,14 @@ var Model = /*#__PURE__*/function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
 
 var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
@@ -260,6 +316,24 @@ var Controller = /*#__PURE__*/function () {
       _this.view.set("number", e.detail.number);
 
       _this.view.submit(_this.model.createUseUrl(e.detail.itemId));
+    });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.activateAltMode();
+    });
+    window.EventBus.addEventListener("alt.deactivated", function (e) {
+      _this.model.deactivateAltMode();
+    });
+    window.EventBus.addEventListener("item.selected", function (e) {
+      _this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
+    });
+    this.model.bus.addEventListener("item.selected", function (e) {
+      if (e.detail.action === "open" && e.detail.altMode === true && e.detail.selectedItems.length === 2) {
+        _this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
+
+        _this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
+
+        _this.view.submit(_this.model.createPlaceUrl());
+      }
     });
   }
 
@@ -306,12 +380,20 @@ var Model = /*#__PURE__*/function () {
     this.gameId = gameId;
     this.currentLocationId = currentLocationId;
     this.action = null;
+    this.altMode = false;
+    this.selectedItems = [];
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
     key: "isSupportedAction",
     value: function isSupportedAction() {
       return ["look-at", "drop", "pick-up", "use", "eat"].includes(this.action);
+    }
+  }, {
+    key: "createPlaceUrl",
+    value: function createPlaceUrl() {
+      return "/".concat(this.gameId, "/place");
     }
   }, {
     key: "createActionUrl",
@@ -343,6 +425,29 @@ var Model = /*#__PURE__*/function () {
     key: "createUseUrl",
     value: function createUseUrl(itemId) {
       return "/" + this.gameId + "/use/" + itemId;
+    }
+  }, {
+    key: "addSelectedItem",
+    value: function addSelectedItem(itemId, itemTypeId) {
+      this.selectedItems.push({
+        itemId: itemId,
+        itemTypeId: itemTypeId
+      });
+      this.bus.dispatchEvent("item.selected", {
+        action: this.action,
+        altMode: this.altMode,
+        selectedItems: this.selectedItems
+      });
+    }
+  }, {
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.altMode = true;
+    }
+  }, {
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.altMode = false;
     }
   }]);
 
@@ -469,6 +574,123 @@ var Model = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./resources/js/Components/AltButton.js":
+/*!**********************************************!*\
+  !*** ./resources/js/Components/AltButton.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    this.view.onClick(function (e) {
+      _this.model.toggle();
+    });
+    this.model.bus.addEventListener("activated", function (e) {
+      window.EventBus.dispatchEvent("alt.activated");
+
+      _this.view.setActive();
+    });
+    this.model.bus.addEventListener("deactivated", function (e) {
+      window.EventBus.dispatchEvent("alt.deactivated");
+
+      _this.view.setInactive();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+  }
+
+  _createClass(View, [{
+    key: "onClick",
+    value: function onClick(callback) {
+      this.el.addEventListener("click", callback);
+    }
+  }, {
+    key: "setActive",
+    value: function setActive() {
+      this.el.classList.add("selected");
+    }
+  }, {
+    key: "setInactive",
+    value: function setInactive() {
+      this.el.classList.remove("selected");
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.isActive = false;
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "toggle",
+    value: function toggle() {
+      if (this.isActive) {
+        this.deactivate();
+      } else {
+        this.activate();
+      }
+    }
+  }, {
+    key: "activate",
+    value: function activate() {
+      this.isActive = true;
+      this.bus.dispatchEvent("activated");
+    }
+  }, {
+    key: "deactivate",
+    value: function deactivate() {
+      this.isActive = false;
+      this.bus.dispatchEvent("deactivated");
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
 /***/ "./resources/js/Components/InventoryItem.js":
 /*!**************************************************!*\
   !*** ./resources/js/Components/InventoryItem.js ***!
@@ -524,6 +746,12 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.deselected", function (e) {
       _this.model.setNotSelectable();
     });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.activateAltMode();
+    });
+    window.EventBus.addEventListener("alt.deactivated", function (e) {
+      _this.model.deactivateAltMode();
+    });
     window.EventBus.addEventListener("action.completed", function (e) {
       _this.model.setNotSelectable();
 
@@ -538,7 +766,7 @@ var Controller = /*#__PURE__*/function () {
         return;
       }
 
-      if (this.model.action === "open" && !this.model.isContainer) {
+      if (this.model.action === "open" && this.model.altMode === false && !this.model.isContainer) {
         window.EventBus.dispatchEvent("action.failed", {
           message: "You cannot open " + this.model.label + "."
         });
@@ -547,6 +775,13 @@ var Controller = /*#__PURE__*/function () {
           itemId: this.model.id
         });
         return;
+      }
+
+      if (this.model.action === "open" && this.model.altMode === true) {
+        window.EventBus.dispatchEvent("item.selected", {
+          itemId: this.model.id,
+          itemTypeId: this.model.typeId
+        });
       }
 
       this.model.setSelected();
@@ -607,6 +842,7 @@ var Model = /*#__PURE__*/function () {
     this.isSelectable = false;
     this.isSelected = false;
     this.action = null;
+    this.altMode = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
@@ -640,6 +876,16 @@ var Model = /*#__PURE__*/function () {
       this.isSelectable = false;
       this.action = null;
       this.bus.dispatchEvent("setNotSelected");
+    }
+  }, {
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.altMode = true;
+    }
+  }, {
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.altMode = false;
     }
   }]);
 
@@ -688,6 +934,12 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.triggered", function (e) {
       _this.model.open(e.detail.itemId);
     });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.activateAltMode();
+    });
+    window.EventBus.addEventListener("alt.deactivated", function (e) {
+      _this.model.deactivateAltMode();
+    });
     this.view.$el.on("hide.bs.modal", function (e) {
       _this.model.close();
 
@@ -731,6 +983,7 @@ var Model = /*#__PURE__*/function () {
     this.id = id;
     this.isOpen = false;
     this.action = null;
+    this.altMode = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
@@ -738,6 +991,10 @@ var Model = /*#__PURE__*/function () {
     key: "open",
     value: function open(id) {
       if (this.action !== "open") {
+        return;
+      }
+
+      if (this.altMode === true) {
         return;
       }
 
@@ -753,6 +1010,16 @@ var Model = /*#__PURE__*/function () {
     value: function close() {
       this.isOpen = false;
       this.bus.dispatchEvent("closed");
+    }
+  }, {
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.altMode = true;
+    }
+  }, {
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.altMode = false;
     }
   }]);
 
@@ -997,6 +1264,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/OpenModal */ "./resources/js/Components/OpenModal.js");
 /* harmony import */ var _Components_Alert__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/Alert */ "./resources/js/Components/Alert.js");
 /* harmony import */ var _Components_PhoneModal__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Components/PhoneModal */ "./resources/js/Components/PhoneModal.js");
+/* harmony import */ var _Components_AltButton__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Components/AltButton */ "./resources/js/Components/AltButton.js");
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
   buttonEl.addEventListener("click", function (e) {
     e.preventDefault();
@@ -1116,8 +1384,10 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 
 
+
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
+_Components_AltButton__WEBPACK_IMPORTED_MODULE_7__["default"].fromEl(document.querySelector(".js-alt"));
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("look-at");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("drop");
