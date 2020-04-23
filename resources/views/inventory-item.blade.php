@@ -1,11 +1,13 @@
-<li class="item list-group-item d-flex justify-content-between align-items-center js-inventory-item"
+<li class="item js-inventory-item item-placement-{{ $item->depth }}"
     data-id="{{ $item->id }}"
     data-type-id="{{ $item->typeId }}"
     data-label="{{ $item->label }}"
     data-is-container="{{ $item->isContainer }}"
-    style="{{ $item->depth > 0 ? "padding-left: " . (1.25 + ($item->depth * 1.25)) . "rem;" : ""}}"
 >
     <div class="item-label d-flex justify-content-start align-items-center">
+        @if($item->depth > 3)
+            <span class="item-indent-indicator badge badge-primary">+{{ $item->depth - 3 }}</span>
+        @endif
         {{ $item->label }}
         @if($item->state)
             <span class="badge badge-primary">{{ $item->state }}</span>

@@ -61,8 +61,62 @@ $border-radius-sm: 0 !default;
     border-bottom: 1px solid $border-color;
 }
 
-.item.item-selectable {
-    cursor: pointer;
+.item {
+    @extend .list-group-item;
+    @extend .d-flex;
+    @extend .justify-content-between;
+    @extend .align-items-center;
+
+    &.item-selectable {
+        cursor: pointer;
+    }
+
+    .item-label .badge {
+        margin-left: 0.6rem;
+    }
+
+    .item-label .item-indent-indicator {
+        @extend .badge;
+        @extend .badge-primary;
+        position: relative;
+        margin-right: 1rem;
+        margin-left: 0;
+
+        $indicator-height: 18px;
+
+        &:after {
+            left: 100%;
+            top: 50%;
+            border: ($indicator-height / 2) solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+            border-left-color: $primary;
+            margin-top: -($indicator-height / 2);
+        }
+    }
+
+    $item-placement-padding: 1.25rem;
+
+    padding-left: $item-placement-padding + ($item-placement-padding * 3);
+
+    &.item-placement-0 {
+        padding-left: $item-placement-padding + ($item-placement-padding * 0);
+    }
+
+    &.item-placement-1 {
+        padding-left: $item-placement-padding + ($item-placement-padding * 1);
+    }
+
+    &.item-placement-2 {
+        padding-left: $item-placement-padding + ($item-placement-padding * 2);
+    }
+
+    &.item-placement-3 {
+        padding-left: $item-placement-padding + ($item-placement-padding * 3);
+    }
 }
 
 .item .item-label .progress,
@@ -79,10 +133,6 @@ $border-radius-sm: 0 !default;
 .item .item-label .progress-bar.bg-selected,
 .item .item-controls .progress-bar.bg-selected {
     background-color: $gray-600;
-}
-
-.item .item-label .badge {
-    margin-left: 0.6rem;
 }
 
 .fixed-alert-container {
