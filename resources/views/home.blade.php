@@ -157,13 +157,13 @@
                 ALT
             </button>
             {{--
-            ???
-            Pick Up Some
-            Drop Some
-            Use With
-            ??? (Kill?)
-            Place
-            Break
+            Look At -> Talk To
+            Pick Up -> Pick Up Some / Drop
+            Drop -> Drop Some
+            Use -> Use With
+            Eat -> ??? (Kill?)
+            Open -> Place
+            Make -> Break
             --}}
             <button type="button"
                     class="js-look-at btn btn-action btn-sm"

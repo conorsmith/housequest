@@ -74,6 +74,19 @@ final class ItemRepositoryDb implements ItemRepository
         return $items;
     }
 
+    public function findRootWhereabouts(Item $item): ItemWhereabouts
+    {
+        $itemsUnderneath = $this->findItemsUnderneath($item->getId());
+
+        if (count($itemsUnderneath) === 0) {
+            return $item->getWhereabouts();
+        }
+
+        $bottomItem = array_pop($itemsUnderneath);
+
+        return $bottomItem->getWhereabouts();
+    }
+
     public function createType(string $itemTypeId): Item
     {
         $itemConfig = $this->config[$itemTypeId];

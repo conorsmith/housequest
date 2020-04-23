@@ -59,18 +59,16 @@ final class PostEat extends Controller
             return redirect("/{$gameId}");
         }
 
-        $inventory = $itemRepo->findInventory(ItemWhereabouts::player());
+        $item = $itemRepo->find($itemId);
+        $rootWhereabouts = $itemRepo->findRootWhereabouts($item);
 
-        $item = $inventory->find($itemId);
-
-        if (is_null($item)) {
-            $inventory = $itemRepo->findInventory(ItemWhereabouts::location($player->getLocationId()));
-            $item = $inventory->find($itemId);
-
-            if (is_null($item)) {
-                throw new InvalidArgumentException("Item '{$itemId}' not found in inventory.");
-            }
+        if (!$rootWhereabouts->isPlayer()
+            && !$rootWhereabouts->isLocation($player->getLocationId())
+        ) {
+            throw new InvalidArgumentException("Item '{$itemId}' not available in current location.");
         }
+
+        $inventory = $itemRepo->findInventory($item->getWhereabouts());
 
         $viewModel = $this->itemViewModelFactory->create($item);
 
