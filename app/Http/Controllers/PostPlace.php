@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Item;
 use App\Domain\ItemWhereabouts;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
@@ -62,6 +63,16 @@ final class PostPlace extends Controller
         if ($subjectItem->isHeavy()) {
             session()->flash("info", "You cannot move {$subjectViewModel->label}, it's too heavy.");
             return redirect("/{$gameId}");
+        }
+
+        $itemsUnderneathTarget = $itemRepo->findItemsUnderneath($targetItem->getId());
+
+        /** @var Item $itemUnderneathTarget */
+        foreach ($itemsUnderneathTarget as $itemUnderneathTarget) {
+            if ($itemUnderneathTarget->equals($subjectItem)) {
+                session()->flash("info", "You cannot place {$subjectViewModel->label} on {$targetViewModel->label}.");
+                return redirect("/{$gameId}");
+            }
         }
 
         $subjectItem->moveTo(ItemWhereabouts::itemSurface($targetItem->getId()->toString()));

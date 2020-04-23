@@ -58,6 +58,22 @@ final class ItemRepositoryDb implements ItemRepository
         return new Inventory($whereabouts, $items);
     }
 
+    public function findItemsUnderneath(UuidInterface $id): array
+    {
+        $item = $this->find($id);
+
+        $items = [];
+
+        while ($item->getWhereabouts()->isOnSomething()) {
+            $item = $this->find(
+                Uuid::fromString($item->getWhereabouts()->getId())
+            );
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
     public function createType(string $itemTypeId): Item
     {
         $itemConfig = $this->config[$itemTypeId];

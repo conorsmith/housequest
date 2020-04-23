@@ -196,6 +196,11 @@ final class Item
         return !is_null($this->use);
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->id->equals($other->id);
+    }
+
     public function canMergeWith(self $other): bool
     {
         return $this->id !== $other->id
