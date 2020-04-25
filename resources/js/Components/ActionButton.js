@@ -4,39 +4,40 @@ export default class Controller {
     static fromAction(action) {
         const el = document.querySelector(".js-" + action);
         return new Controller(
-            action,
-            new Model(el.dataset.altLabel),
+            new Model(
+                el.dataset.defaultAction,
+                el.dataset.defaultMultipleAction,
+                el.dataset.altAction,
+                el.dataset.altMultipleAction
+            ),
             new View(el)
         );
     }
 
-    constructor(action, model, view) {
-        this.action = action;
+    constructor(model, view) {
         this.model = model;
         this.view = view;
 
         this.view.el.addEventListener("click", e => {
             this.model.toggle();
-            if (this.model.isActive) {
-                window.EventBus.dispatchEvent("action.selected", { action: this.action });
+
+            if (this.model.isButtonActive) {
+                window.EventBus.dispatchEvent("actionBtn.selected", {button: this.model.defaultAction});
             } else {
-                window.EventBus.dispatchEvent("action.deselected");
+                window.EventBus.dispatchEvent("actionBtn.deselected");
             }
         });
 
-        window.EventBus.addEventListener("action.selected", e => {
-            if (this.action !== e.detail.action) {
-                this.model.deactivateAction();
-            }
-        });
+        window.EventBus.addEventListener("action.changed", e => { this.model.handleActionChange(e.detail.action); });
+        window.EventBus.addEventListener("alt.activated", e => { this.model.setAltActive(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.setAltInactive(); });
 
-        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
-        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
+        window.EventBus.addEventListener("action.completed", e => { this.model.deactivateButton(); });
+        window.EventBus.addEventListener("cancel", e => { this.model.deactivateButton(); });
 
-        window.EventBus.addEventListener("action.completed", e => { this.model.deactivateAction(); });
+        this.model.bus.addEventListener("action.activated", e => { this.view.activateButton(); });
+        this.model.bus.addEventListener("action.deactivated", e => { this.view.deactivateButton(); });
 
-        this.model.bus.addEventListener("action.activated", e => { this.view.activateAction(); });
-        this.model.bus.addEventListener("action.deactivated", e => { this.view.deactivateAction(); });
         this.model.bus.addEventListener("alt.activated", e => { this.view.activateAlt(); });
         this.model.bus.addEventListener("alt.deactivated", e => { this.view.deactivateAlt(); });
     }
@@ -47,16 +48,16 @@ class View {
         this.el = el;
     }
 
-    activateAction() {
+    activateButton() {
         this.el.classList.add("selected");
     }
 
-    deactivateAction() {
+    deactivateButton() {
         this.el.classList.remove("selected");
     }
 
     activateAlt() {
-        if (this.el.dataset.altLabel !== "Place") {
+        if (this.el.dataset.altAction !== "place") {
             this.el.disabled = true;
             document.querySelector(".js-make").disabled = true;
             return;
@@ -69,7 +70,7 @@ class View {
     }
 
     deactivateAlt() {
-        if (this.el.dataset.altLabel !== "Place") {
+        if (this.el.dataset.altAction !== "place") {
             this.el.disabled = false;
             document.querySelector(".js-make").disabled = false;
             return;
@@ -80,39 +81,52 @@ class View {
 }
 
 class Model {
-    constructor(altLabel) {
-        this.altLabel = altLabel;
-        this.isActionActive = false;
-        this.isAltActive = false;
+    constructor(defaultAction, defaultMultipleAction, altAction, altMultipleAction) {
+        this.defaultAction = defaultAction;
+        this.defaultMultipleAction = defaultMultipleAction;
+        this.altAction = altAction;
+        this.altMultipleAction = altMultipleAction;
+        this.isButtonActive = false;
+        this.isAlt = false;
 
         this.bus = new EventBus();
     }
 
     toggle() {
-        if (this.isActive) {
-            this.deactivateAction();
+        if (this.isButtonActive) {
+            this.deactivateButton();
         } else {
-            this.activateAction();
+            this.activateButton();
         }
     }
 
-    activateAction() {
-        this.isActive = true;
-        this.bus.dispatchEvent("action.activated");
+    handleActionChange(action) {
+        if (action !== this.defaultAction
+            && action !== this.defaultMultipleAction
+            && action !== this.altAction
+            && action !== this.altMultipleAction
+        ) {
+            this.deactivateButton();
+        }
     }
 
-    deactivateAction() {
-        this.isActive = false;
+    activateButton() {
+        this.isButtonActive = true;
+        this.bus.dispatchEvent("action.activated", { action: this.defaultAction });
+    }
+
+    deactivateButton() {
+        this.isButtonActive = false;
         this.bus.dispatchEvent("action.deactivated");
     }
 
-    activateAltMode() {
-        this.isAltActive = true;
+    setAltActive() {
+        this.isAlt = true;
         this.bus.dispatchEvent("alt.activated");
     }
 
-    deactivateAltMode() {
-        this.isAltActive = false;
+    setAltInactive() {
+        this.isAlt = false;
         this.bus.dispatchEvent("alt.deactivated");
     }
 }

@@ -15,7 +15,7 @@ export default class Controller {
         this.view.onClose(e => { this.model.hide(); });
 
         window.EventBus.addEventListener("action.failed", e => { this.model.showMessage(e.detail.message); });
-        window.EventBus.addEventListener("action.selected", e => { this.model.hide(); });
+        window.EventBus.addEventListener("action.changed", e => { this.model.hide(); });
 
         this.model.bus.addEventListener("shown", e => { this.view.showMessage(e.detail.message); });
         this.model.bus.addEventListener("hidden", e => { this.view.hideMessage(); });

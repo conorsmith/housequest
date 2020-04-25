@@ -12,9 +12,7 @@ export default class Controller {
         this.model = model;
         this.view = view;
 
-        window.EventBus.addEventListener("action.selected", e => {
-            this.model.action = e.detail.action;
-        });
+        window.EventBus.addEventListener("action.changed", e => { this.model.action = e.detail.action; });
 
         window.EventBus.addEventListener("action.triggered", e => {
             this.model.open(e.detail.itemId);

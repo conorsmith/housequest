@@ -209,3 +209,25 @@ $border-radius-sm: 0 !default;
     }
 
 }
+
+.confirm-bar {
+    @extend .additional-border-top;
+    width: 100%;
+    overflow-y: hidden;
+    max-height: 50px; /* approximate max height */
+
+    transition-property: all;
+    transition-duration: 0.5s;
+    transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+
+    &.confirm-bar-hidden {
+        max-height: 0;
+    }
+
+    .confirm-bar-container {
+        @extend .container;
+        @extend .justify-content-center;
+        padding-top: 0.5rem;
+        padding-bottom: 0.4rem;
+    }
+}

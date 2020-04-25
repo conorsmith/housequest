@@ -110,48 +110,48 @@ var Controller = /*#__PURE__*/function () {
     key: "fromAction",
     value: function fromAction(action) {
       var el = document.querySelector(".js-" + action);
-      return new Controller(action, new Model(el.dataset.altLabel), new View(el));
+      return new Controller(new Model(el.dataset.defaultAction, el.dataset.defaultMultipleAction, el.dataset.altAction, el.dataset.altMultipleAction), new View(el));
     }
   }]);
 
-  function Controller(action, model, view) {
+  function Controller(model, view) {
     var _this = this;
 
     _classCallCheck(this, Controller);
 
-    this.action = action;
     this.model = model;
     this.view = view;
     this.view.el.addEventListener("click", function (e) {
       _this.model.toggle();
 
-      if (_this.model.isActive) {
-        window.EventBus.dispatchEvent("action.selected", {
-          action: _this.action
+      if (_this.model.isButtonActive) {
+        window.EventBus.dispatchEvent("actionBtn.selected", {
+          button: _this.model.defaultAction
         });
       } else {
-        window.EventBus.dispatchEvent("action.deselected");
+        window.EventBus.dispatchEvent("actionBtn.deselected");
       }
     });
-    window.EventBus.addEventListener("action.selected", function (e) {
-      if (_this.action !== e.detail.action) {
-        _this.model.deactivateAction();
-      }
+    window.EventBus.addEventListener("action.changed", function (e) {
+      _this.model.handleActionChange(e.detail.action);
     });
     window.EventBus.addEventListener("alt.activated", function (e) {
-      _this.model.activateAltMode();
+      _this.model.setAltActive();
     });
     window.EventBus.addEventListener("alt.deactivated", function (e) {
-      _this.model.deactivateAltMode();
+      _this.model.setAltInactive();
     });
     window.EventBus.addEventListener("action.completed", function (e) {
-      _this.model.deactivateAction();
+      _this.model.deactivateButton();
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.deactivateButton();
     });
     this.model.bus.addEventListener("action.activated", function (e) {
-      _this.view.activateAction();
+      _this.view.activateButton();
     });
     this.model.bus.addEventListener("action.deactivated", function (e) {
-      _this.view.deactivateAction();
+      _this.view.deactivateButton();
     });
     this.model.bus.addEventListener("alt.activated", function (e) {
       _this.view.activateAlt();
@@ -174,19 +174,19 @@ var View = /*#__PURE__*/function () {
   }
 
   _createClass(View, [{
-    key: "activateAction",
-    value: function activateAction() {
+    key: "activateButton",
+    value: function activateButton() {
       this.el.classList.add("selected");
     }
   }, {
-    key: "deactivateAction",
-    value: function deactivateAction() {
+    key: "deactivateButton",
+    value: function deactivateButton() {
       this.el.classList.remove("selected");
     }
   }, {
     key: "activateAlt",
     value: function activateAlt() {
-      if (this.el.dataset.altLabel !== "Place") {
+      if (this.el.dataset.altAction !== "place") {
         this.el.disabled = true;
         document.querySelector(".js-make").disabled = true;
         return;
@@ -201,7 +201,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "deactivateAlt",
     value: function deactivateAlt() {
-      if (this.el.dataset.altLabel !== "Place") {
+      if (this.el.dataset.altAction !== "place") {
         this.el.disabled = false;
         document.querySelector(".js-make").disabled = false;
         return;
@@ -215,46 +215,58 @@ var View = /*#__PURE__*/function () {
 }();
 
 var Model = /*#__PURE__*/function () {
-  function Model(altLabel) {
+  function Model(defaultAction, defaultMultipleAction, altAction, altMultipleAction) {
     _classCallCheck(this, Model);
 
-    this.altLabel = altLabel;
-    this.isActionActive = false;
-    this.isAltActive = false;
+    this.defaultAction = defaultAction;
+    this.defaultMultipleAction = defaultMultipleAction;
+    this.altAction = altAction;
+    this.altMultipleAction = altMultipleAction;
+    this.isButtonActive = false;
+    this.isAlt = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
     key: "toggle",
     value: function toggle() {
-      if (this.isActive) {
-        this.deactivateAction();
+      if (this.isButtonActive) {
+        this.deactivateButton();
       } else {
-        this.activateAction();
+        this.activateButton();
       }
     }
   }, {
-    key: "activateAction",
-    value: function activateAction() {
-      this.isActive = true;
-      this.bus.dispatchEvent("action.activated");
+    key: "handleActionChange",
+    value: function handleActionChange(action) {
+      if (action !== this.defaultAction && action !== this.defaultMultipleAction && action !== this.altAction && action !== this.altMultipleAction) {
+        this.deactivateButton();
+      }
     }
   }, {
-    key: "deactivateAction",
-    value: function deactivateAction() {
-      this.isActive = false;
+    key: "activateButton",
+    value: function activateButton() {
+      this.isButtonActive = true;
+      this.bus.dispatchEvent("action.activated", {
+        action: this.defaultAction
+      });
+    }
+  }, {
+    key: "deactivateButton",
+    value: function deactivateButton() {
+      this.isButtonActive = false;
       this.bus.dispatchEvent("action.deactivated");
     }
   }, {
-    key: "activateAltMode",
-    value: function activateAltMode() {
-      this.isAltActive = true;
+    key: "setAltActive",
+    value: function setAltActive() {
+      this.isAlt = true;
       this.bus.dispatchEvent("alt.activated");
     }
   }, {
-    key: "deactivateAltMode",
-    value: function deactivateAltMode() {
-      this.isAltActive = false;
+    key: "setAltInactive",
+    value: function setAltInactive() {
+      this.isAlt = false;
       this.bus.dispatchEvent("alt.deactivated");
     }
   }]);
@@ -298,15 +310,53 @@ var Controller = /*#__PURE__*/function () {
 
     this.model = model;
     this.view = view;
-    window.EventBus.addEventListener("action.selected", function (e) {
-      _this.model.action = e.detail.action;
+    window.EventBus.addEventListener("actionBtn.selected", function (e) {
+      _this.model.setActionButton(e.detail.button);
+    });
+    window.EventBus.addEventListener("actionBtn.deselected", function (e) {
+      _this.model.unsetActionButton();
+    });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.activateAltMode();
+    });
+    window.EventBus.addEventListener("alt.deactivated", function (e) {
+      _this.model.deactivateAltMode();
+    });
+    window.EventBus.addEventListener("mul.activated", function (e) {
+      _this.model.activateMulMode();
+    });
+    window.EventBus.addEventListener("mul.deactivated", function (e) {
+      _this.model.deactivateMulMode();
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.reset();
     });
     window.EventBus.addEventListener("action.triggered", function (e) {
       if (!_this.model.isSupportedAction()) {
         return;
       }
 
-      if (_this.model.action === "use" && e.detail.itemTypeId === "telephone") {
+      if (_this.model.action.isUse() && e.detail.itemTypeId === "telephone") {
+        return;
+      }
+
+      if (_this.model.action.isPickUpMultiple()) {
+        _this.model.selectedItems.forEach(function (item) {
+          _this.view.set("items[]", item.itemId);
+        });
+
+        _this.view.submit(_this.model.createPickUpUrl());
+
+        return;
+      }
+
+      if (_this.model.action.isDropMultiple()) {
+        _this.model.selectedItems.forEach(function (item) {
+          _this.view.set("items[]", item.itemId);
+        });
+
+        _this.view.submit(_this.model.createDropUrl());
+
         return;
       }
 
@@ -316,12 +366,6 @@ var Controller = /*#__PURE__*/function () {
       _this.view.set("number", e.detail.number);
 
       _this.view.submit(_this.model.createUseUrl(e.detail.itemId));
-    });
-    window.EventBus.addEventListener("alt.activated", function (e) {
-      _this.model.activateAltMode();
-    });
-    window.EventBus.addEventListener("alt.deactivated", function (e) {
-      _this.model.deactivateAltMode();
     });
     window.EventBus.addEventListener("item.selected", function (e) {
       _this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
@@ -334,6 +378,9 @@ var Controller = /*#__PURE__*/function () {
 
         _this.view.submit(_this.model.createPlaceUrl());
       }
+    });
+    this.model.bus.addEventListener("action.changed", function (e) {
+      window.EventBus.dispatchEvent("action.changed", e.detail);
     });
   }
 
@@ -379,16 +426,64 @@ var Model = /*#__PURE__*/function () {
 
     this.gameId = gameId;
     this.currentLocationId = currentLocationId;
-    this.action = null;
-    this.altMode = false;
+    this.action = Action.createNull();
     this.selectedItems = [];
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
+    key: "reset",
+    value: function reset() {
+      this.action = Action.createNull();
+      this.selectedItems = [];
+    }
+  }, {
+    key: "setActionButton",
+    value: function setActionButton(actionButton) {
+      this.action = this.action.withButton(actionButton);
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "unsetActionButton",
+    value: function unsetActionButton() {
+      this.action = this.action.withoutButton();
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.action.toggleAltMode();
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.action.toggleAltMode();
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "activateMulMode",
+    value: function activateMulMode() {
+      this.action.toggleMulMode();
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "deactivateMulMode",
+    value: function deactivateMulMode() {
+      this.action.toggleMulMode();
+      this.dispatchActionChangedEvent();
+    }
+  }, {
+    key: "dispatchActionChangedEvent",
+    value: function dispatchActionChangedEvent() {
+      this.bus.dispatchEvent("action.changed", {
+        action: this.action.getName()
+      });
+    }
+  }, {
     key: "isSupportedAction",
     value: function isSupportedAction() {
-      return ["look-at", "drop", "pick-up", "use", "eat"].includes(this.action);
+      return ["look-at", "pick-up", "pick-up-multiple", "drop", "drop-multiple", "use", "eat"].includes(this.action.getName());
     }
   }, {
     key: "createPlaceUrl",
@@ -396,29 +491,39 @@ var Model = /*#__PURE__*/function () {
       return "/".concat(this.gameId, "/place");
     }
   }, {
+    key: "createPickUpUrl",
+    value: function createPickUpUrl() {
+      return "/".concat(this.gameId, "/pick-up");
+    }
+  }, {
+    key: "createDropUrl",
+    value: function createDropUrl() {
+      return "/".concat(this.gameId, "/drop/").concat(this.currentLocationId);
+    }
+  }, {
     key: "createActionUrl",
     value: function createActionUrl(itemId) {
-      if (this.action === "look-at") {
+      if (this.action.button === "look-at") {
         return "/" + this.gameId + "/look-at/" + itemId;
       }
 
-      if (this.action === "drop") {
+      if (this.action.button === "drop") {
         return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
       }
 
-      if (this.action === "pick-up") {
+      if (this.action.button === "pick-up") {
         return "/" + this.gameId + "/pick-up/" + itemId;
       }
 
-      if (this.action === "use") {
+      if (this.action.button === "use") {
         return "/" + this.gameId + "/use/" + itemId;
       }
 
-      if (this.action === "eat") {
+      if (this.action.button === "eat") {
         return "/" + this.gameId + "/eat/" + itemId;
       }
 
-      console.error("Cannot create action URL for action: " + this.action);
+      console.error("Cannot create action URL for action:", this.action);
       return "";
     }
   }, {
@@ -434,24 +539,141 @@ var Model = /*#__PURE__*/function () {
         itemTypeId: itemTypeId
       });
       this.bus.dispatchEvent("item.selected", {
-        action: this.action,
-        altMode: this.altMode,
+        action: this.action.button,
+        altMode: this.action.altMode,
         selectedItems: this.selectedItems
       });
-    }
-  }, {
-    key: "activateAltMode",
-    value: function activateAltMode() {
-      this.altMode = true;
-    }
-  }, {
-    key: "deactivateAltMode",
-    value: function deactivateAltMode() {
-      this.altMode = false;
     }
   }]);
 
   return Model;
+}();
+
+var Action = /*#__PURE__*/function () {
+  _createClass(Action, null, [{
+    key: "createNull",
+    value: function createNull() {
+      return new Action(null, false, false);
+    }
+  }]);
+
+  function Action(button, altMode, mulMode) {
+    _classCallCheck(this, Action);
+
+    this.button = button;
+    this.altMode = altMode;
+    this.mulMode = mulMode;
+  }
+
+  _createClass(Action, [{
+    key: "withoutButton",
+    value: function withoutButton() {
+      return new Action(null, this.altMode, this.mulMode);
+    }
+  }, {
+    key: "withButton",
+    value: function withButton(button) {
+      return new Action(button, this.altMode, this.mulMode);
+    }
+  }, {
+    key: "toggleAltMode",
+    value: function toggleAltMode() {
+      this.altMode = !this.altMode;
+    }
+  }, {
+    key: "toggleMulMode",
+    value: function toggleMulMode() {
+      this.mulMode = !this.mulMode;
+    }
+  }, {
+    key: "getName",
+    value: function getName() {
+      if (this.isLookAt()) {
+        return "look-at";
+      }
+
+      if (this.isPickUp()) {
+        return "pick-up";
+      }
+
+      if (this.isPickUpMultiple()) {
+        return "pick-up-multiple";
+      }
+
+      if (this.isDrop()) {
+        return "drop";
+      }
+
+      if (this.isDropMultiple()) {
+        return "drop-multiple";
+      }
+
+      if (this.isUse()) {
+        return "use";
+      }
+
+      if (this.isEat()) {
+        return "eat";
+      }
+
+      if (this.isOpen()) {
+        return "open";
+      }
+
+      if (this.isPlace()) {
+        return "place";
+      }
+
+      return this.button;
+    }
+  }, {
+    key: "isLookAt",
+    value: function isLookAt() {
+      return this.button === "look-at" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isPickUp",
+    value: function isPickUp() {
+      return this.button === "pick-up" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isPickUpMultiple",
+    value: function isPickUpMultiple() {
+      return this.button === "pick-up" && this.altMode === false && this.mulMode === true;
+    }
+  }, {
+    key: "isDrop",
+    value: function isDrop() {
+      return this.button === "drop" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isDropMultiple",
+    value: function isDropMultiple() {
+      return this.button === "drop" && this.altMode === false && this.mulMode === true;
+    }
+  }, {
+    key: "isUse",
+    value: function isUse() {
+      return this.button === "use" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isEat",
+    value: function isEat() {
+      return this.button === "eat" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isOpen",
+    value: function isOpen() {
+      return this.button === "open" && this.altMode === false && this.mulMode === false;
+    }
+  }, {
+    key: "isPlace",
+    value: function isPlace() {
+      return this.button === "open" && this.altMode === true && this.mulMode === false;
+    }
+  }]);
+
+  return Action;
 }();
 
 /***/ }),
@@ -496,7 +718,7 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.failed", function (e) {
       _this.model.showMessage(e.detail.message);
     });
-    window.EventBus.addEventListener("action.selected", function (e) {
+    window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.hide();
     });
     this.model.bus.addEventListener("shown", function (e) {
@@ -691,6 +913,133 @@ var Model = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./resources/js/Components/ConfirmBar.js":
+/*!***********************************************!*\
+  !*** ./resources/js/Components/ConfirmBar.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    this.view.onConfirm(function (e) {
+      window.EventBus.dispatchEvent("action.triggered");
+    });
+    this.view.onCancel(function (e) {
+      window.EventBus.dispatchEvent("cancel");
+
+      _this.view.hide();
+    });
+    window.EventBus.addEventListener("action.changed", function (e) {
+      _this.model.setAction(e.detail.action);
+    });
+    window.EventBus.addEventListener("item.selected", function (e) {
+      _this.model.show();
+    });
+    this.model.bus.addEventListener("show", function (e) {
+      _this.view.show();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+  }
+
+  _createClass(View, [{
+    key: "onConfirm",
+    value: function onConfirm(callback) {
+      this.el.querySelector(".js-confirm").addEventListener("click", callback);
+    }
+  }, {
+    key: "onCancel",
+    value: function onCancel(callback) {
+      this.el.querySelector(".js-cancel").addEventListener("click", callback);
+    }
+  }, {
+    key: "show",
+    value: function show() {
+      this.el.classList.remove("confirm-bar-hidden");
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      this.el.classList.add("confirm-bar-hidden");
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.isShown = false;
+    this.action = null;
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "show",
+    value: function show() {
+      if (this.action === "place") {
+        return;
+      }
+
+      this.isShown = true;
+      this.bus.dispatchEvent("show");
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      this.isShown = false;
+      this.bus.dispatchEvent("hide");
+    }
+  }, {
+    key: "setAction",
+    value: function setAction(action) {
+      this.action = action;
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
 /***/ "./resources/js/Components/InventoryItem.js":
 /*!**************************************************!*\
   !*** ./resources/js/Components/InventoryItem.js ***!
@@ -728,6 +1077,19 @@ var Controller = /*#__PURE__*/function () {
     this.view.el.addEventListener("click", function (e) {
       _this.selectItem();
     });
+    window.EventBus.addEventListener("action.changed", function (e) {
+      _this.model.handleActionChange(e.detail.action);
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.setNotSelectable();
+
+      _this.model.setNotSelected(_this.model.id);
+    });
+    window.EventBus.addEventListener("action.completed", function (e) {
+      _this.model.setNotSelectable();
+
+      _this.model.setNotSelected(e.detail.itemId);
+    });
     this.model.bus.addEventListener("setSelectable", function (e) {
       _this.view.setSelectable();
     });
@@ -740,23 +1102,6 @@ var Controller = /*#__PURE__*/function () {
     this.model.bus.addEventListener("setNotSelected", function (e) {
       _this.view.unsetSelected();
     });
-    window.EventBus.addEventListener("action.selected", function (e) {
-      _this.model.setSelectable(e.detail.action);
-    });
-    window.EventBus.addEventListener("action.deselected", function (e) {
-      _this.model.setNotSelectable();
-    });
-    window.EventBus.addEventListener("alt.activated", function (e) {
-      _this.model.activateAltMode();
-    });
-    window.EventBus.addEventListener("alt.deactivated", function (e) {
-      _this.model.deactivateAltMode();
-    });
-    window.EventBus.addEventListener("action.completed", function (e) {
-      _this.model.setNotSelectable();
-
-      _this.model.setNotSelected(e.detail.itemId);
-    });
   }
 
   _createClass(Controller, [{
@@ -766,7 +1111,7 @@ var Controller = /*#__PURE__*/function () {
         return;
       }
 
-      if (this.model.action === "open" && this.model.altMode === false && !this.model.isContainer) {
+      if (this.model.action === "open" && !this.model.isContainer) {
         window.EventBus.dispatchEvent("action.failed", {
           message: "You cannot open " + this.model.label + "."
         });
@@ -777,7 +1122,7 @@ var Controller = /*#__PURE__*/function () {
         return;
       }
 
-      if (this.model.action === "open" && this.model.altMode === true) {
+      if (this.model.action === "place" || this.model.action === "pick-up-multiple" || this.model.action === "drop-multiple") {
         window.EventBus.dispatchEvent("item.selected", {
           itemId: this.model.id,
           itemTypeId: this.model.typeId
@@ -785,10 +1130,13 @@ var Controller = /*#__PURE__*/function () {
       }
 
       this.model.setSelected();
-      window.EventBus.dispatchEvent("action.triggered", {
-        itemId: this.model.id,
-        itemTypeId: this.model.typeId
-      });
+
+      if (this.model.action !== "pick-up-multiple" && this.model.action !== "drop-multiple") {
+        window.EventBus.dispatchEvent("action.triggered", {
+          itemId: this.model.id,
+          itemTypeId: this.model.typeId
+        });
+      }
     }
   }]);
 
@@ -842,16 +1190,19 @@ var Model = /*#__PURE__*/function () {
     this.isSelectable = false;
     this.isSelected = false;
     this.action = null;
-    this.altMode = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
-    key: "setSelectable",
-    value: function setSelectable(action) {
-      this.isSelectable = true;
-      this.action = action;
-      this.bus.dispatchEvent("setSelectable");
+    key: "handleActionChange",
+    value: function handleActionChange(action) {
+      if (action === null) {
+        this.setNotSelectable();
+      } else {
+        this.isSelectable = true;
+        this.action = action;
+        this.bus.dispatchEvent("setSelectable");
+      }
     }
   }, {
     key: "setNotSelectable",
@@ -877,15 +1228,125 @@ var Model = /*#__PURE__*/function () {
       this.action = null;
       this.bus.dispatchEvent("setNotSelected");
     }
-  }, {
-    key: "activateAltMode",
-    value: function activateAltMode() {
-      this.altMode = true;
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
+/***/ "./resources/js/Components/MulButton.js":
+/*!**********************************************!*\
+  !*** ./resources/js/Components/MulButton.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    this.view.onClick(function (e) {
+      _this.model.toggle();
+    });
+    this.model.bus.addEventListener("activated", function (e) {
+      window.EventBus.dispatchEvent("mul.activated");
+
+      _this.view.setActive();
+    });
+    this.model.bus.addEventListener("deactivated", function (e) {
+      window.EventBus.dispatchEvent("mul.deactivated");
+
+      _this.view.setInactive();
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.deactivate();
+    });
+  }
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+  }
+
+  _createClass(View, [{
+    key: "onClick",
+    value: function onClick(callback) {
+      this.el.addEventListener("click", callback);
     }
   }, {
-    key: "deactivateAltMode",
-    value: function deactivateAltMode() {
-      this.altMode = false;
+    key: "setActive",
+    value: function setActive() {
+      this.el.classList.add("selected");
+    }
+  }, {
+    key: "setInactive",
+    value: function setInactive() {
+      this.el.classList.remove("selected");
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.isActive = false;
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "toggle",
+    value: function toggle() {
+      if (this.isActive) {
+        this.deactivate();
+      } else {
+        this.activate();
+      }
+    }
+  }, {
+    key: "activate",
+    value: function activate() {
+      this.isActive = true;
+      this.bus.dispatchEvent("activated");
+    }
+  }, {
+    key: "deactivate",
+    value: function deactivate() {
+      this.isActive = false;
+      this.bus.dispatchEvent("deactivated");
     }
   }]);
 
@@ -928,7 +1389,7 @@ var Controller = /*#__PURE__*/function () {
 
     this.model = model;
     this.view = view;
-    window.EventBus.addEventListener("action.selected", function (e) {
+    window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.action = e.detail.action;
     });
     window.EventBus.addEventListener("action.triggered", function (e) {
@@ -1062,12 +1523,6 @@ var Controller = /*#__PURE__*/function () {
 
     this.model = model;
     this.view = view;
-    window.EventBus.addEventListener("action.selected", function (e) {
-      _this.model.action = e.detail.action;
-    });
-    window.EventBus.addEventListener("action.triggered", function (e) {
-      _this.model.open(e.detail.itemId, e.detail.itemTypeId);
-    });
     this.view.onHide(function (e) {
       _this.model.close();
 
@@ -1084,6 +1539,12 @@ var Controller = /*#__PURE__*/function () {
         itemId: _this.model.itemId,
         number: _this.model.number
       });
+    });
+    window.EventBus.addEventListener("action.changed", function (e) {
+      _this.model.action = e.detail.action;
+    });
+    window.EventBus.addEventListener("action.triggered", function (e) {
+      _this.model.open(e.detail.itemId, e.detail.itemTypeId);
     });
     this.model.bus.addEventListener("opened", function (e) {
       _this.view.open();
@@ -1257,14 +1718,17 @@ var EventBus = /*#__PURE__*/function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventBus */ "./resources/js/EventBus.js");
-/* harmony import */ var _Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Components/ActionButton */ "./resources/js/Components/ActionButton.js");
-/* harmony import */ var _Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Components/ActionForm */ "./resources/js/Components/ActionForm.js");
-/* harmony import */ var _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Components/InventoryItem */ "./resources/js/Components/InventoryItem.js");
-/* harmony import */ var _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/OpenModal */ "./resources/js/Components/OpenModal.js");
-/* harmony import */ var _Components_Alert__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/Alert */ "./resources/js/Components/Alert.js");
-/* harmony import */ var _Components_PhoneModal__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Components/PhoneModal */ "./resources/js/Components/PhoneModal.js");
-/* harmony import */ var _Components_AltButton__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Components/AltButton */ "./resources/js/Components/AltButton.js");
+/* harmony import */ var _Components_ConfirmBar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Components/ConfirmBar */ "./resources/js/Components/ConfirmBar.js");
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EventBus */ "./resources/js/EventBus.js");
+/* harmony import */ var _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Components/ActionButton */ "./resources/js/Components/ActionButton.js");
+/* harmony import */ var _Components_ActionForm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Components/ActionForm */ "./resources/js/Components/ActionForm.js");
+/* harmony import */ var _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Components/InventoryItem */ "./resources/js/Components/InventoryItem.js");
+/* harmony import */ var _Components_OpenModal__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Components/OpenModal */ "./resources/js/Components/OpenModal.js");
+/* harmony import */ var _Components_Alert__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Components/Alert */ "./resources/js/Components/Alert.js");
+/* harmony import */ var _Components_PhoneModal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Components/PhoneModal */ "./resources/js/Components/PhoneModal.js");
+/* harmony import */ var _Components_AltButton__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Components/AltButton */ "./resources/js/Components/AltButton.js");
+/* harmony import */ var _Components_MulButton__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Components/MulButton */ "./resources/js/Components/MulButton.js");
+
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
   buttonEl.addEventListener("click", function (e) {
     e.preventDefault();
@@ -1385,25 +1849,26 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 
 
-window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
-_Components_ActionForm__WEBPACK_IMPORTED_MODULE_2__["default"].fromFormEl(document.querySelector("#js-action"));
-document.querySelectorAll(".js-alt").forEach(function (el) {
-  _Components_AltButton__WEBPACK_IMPORTED_MODULE_7__["default"].fromEl(el);
-});
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("look-at");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("pick-up");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("drop");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("use");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("eat");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_1__["default"].fromAction("open");
+
+window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_1__["default"]();
+_Components_ActionForm__WEBPACK_IMPORTED_MODULE_3__["default"].fromFormEl(document.querySelector("#js-action"));
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("look-at");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("pick-up");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("drop");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("use");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("eat");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("open");
+_Components_AltButton__WEBPACK_IMPORTED_MODULE_8__["default"].fromEl(document.querySelector(".js-alt"));
+_Components_MulButton__WEBPACK_IMPORTED_MODULE_9__["default"].fromEl(document.querySelector(".js-mul"));
+_Components_ConfirmBar__WEBPACK_IMPORTED_MODULE_0__["default"].fromEl(document.querySelector(".js-confirm-bar"));
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
-  _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_3__["default"].fromItemEl(itemEl);
+  _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_4__["default"].fromItemEl(itemEl);
 });
 document.querySelectorAll(".js-open-modal").forEach(function (modalEl) {
-  _Components_OpenModal__WEBPACK_IMPORTED_MODULE_4__["default"].fromEl(modalEl);
+  _Components_OpenModal__WEBPACK_IMPORTED_MODULE_5__["default"].fromEl(modalEl);
 });
-_Components_Alert__WEBPACK_IMPORTED_MODULE_5__["default"].fromEl(document.querySelector(".js-alert"));
-_Components_PhoneModal__WEBPACK_IMPORTED_MODULE_6__["default"].fromEl(document.querySelector("#menu-telephone"));
+_Components_Alert__WEBPACK_IMPORTED_MODULE_6__["default"].fromEl(document.querySelector(".js-alert"));
+_Components_PhoneModal__WEBPACK_IMPORTED_MODULE_7__["default"].fromEl(document.querySelector("#menu-telephone"));
 
 /***/ }),
 

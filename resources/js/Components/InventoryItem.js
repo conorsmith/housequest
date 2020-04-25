@@ -14,19 +14,20 @@ export default class Controller {
 
         this.view.el.addEventListener("click", e => { this.selectItem() });
 
-        this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
-        this.model.bus.addEventListener("setNotSelectable", e => { this.view.unsetSelectable(); });
-        this.model.bus.addEventListener("setSelected", e => { this.view.setSelected(); });
-        this.model.bus.addEventListener("setNotSelected", e => { this.view.unsetSelected(); });
-
-        window.EventBus.addEventListener("action.selected", e => { this.model.setSelectable(e.detail.action); });
-        window.EventBus.addEventListener("action.deselected", e => { this.model.setNotSelectable(); });
-        window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
-        window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
+        window.EventBus.addEventListener("action.changed", e => { this.model.handleActionChange(e.detail.action) });
+        window.EventBus.addEventListener("cancel", e => {
+            this.model.setNotSelectable();
+            this.model.setNotSelected(this.model.id);
+        });
         window.EventBus.addEventListener("action.completed", e => {
             this.model.setNotSelectable();
             this.model.setNotSelected(e.detail.itemId);
         });
+
+        this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
+        this.model.bus.addEventListener("setNotSelectable", e => { this.view.unsetSelectable(); });
+        this.model.bus.addEventListener("setSelected", e => { this.view.setSelected(); });
+        this.model.bus.addEventListener("setNotSelected", e => { this.view.unsetSelected(); });
     }
 
     selectItem() {
@@ -35,7 +36,6 @@ export default class Controller {
         }
 
         if (this.model.action === "open"
-            && this.model.altMode === false
             && !this.model.isContainer
         ) {
             window.EventBus.dispatchEvent("action.failed", {
@@ -48,8 +48,10 @@ export default class Controller {
             return;
         }
 
-        if (this.model.action === "open"
-            && this.model.altMode === true
+        if (
+            this.model.action === "place"
+            || this.model.action === "pick-up-multiple"
+            || this.model.action === "drop-multiple"
         ) {
             window.EventBus.dispatchEvent("item.selected", {
                 itemId: this.model.id,
@@ -59,10 +61,14 @@ export default class Controller {
 
         this.model.setSelected();
 
-        window.EventBus.dispatchEvent("action.triggered", {
-            itemId: this.model.id,
-            itemTypeId: this.model.typeId
-        });
+        if (this.model.action !== "pick-up-multiple"
+            && this.model.action !== "drop-multiple"
+        ) {
+            window.EventBus.dispatchEvent("action.triggered", {
+                itemId: this.model.id,
+                itemTypeId: this.model.typeId
+            });
+        }
     }
 }
 
@@ -99,15 +105,18 @@ class Model {
         this.isSelectable = false;
         this.isSelected = false;
         this.action = null;
-        this.altMode = false;
 
         this.bus = new EventBus();
     }
 
-    setSelectable(action) {
-        this.isSelectable = true;
-        this.action = action;
-        this.bus.dispatchEvent("setSelectable");
+    handleActionChange(action) {
+        if (action === null) {
+            this.setNotSelectable();
+        } else {
+            this.isSelectable = true;
+            this.action = action;
+            this.bus.dispatchEvent("setSelectable");
+        }
     }
 
     setNotSelectable() {
@@ -129,13 +138,5 @@ class Model {
         this.isSelectable = false;
         this.action = null;
         this.bus.dispatchEvent("setNotSelected");
-    }
-
-    activateAltMode() {
-        this.altMode = true;
-    }
-
-    deactivateAltMode() {
-        this.altMode = false;
     }
 }

@@ -1,3 +1,4 @@
+import ConfirmBar from "./Components/ConfirmBar";
 
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
     buttonEl.addEventListener("click", function (e) {
@@ -132,20 +133,22 @@ import OpenModalController from "./Components/OpenModal";
 import AlertController from "./Components/Alert";
 import PhoneModalController from "./Components/PhoneModal";
 import AltButtonController from "./Components/AltButton";
+import MulButtonController from "./Components/MulButton";
 
 window.EventBus = new EventBus();
 
 ActionFormController.fromFormEl(document.querySelector("#js-action"));
 
-document.querySelectorAll(".js-alt").forEach(el => {
-    AltButtonController.fromEl(el);
-});
 ActionButtonController.fromAction("look-at");
 ActionButtonController.fromAction("pick-up");
 ActionButtonController.fromAction("drop");
 ActionButtonController.fromAction("use");
 ActionButtonController.fromAction("eat");
 ActionButtonController.fromAction("open");
+AltButtonController.fromEl(document.querySelector(".js-alt"));
+MulButtonController.fromEl(document.querySelector(".js-mul"));
+
+ConfirmBar.fromEl(document.querySelector(".js-confirm-bar"));
 
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
     InventoryItemController.fromItemEl(itemEl);

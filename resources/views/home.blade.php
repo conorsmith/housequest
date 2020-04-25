@@ -50,7 +50,7 @@
     </div>
 </div>
 
-<div class="container" style="padding-bottom: 10rem;">
+<div class="container" style="padding-bottom: 12rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
             @if(session("message"))
@@ -138,104 +138,135 @@
     </div>
 </div>
 
-<nav class="navbar fixed-bottom navbar-light bg-white additional-border-top">
-    <a class="navbar-brand d-none d-lg-block"
+<nav class="navbar fixed-bottom navbar-light bg-white" style="padding-left: 0; padding-right: 0; padding-top: 0;">
+    <div class="js-confirm-bar confirm-bar confirm-bar-hidden">
+        <div class="confirm-bar-container">
+            <button type="button"
+                    class="js-confirm btn btn-action btn-sm"
+                    style="width: 9.2rem; margin: 0 0.1rem 0.2rem;"
+            >
+                OK
+            </button>
+            <button type="button"
+                    class="js-cancel btn btn-action btn-sm"
+                    style="width: 9.2rem; margin: 0 0.1rem 0.2rem;"
+            >
+                Cancel
+            </button>
+        </div>
+    </div>
+    <a class="navbar-brand d-none d-lg-block align-self-end"
        href="#"
-       style="position: absolute;"
+       style="position: absolute; padding-left: 1rem;"
        data-toggle="modal"
        data-target="#menu-game"
     >
         {{ config('app.name') }}
     </a>
-    <div class="container">
-        <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
-            <button type="button"
-                    class="js-alt btn btn-action btn-sm d-none d-sm-block"
-                    style="width: 3rem; margin: 0 0.1rem 0.2rem;"
-                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-            >
-                ALT
-            </button>
-            {{--
-            Look At -> Talk To
-            Pick Up -> Pick Up Some / Drop
-            Drop -> Drop Some
-            Use -> Use With
-            Eat -> ??? (Kill?)
-            Open -> Place
-            Make -> Break
-            --}}
-            <button type="button"
-                    class="js-look-at btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-            >
-                Look At
-            </button>
-            <button type="button"
-                    class="js-pick-up btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+    <div class="additional-border-top" style="width: 100%;">
+        <div class="container" style="padding: 0; padding-top: 0.5rem;">
+            <div class="d-flex justify-content-center flex-wrap" style="width: 100%;">
+                {{--
+                Look At -> Talk To
+                Pick Up -> Pick Up Some / Drop
+                Drop -> Drop Some
+                Use -> Use With
+                Eat -> ??? (Kill?)
+                Open -> Place
+                Make -> Break
+
+                Open -> Close
+                Place -> ???
+                Put In -> ???
+                --}}
+                <button type="button"
+                        class="js-look-at btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                    data-alt-label="Pick Up ±"
-            >
-                Pick Up
-            </button>
-            <button type="button"
-                    class="js-drop btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        data-default-action="look-at"
+                >
+                    Look At
+                </button>
+                <button type="button"
+                        class="js-pick-up btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="pick-up"
+                        data-default-multiple-action="pick-up-multiple"
+                        data-alt-label="Pick Up"
+                >
+                    Pick Up
+                </button>
+                <button type="button"
+                        class="js-drop btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="drop"
+                        data-default-multiple-action="drop-multiple"
+                        data-alt-label="Drop"
+                >
+                    Drop
+                </button>
+                <button type="button"
+                        class="js-use btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="use"
+                        data-alt-label="Use With"
+                >
+                    Use
+                </button>
+                <button type="button"
+                        class="js-eat btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="eat"
+                >
+                    Eat
+                </button>
+                <button type="button"
+                        class="js-open btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="open"
+                        data-alt-action="place"
+                        data-alt-label="Place"
+                >
+                    Open
+                </button>
+                <button type="button"
+                        class="js-make btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        data-toggle="modal"
+                        data-target="#menu-make"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                >
+                    Make
+                </button>
+                <div class="d-sm-none" style="width: 6rem; margin: 0 0.1rem 0.2rem;"></div>
+                <button type="button"
+                        class="js-alt btn btn-action btn-sm"
+                        style="width: 2.9rem; margin: 0 0.1rem 0.2rem 0.1rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                    data-alt-label="Drop ±"
-            >
-                Drop
-            </button>
-            <button type="button"
-                    class="js-use btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                >
+                    ALT
+                </button>
+                <button type="button"
+                        class="js-mul btn btn-action btn-sm"
+                        style="width: 2.9rem; margin: 0 0.1rem 0.2rem 0.1rem;"
                     {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                    data-alt-label="Use With"
-            >
-                Use
-            </button>
-            <button type="button"
-                    class="js-eat btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-            >
-                Eat
-            </button>
-            <button type="button"
-                    class="js-open btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                    data-alt-label="Place"
-            >
-                Open
-            </button>
-            <button type="button"
-                    class="js-alt btn btn-action btn-sm d-sm-none"
-                    style="width: 3rem; margin: 0 0.1rem 0.2rem 3.1rem;"
-                {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-            >
-                ALT
-            </button>
-            <button type="button"
-                    class="js-make btn btn-action btn-sm"
-                    style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                    data-toggle="modal"
-                    data-target="#menu-make"
-                    {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-            >
-                Make
-            </button>
-            <div style="width: 6rem; margin: 0 0.1rem 0.2rem;"></div>
-        </div>
-        <div class="d-flex justify-content-center w-100 d-lg-none">
-            <a class="navbar-brand"
-               style="font-size: 0.8rem; margin-right: 0;"
-               href="#"
-               data-toggle="modal"
-               data-target="#menu-game"
-            >{{ config('app.name') }}</a>
+                >
+                    MUL
+                </button>
+            </div>
+            <div class="d-flex justify-content-center w-100 d-lg-none">
+                <a class="navbar-brand"
+                   style="font-size: 0.8rem; margin-right: 0;"
+                   href="#"
+                   data-toggle="modal"
+                   data-target="#menu-game"
+                >{{ config('app.name') }}</a>
+            </div>
         </div>
     </div>
 </nav>
@@ -256,7 +287,7 @@
                     <ul class="list-group list-group-flush additional-border-top">
                         @foreach($container->contents as $item)
                             <div
-                               class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                               class="item item-placement-0 list-group-item d-flex justify-content-between align-items-center js-item"
                                data-available-quantity="{{ $item->quantity }}"
                                data-selected-quantity="0"
                                data-selected-portions="0"
@@ -313,7 +344,7 @@
                         @foreach($player->inventory as $item)
                             @if($item->id !== $container->id)
                                 <div
-                                    class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                                    class="item item-placement-0 list-group-item d-flex justify-content-between align-items-center js-item"
                                     data-available-quantity="{{ $item->quantity }}"
                                     data-selected-quantity="0"
                                     data-selected-portions="0"
@@ -388,7 +419,7 @@
                 <ul class="list-group list-group-flush">
                     @foreach($location->items as $item)
                         <div
-                            class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                            class="item item-placement-0 list-group-item d-flex justify-content-between align-items-center js-item"
                             data-available-quantity="{{ $item->quantity }}"
                             data-selected-quantity="0"
                             data-total-portions="{{ $item->totalPortions }}"
@@ -472,7 +503,7 @@
                 <ul class="list-group list-group-flush">
                     @foreach($player->inventory as $item)
                         <div
-                            class="item list-group-item d-flex justify-content-between align-items-center js-item"
+                            class="item item-placement-0 list-group-item d-flex justify-content-between align-items-center js-item"
                             data-available-quantity="{{ $item->quantity }}"
                             data-selected-quantity="0"
                             data-total-portions="{{ $item->totalPortions }}"

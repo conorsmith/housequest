@@ -569,7 +569,8 @@ pre code {
   overflow-y: scroll;
 }
 
-.container {
+.container,
+.confirm-bar .confirm-bar-container {
   width: 100%;
   padding-right: 15px;
   padding-left: 15px;
@@ -578,25 +579,29 @@ pre code {
 }
 
 @media (min-width: 576px) {
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 540px;
   }
 }
 
 @media (min-width: 768px) {
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 720px;
   }
 }
 
 @media (min-width: 992px) {
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 960px;
   }
 }
 
 @media (min-width: 1200px) {
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 1140px;
   }
 }
@@ -615,7 +620,8 @@ pre code {
 
 @media (min-width: 576px) {
   .container-sm,
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 540px;
   }
 }
@@ -623,7 +629,8 @@ pre code {
 @media (min-width: 768px) {
   .container-md,
   .container-sm,
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 720px;
   }
 }
@@ -632,7 +639,8 @@ pre code {
   .container-lg,
   .container-md,
   .container-sm,
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 960px;
   }
 }
@@ -642,7 +650,8 @@ pre code {
   .container-lg,
   .container-md,
   .container-sm,
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     max-width: 1140px;
   }
 }
@@ -4523,6 +4532,8 @@ input[type=button].btn-block {
 }
 
 .navbar .container,
+.navbar .confirm-bar .confirm-bar-container,
+.confirm-bar .navbar .confirm-bar-container,
 .navbar .container-fluid,
 .navbar .container-sm,
 .navbar .container-md,
@@ -4605,6 +4616,7 @@ input[type=button].btn-block {
 
 @media (max-width: 575.98px) {
   .navbar-expand-sm > .container,
+  .confirm-bar .navbar-expand-sm > .confirm-bar-container,
   .navbar-expand-sm > .container-fluid,
   .navbar-expand-sm > .container-sm,
   .navbar-expand-sm > .container-md,
@@ -4635,6 +4647,7 @@ input[type=button].btn-block {
   }
 
   .navbar-expand-sm > .container,
+  .confirm-bar .navbar-expand-sm > .confirm-bar-container,
   .navbar-expand-sm > .container-fluid,
   .navbar-expand-sm > .container-sm,
   .navbar-expand-sm > .container-md,
@@ -4655,6 +4668,7 @@ input[type=button].btn-block {
 
 @media (max-width: 767.98px) {
   .navbar-expand-md > .container,
+  .confirm-bar .navbar-expand-md > .confirm-bar-container,
   .navbar-expand-md > .container-fluid,
   .navbar-expand-md > .container-sm,
   .navbar-expand-md > .container-md,
@@ -4685,6 +4699,7 @@ input[type=button].btn-block {
   }
 
   .navbar-expand-md > .container,
+  .confirm-bar .navbar-expand-md > .confirm-bar-container,
   .navbar-expand-md > .container-fluid,
   .navbar-expand-md > .container-sm,
   .navbar-expand-md > .container-md,
@@ -4705,6 +4720,7 @@ input[type=button].btn-block {
 
 @media (max-width: 991.98px) {
   .navbar-expand-lg > .container,
+  .confirm-bar .navbar-expand-lg > .confirm-bar-container,
   .navbar-expand-lg > .container-fluid,
   .navbar-expand-lg > .container-sm,
   .navbar-expand-lg > .container-md,
@@ -4735,6 +4751,7 @@ input[type=button].btn-block {
   }
 
   .navbar-expand-lg > .container,
+  .confirm-bar .navbar-expand-lg > .confirm-bar-container,
   .navbar-expand-lg > .container-fluid,
   .navbar-expand-lg > .container-sm,
   .navbar-expand-lg > .container-md,
@@ -4755,6 +4772,7 @@ input[type=button].btn-block {
 
 @media (max-width: 1199.98px) {
   .navbar-expand-xl > .container,
+  .confirm-bar .navbar-expand-xl > .confirm-bar-container,
   .navbar-expand-xl > .container-fluid,
   .navbar-expand-xl > .container-sm,
   .navbar-expand-xl > .container-md,
@@ -4785,6 +4803,7 @@ input[type=button].btn-block {
   }
 
   .navbar-expand-xl > .container,
+  .confirm-bar .navbar-expand-xl > .confirm-bar-container,
   .navbar-expand-xl > .container-fluid,
   .navbar-expand-xl > .container-sm,
   .navbar-expand-xl > .container-md,
@@ -4809,6 +4828,7 @@ input[type=button].btn-block {
 }
 
 .navbar-expand > .container,
+.confirm-bar .navbar-expand > .confirm-bar-container,
 .navbar-expand > .container-fluid,
 .navbar-expand > .container-sm,
 .navbar-expand > .container-md,
@@ -4832,6 +4852,7 @@ input[type=button].btn-block {
 }
 
 .navbar-expand > .container,
+.confirm-bar .navbar-expand > .confirm-bar-container,
 .navbar-expand > .container-fluid,
 .navbar-expand > .container-sm,
 .navbar-expand > .container-md,
@@ -7572,7 +7593,8 @@ button.bg-dark:focus {
   justify-content: flex-end !important;
 }
 
-.justify-content-center {
+.justify-content-center,
+.confirm-bar .confirm-bar-container {
   justify-content: center !important;
 }
 
@@ -10912,7 +10934,8 @@ a.text-dark:focus {
     min-width: 992px !important;
   }
 
-  .container {
+  .container,
+  .confirm-bar .confirm-bar-container {
     min-width: 992px !important;
   }
 
@@ -11011,7 +11034,8 @@ a.text-dark:focus {
   color: #0f0;
 }
 
-.additional-border-top {
+.additional-border-top,
+.confirm-bar {
   border-top: 1px solid #007f00;
 }
 
@@ -11187,5 +11211,24 @@ a.text-dark:focus {
 
 .achievement .achievement-title {
   font-weight: 600;
+}
+
+.confirm-bar {
+  width: 100%;
+  overflow-y: hidden;
+  max-height: 50px;
+  /* approximate max height */
+  transition-property: all;
+  transition-duration: 0.5s;
+  transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+
+.confirm-bar.confirm-bar-hidden {
+  max-height: 0;
+}
+
+.confirm-bar .confirm-bar-container {
+  padding-top: 0.5rem;
+  padding-bottom: 0.4rem;
 }
 

@@ -23,7 +23,9 @@ Route::post("/new-game", "PostNewGame");
 
 Route::post("/{gameId}/go/{locationId}", "PostGo");
 Route::post("/{gameId}/look-at/{itemId}", "PostLookAt");
+Route::post("/{gameId}/pick-up", "PostPickUp");
 Route::post("/{gameId}/pick-up/{itemId}", "PostPickUp");
+Route::post("/{gameId}/drop/{locationId}", "PostDrop");
 Route::post("/{gameId}/drop/{itemId}/{locationId}", "PostDrop");
 Route::post("/{gameId}/use/{itemId}", "PostUse");
 Route::post("/{gameId}/eat/{itemId}", "PostEat");

@@ -12,14 +12,6 @@ export default class Controller {
         this.model = model;
         this.view = view;
 
-        window.EventBus.addEventListener("action.selected", e => {
-            this.model.action = e.detail.action;
-        });
-
-        window.EventBus.addEventListener("action.triggered", e => {
-            this.model.open(e.detail.itemId, e.detail.itemTypeId);
-        });
-
         this.view.onHide(e => {
             this.model.close();
             window.EventBus.dispatchEvent("action.completed", {
@@ -37,6 +29,12 @@ export default class Controller {
                 itemId: this.model.itemId,
                 number: this.model.number
             });
+        });
+
+        window.EventBus.addEventListener("action.changed", e => { this.model.action = e.detail.action; });
+
+        window.EventBus.addEventListener("action.triggered", e => {
+            this.model.open(e.detail.itemId, e.detail.itemTypeId);
         });
 
         this.model.bus.addEventListener("opened", e => { this.view.open(); });
