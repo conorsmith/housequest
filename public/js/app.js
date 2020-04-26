@@ -126,7 +126,7 @@ var Controller = /*#__PURE__*/function () {
 
       if (_this.model.isButtonActive) {
         window.EventBus.dispatchEvent("actionBtn.selected", {
-          button: _this.model.defaultAction
+          actions: _this.model.getActions()
         });
       } else {
         window.EventBus.dispatchEvent("actionBtn.deselected");
@@ -136,16 +136,24 @@ var Controller = /*#__PURE__*/function () {
       _this.model.handleActionChange(e.detail.action);
     });
     window.EventBus.addEventListener("alt.activated", function (e) {
-      _this.model.setAltActive();
+      _this.model.setAltMode();
     });
     window.EventBus.addEventListener("alt.deactivated", function (e) {
-      _this.model.setAltInactive();
+      _this.model.unsetAltMode();
+    });
+    window.EventBus.addEventListener("mul.activated", function (e) {
+      _this.model.setMulMode();
+    });
+    window.EventBus.addEventListener("mul.deactivated", function (e) {
+      _this.model.unsetMulMode();
     });
     window.EventBus.addEventListener("action.completed", function (e) {
       _this.model.deactivateButton();
     });
     window.EventBus.addEventListener("cancel", function (e) {
       _this.model.deactivateButton();
+
+      _this.model.setAltInactive();
     });
     this.model.bus.addEventListener("action.activated", function (e) {
       _this.view.activateButton();
@@ -153,11 +161,17 @@ var Controller = /*#__PURE__*/function () {
     this.model.bus.addEventListener("action.deactivated", function (e) {
       _this.view.deactivateButton();
     });
-    this.model.bus.addEventListener("alt.activated", function (e) {
+    this.model.bus.addEventListener("mode.alt.active", function (e) {
       _this.view.activateAlt();
     });
-    this.model.bus.addEventListener("alt.deactivated", function (e) {
-      _this.view.deactivateAlt();
+    this.model.bus.addEventListener("mode.alt.inactive", function (e) {
+      _this.view.deactivateAlt(e.detail.mulMode);
+    });
+    this.model.bus.addEventListener("mode.mul.active", function (e) {
+      _this.view.activateMul();
+    });
+    this.model.bus.addEventListener("mode.mul.inactive", function (e) {
+      _this.view.deactivateMul(e.detail.altMode);
     });
   }
 
@@ -186,7 +200,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "activateAlt",
     value: function activateAlt() {
-      if (this.el.dataset.altAction !== "place") {
+      if (this.el.dataset.altAction === undefined) {
         this.el.disabled = true;
         document.querySelector(".js-make").disabled = true;
         return;
@@ -200,14 +214,33 @@ var View = /*#__PURE__*/function () {
     }
   }, {
     key: "deactivateAlt",
-    value: function deactivateAlt() {
-      if (this.el.dataset.altAction !== "place") {
-        this.el.disabled = false;
-        document.querySelector(".js-make").disabled = false;
+    value: function deactivateAlt(mulMode) {
+      if (this.el.dataset.altAction === undefined) {
+        if (mulMode === false) {
+          this.el.disabled = false;
+          document.querySelector(".js-make").disabled = false;
+        }
+
         return;
       }
 
       this.el.innerHTML = this.originalLabel;
+    }
+  }, {
+    key: "activateMul",
+    value: function activateMul() {
+      if (this.el.dataset.defaultMultipleAction === undefined) {
+        this.el.disabled = true;
+        document.querySelector(".js-make").disabled = true;
+      }
+    }
+  }, {
+    key: "deactivateMul",
+    value: function deactivateMul(altMode) {
+      if (this.el.dataset.defaultMultipleAction === undefined && altMode === false) {
+        this.el.disabled = false;
+        document.querySelector(".js-make").disabled = false;
+      }
     }
   }]);
 
@@ -223,7 +256,8 @@ var Model = /*#__PURE__*/function () {
     this.altAction = altAction;
     this.altMultipleAction = altMultipleAction;
     this.isButtonActive = false;
-    this.isAlt = false;
+    this.altMode = false;
+    this.mulMode = false;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
@@ -244,6 +278,16 @@ var Model = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "getActions",
+    value: function getActions() {
+      return {
+        defaultAction: this.defaultAction,
+        defaultMultipleAction: this.defaultMultipleAction,
+        altAction: this.altAction,
+        altMultipleAction: this.altMultipleAction
+      };
+    }
+  }, {
     key: "activateButton",
     value: function activateButton() {
       this.isButtonActive = true;
@@ -258,16 +302,32 @@ var Model = /*#__PURE__*/function () {
       this.bus.dispatchEvent("action.deactivated");
     }
   }, {
-    key: "setAltActive",
-    value: function setAltActive() {
-      this.isAlt = true;
-      this.bus.dispatchEvent("alt.activated");
+    key: "setAltMode",
+    value: function setAltMode() {
+      this.altMode = true;
+      this.bus.dispatchEvent("mode.alt.active");
     }
   }, {
-    key: "setAltInactive",
-    value: function setAltInactive() {
-      this.isAlt = false;
-      this.bus.dispatchEvent("alt.deactivated");
+    key: "unsetAltMode",
+    value: function unsetAltMode() {
+      this.altMode = false;
+      this.bus.dispatchEvent("mode.alt.inactive", {
+        mulMode: this.mulMode
+      });
+    }
+  }, {
+    key: "setMulMode",
+    value: function setMulMode() {
+      this.mulMode = true;
+      this.bus.dispatchEvent("mode.mul.active");
+    }
+  }, {
+    key: "unsetMulMode",
+    value: function unsetMulMode() {
+      this.mulMode = false;
+      this.bus.dispatchEvent("mode.mul.inactive", {
+        altMode: this.altMode
+      });
     }
   }]);
 
@@ -311,7 +371,7 @@ var Controller = /*#__PURE__*/function () {
     this.model = model;
     this.view = view;
     window.EventBus.addEventListener("actionBtn.selected", function (e) {
-      _this.model.setActionButton(e.detail.button);
+      _this.model.setActionButton(e.detail.actions);
     });
     window.EventBus.addEventListener("actionBtn.deselected", function (e) {
       _this.model.unsetActionButton();
@@ -370,14 +430,20 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("item.selected", function (e) {
       _this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
     });
+    window.EventBus.addEventListener("item.unselected", function (e) {
+      _this.model.removeSelectedItem(e.detail.itemId);
+    });
     this.model.bus.addEventListener("item.selected", function (e) {
-      if (e.detail.action === "open" && e.detail.altMode === true && e.detail.selectedItems.length === 2) {
+      if (e.detail.action === "place" && e.detail.selectedItems.length === 2) {
         _this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
 
         _this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
 
         _this.view.submit(_this.model.createPlaceUrl());
       }
+    });
+    this.model.bus.addEventListener("item.empty", function (e) {
+      window.EventBus.dispatchEvent("item.allUnselected");
     });
     this.model.bus.addEventListener("action.changed", function (e) {
       window.EventBus.dispatchEvent("action.changed", e.detail);
@@ -439,14 +505,14 @@ var Model = /*#__PURE__*/function () {
     }
   }, {
     key: "setActionButton",
-    value: function setActionButton(actionButton) {
-      this.action = this.action.withButton(actionButton);
+    value: function setActionButton(actions) {
+      this.action = this.action.withActions(actions);
       this.dispatchActionChangedEvent();
     }
   }, {
     key: "unsetActionButton",
     value: function unsetActionButton() {
-      this.action = this.action.withoutButton();
+      this.action = this.action.withoutActions();
       this.dispatchActionChangedEvent();
     }
   }, {
@@ -503,23 +569,23 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "createActionUrl",
     value: function createActionUrl(itemId) {
-      if (this.action.button === "look-at") {
+      if (this.action.getName() === "look-at") {
         return "/" + this.gameId + "/look-at/" + itemId;
       }
 
-      if (this.action.button === "drop") {
+      if (this.action.getName() === "drop") {
         return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
       }
 
-      if (this.action.button === "pick-up") {
+      if (this.action.getName() === "pick-up") {
         return "/" + this.gameId + "/pick-up/" + itemId;
       }
 
-      if (this.action.button === "use") {
+      if (this.action.getName() === "use") {
         return "/" + this.gameId + "/use/" + itemId;
       }
 
-      if (this.action.button === "eat") {
+      if (this.action.getName() === "eat") {
         return "/" + this.gameId + "/eat/" + itemId;
       }
 
@@ -539,10 +605,21 @@ var Model = /*#__PURE__*/function () {
         itemTypeId: itemTypeId
       });
       this.bus.dispatchEvent("item.selected", {
-        action: this.action.button,
+        action: this.action.getName(),
         altMode: this.action.altMode,
         selectedItems: this.selectedItems
       });
+    }
+  }, {
+    key: "removeSelectedItem",
+    value: function removeSelectedItem(itemId) {
+      this.selectedItems = this.selectedItems.filter(function (selectedItem) {
+        return selectedItem.itemId !== itemId;
+      });
+
+      if (this.selectedItems.length === 0) {
+        this.bus.dispatchEvent("item.empty");
+      }
     }
   }]);
 
@@ -557,23 +634,23 @@ var Action = /*#__PURE__*/function () {
     }
   }]);
 
-  function Action(button, altMode, mulMode) {
+  function Action(actions, altMode, mulMode) {
     _classCallCheck(this, Action);
 
-    this.button = button;
+    this.actions = actions;
     this.altMode = altMode;
     this.mulMode = mulMode;
   }
 
   _createClass(Action, [{
-    key: "withoutButton",
-    value: function withoutButton() {
-      return new Action(null, this.altMode, this.mulMode);
+    key: "withActions",
+    value: function withActions(actions) {
+      return new Action(actions, this.altMode, this.mulMode);
     }
   }, {
-    key: "withButton",
-    value: function withButton(button) {
-      return new Action(button, this.altMode, this.mulMode);
+    key: "withoutActions",
+    value: function withoutActions() {
+      return new Action(null, this.altMode, this.mulMode);
     }
   }, {
     key: "toggleAltMode",
@@ -588,88 +665,42 @@ var Action = /*#__PURE__*/function () {
   }, {
     key: "getName",
     value: function getName() {
-      if (this.isLookAt()) {
-        return "look-at";
+      if (this.actions === null) {
+        return undefined;
       }
 
-      if (this.isPickUp()) {
-        return "pick-up";
+      if (this.altMode === false && this.mulMode === false) {
+        return this.actions.defaultAction;
       }
 
-      if (this.isPickUpMultiple()) {
-        return "pick-up-multiple";
+      if (this.altMode === false && this.mulMode === true) {
+        return this.actions.defaultMultipleAction;
       }
 
-      if (this.isDrop()) {
-        return "drop";
+      if (this.altMode === true && this.mulMode === false) {
+        return this.actions.altAction;
       }
 
-      if (this.isDropMultiple()) {
-        return "drop-multiple";
+      if (this.altMode === true && this.mulMode === true) {
+        return this.actions.altMultipleAction;
       }
 
-      if (this.isUse()) {
-        return "use";
-      }
-
-      if (this.isEat()) {
-        return "eat";
-      }
-
-      if (this.isOpen()) {
-        return "open";
-      }
-
-      if (this.isPlace()) {
-        return "place";
-      }
-
-      return this.button;
-    }
-  }, {
-    key: "isLookAt",
-    value: function isLookAt() {
-      return this.button === "look-at" && this.altMode === false && this.mulMode === false;
-    }
-  }, {
-    key: "isPickUp",
-    value: function isPickUp() {
-      return this.button === "pick-up" && this.altMode === false && this.mulMode === false;
+      return undefined;
     }
   }, {
     key: "isPickUpMultiple",
     value: function isPickUpMultiple() {
-      return this.button === "pick-up" && this.altMode === false && this.mulMode === true;
-    }
-  }, {
-    key: "isDrop",
-    value: function isDrop() {
-      return this.button === "drop" && this.altMode === false && this.mulMode === false;
+      return this.getName() === "pick-up-multiple";
     }
   }, {
     key: "isDropMultiple",
     value: function isDropMultiple() {
-      return this.button === "drop" && this.altMode === false && this.mulMode === true;
+      return this.getName() === "drop-multiple";
     }
   }, {
     key: "isUse",
     value: function isUse() {
-      return this.button === "use" && this.altMode === false && this.mulMode === false;
-    }
-  }, {
-    key: "isEat",
-    value: function isEat() {
-      return this.button === "eat" && this.altMode === false && this.mulMode === false;
-    }
-  }, {
-    key: "isOpen",
-    value: function isOpen() {
-      return this.button === "open" && this.altMode === false && this.mulMode === false;
-    }
-  }, {
-    key: "isPlace",
-    value: function isPlace() {
-      return this.button === "open" && this.altMode === true && this.mulMode === false;
+      return this.getName() === "use";
     }
   }]);
 
@@ -832,16 +863,21 @@ var Controller = /*#__PURE__*/function () {
     this.view = view;
     this.view.onClick(function (e) {
       _this.model.toggle();
+
+      if (_this.model.isActive) {
+        window.EventBus.dispatchEvent("alt.activated");
+      } else {
+        window.EventBus.dispatchEvent("alt.deactivated");
+      }
     });
     this.model.bus.addEventListener("activated", function (e) {
-      window.EventBus.dispatchEvent("alt.activated");
-
       _this.view.setActive();
     });
     this.model.bus.addEventListener("deactivated", function (e) {
-      window.EventBus.dispatchEvent("alt.deactivated");
-
       _this.view.setInactive();
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.deactivate();
     });
   }
 
@@ -953,7 +989,7 @@ var Controller = /*#__PURE__*/function () {
     this.view.onCancel(function (e) {
       window.EventBus.dispatchEvent("cancel");
 
-      _this.view.hide();
+      _this.model.hide();
     });
     window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.setAction(e.detail.action);
@@ -961,8 +997,14 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("item.selected", function (e) {
       _this.model.show();
     });
+    window.EventBus.addEventListener("item.allUnselected", function (e) {
+      _this.model.hide();
+    });
     this.model.bus.addEventListener("show", function (e) {
       _this.view.show();
+    });
+    this.model.bus.addEventListener("hide", function (e) {
+      _this.view.hide();
     });
   }
 
@@ -1101,6 +1143,10 @@ var Controller = /*#__PURE__*/function () {
     });
     this.model.bus.addEventListener("setNotSelected", function (e) {
       _this.view.unsetSelected();
+
+      window.EventBus.dispatchEvent("item.unselected", {
+        itemId: _this.model.id
+      });
     });
   }
 
@@ -1108,6 +1154,11 @@ var Controller = /*#__PURE__*/function () {
     key: "selectItem",
     value: function selectItem() {
       if (this.model.isSelectable === false) {
+        return;
+      }
+
+      if (this.model.isSelected === true) {
+        this.model.setNotSelected(this.model.id);
         return;
       }
 
@@ -1224,8 +1275,7 @@ var Model = /*#__PURE__*/function () {
         return;
       }
 
-      this.isSelectable = false;
-      this.action = null;
+      this.isSelected = false;
       this.bus.dispatchEvent("setNotSelected");
     }
   }]);
@@ -1271,15 +1321,17 @@ var Controller = /*#__PURE__*/function () {
     this.view = view;
     this.view.onClick(function (e) {
       _this.model.toggle();
+
+      if (_this.model.isActive) {
+        window.EventBus.dispatchEvent("mul.activated");
+      } else {
+        window.EventBus.dispatchEvent("mul.deactivated");
+      }
     });
     this.model.bus.addEventListener("activated", function (e) {
-      window.EventBus.dispatchEvent("mul.activated");
-
       _this.view.setActive();
     });
     this.model.bus.addEventListener("deactivated", function (e) {
-      window.EventBus.dispatchEvent("mul.deactivated");
-
       _this.view.setInactive();
     });
     window.EventBus.addEventListener("cancel", function (e) {
@@ -1854,10 +1906,10 @@ window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_1__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_3__["default"].fromFormEl(document.querySelector("#js-action"));
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("look-at");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("pick-up");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("drop");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("use");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("eat");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("open");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("place");
 _Components_AltButton__WEBPACK_IMPORTED_MODULE_8__["default"].fromEl(document.querySelector(".js-alt"));
 _Components_MulButton__WEBPACK_IMPORTED_MODULE_9__["default"].fromEl(document.querySelector(".js-mul"));
 _Components_ConfirmBar__WEBPACK_IMPORTED_MODULE_0__["default"].fromEl(document.querySelector(".js-confirm-bar"));

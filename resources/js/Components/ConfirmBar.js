@@ -18,13 +18,15 @@ export default class Controller {
 
         this.view.onCancel(e => {
             window.EventBus.dispatchEvent("cancel");
-            this.view.hide();
+            this.model.hide();
         });
 
         window.EventBus.addEventListener("action.changed", e => { this.model.setAction(e.detail.action); });
         window.EventBus.addEventListener("item.selected", e => { this.model.show(); });
+        window.EventBus.addEventListener("item.allUnselected", e => { this.model.hide(); });
 
         this.model.bus.addEventListener("show", e => { this.view.show(); });
+        this.model.bus.addEventListener("hide", e => { this.view.hide(); });
     }
 
 }

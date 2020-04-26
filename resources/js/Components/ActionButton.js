@@ -22,24 +22,31 @@ export default class Controller {
             this.model.toggle();
 
             if (this.model.isButtonActive) {
-                window.EventBus.dispatchEvent("actionBtn.selected", {button: this.model.defaultAction});
+                window.EventBus.dispatchEvent("actionBtn.selected", { actions: this.model.getActions() });
             } else {
                 window.EventBus.dispatchEvent("actionBtn.deselected");
             }
         });
 
         window.EventBus.addEventListener("action.changed", e => { this.model.handleActionChange(e.detail.action); });
-        window.EventBus.addEventListener("alt.activated", e => { this.model.setAltActive(); });
-        window.EventBus.addEventListener("alt.deactivated", e => { this.model.setAltInactive(); });
+        window.EventBus.addEventListener("alt.activated", e => { this.model.setAltMode(); });
+        window.EventBus.addEventListener("alt.deactivated", e => { this.model.unsetAltMode(); });
+        window.EventBus.addEventListener("mul.activated", e => { this.model.setMulMode(); });
+        window.EventBus.addEventListener("mul.deactivated", e => { this.model.unsetMulMode(); });
 
         window.EventBus.addEventListener("action.completed", e => { this.model.deactivateButton(); });
-        window.EventBus.addEventListener("cancel", e => { this.model.deactivateButton(); });
+        window.EventBus.addEventListener("cancel", e => {
+            this.model.deactivateButton();
+            this.model.setAltInactive();
+        });
 
         this.model.bus.addEventListener("action.activated", e => { this.view.activateButton(); });
         this.model.bus.addEventListener("action.deactivated", e => { this.view.deactivateButton(); });
 
-        this.model.bus.addEventListener("alt.activated", e => { this.view.activateAlt(); });
-        this.model.bus.addEventListener("alt.deactivated", e => { this.view.deactivateAlt(); });
+        this.model.bus.addEventListener("mode.alt.active", e => { this.view.activateAlt(); });
+        this.model.bus.addEventListener("mode.alt.inactive", e => { this.view.deactivateAlt(e.detail.mulMode); });
+        this.model.bus.addEventListener("mode.mul.active", e => { this.view.activateMul(); });
+        this.model.bus.addEventListener("mode.mul.inactive", e => { this.view.deactivateMul(e.detail.altMode); });
     }
 }
 
@@ -57,7 +64,7 @@ class View {
     }
 
     activateAlt() {
-        if (this.el.dataset.altAction !== "place") {
+        if (this.el.dataset.altAction === undefined) {
             this.el.disabled = true;
             document.querySelector(".js-make").disabled = true;
             return;
@@ -69,14 +76,32 @@ class View {
         }
     }
 
-    deactivateAlt() {
-        if (this.el.dataset.altAction !== "place") {
-            this.el.disabled = false;
-            document.querySelector(".js-make").disabled = false;
+    deactivateAlt(mulMode) {
+        if (this.el.dataset.altAction === undefined) {
+            if (mulMode === false) {
+                this.el.disabled = false;
+                document.querySelector(".js-make").disabled = false;
+            }
             return;
         }
 
         this.el.innerHTML = this.originalLabel;
+    }
+
+    activateMul() {
+        if (this.el.dataset.defaultMultipleAction === undefined) {
+            this.el.disabled = true;
+            document.querySelector(".js-make").disabled = true;
+        }
+    }
+
+    deactivateMul(altMode) {
+        if (this.el.dataset.defaultMultipleAction === undefined
+            && altMode === false
+        ) {
+            this.el.disabled = false;
+            document.querySelector(".js-make").disabled = false;
+        }
     }
 }
 
@@ -87,7 +112,8 @@ class Model {
         this.altAction = altAction;
         this.altMultipleAction = altMultipleAction;
         this.isButtonActive = false;
-        this.isAlt = false;
+        this.altMode = false;
+        this.mulMode = false;
 
         this.bus = new EventBus();
     }
@@ -110,6 +136,15 @@ class Model {
         }
     }
 
+    getActions() {
+        return {
+            defaultAction: this.defaultAction,
+            defaultMultipleAction: this.defaultMultipleAction,
+            altAction: this.altAction,
+            altMultipleAction: this.altMultipleAction
+        };
+    }
+
     activateButton() {
         this.isButtonActive = true;
         this.bus.dispatchEvent("action.activated", { action: this.defaultAction });
@@ -120,13 +155,27 @@ class Model {
         this.bus.dispatchEvent("action.deactivated");
     }
 
-    setAltActive() {
-        this.isAlt = true;
-        this.bus.dispatchEvent("alt.activated");
+    setAltMode() {
+        this.altMode = true;
+        this.bus.dispatchEvent("mode.alt.active");
     }
 
-    setAltInactive() {
-        this.isAlt = false;
-        this.bus.dispatchEvent("alt.deactivated");
+    unsetAltMode() {
+        this.altMode = false;
+        this.bus.dispatchEvent("mode.alt.inactive", {
+            mulMode: this.mulMode
+        });
+    }
+
+    setMulMode() {
+        this.mulMode = true;
+        this.bus.dispatchEvent("mode.mul.active");
+    }
+
+    unsetMulMode() {
+        this.mulMode = false;
+        this.bus.dispatchEvent("mode.mul.inactive", {
+            altMode: this.altMode
+        });
     }
 }

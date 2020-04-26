@@ -14,16 +14,23 @@ export default class Controller {
 
         this.view.onClick(e => {
             this.model.toggle();
+            if (this.model.isActive) {
+                window.EventBus.dispatchEvent("alt.activated");
+            } else {
+                window.EventBus.dispatchEvent("alt.deactivated");
+            }
         });
 
         this.model.bus.addEventListener("activated", e => {
-            window.EventBus.dispatchEvent("alt.activated");
             this.view.setActive();
         });
 
         this.model.bus.addEventListener("deactivated", e => {
-            window.EventBus.dispatchEvent("alt.deactivated");
             this.view.setInactive();
+        });
+
+        window.EventBus.addEventListener("cancel", e => {
+            this.model.deactivate();
         });
     }
 

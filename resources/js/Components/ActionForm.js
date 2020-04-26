@@ -15,7 +15,7 @@ export default class Controller {
         this.model = model;
         this.view = view;
 
-        window.EventBus.addEventListener("actionBtn.selected", e => { this.model.setActionButton(e.detail.button);});
+        window.EventBus.addEventListener("actionBtn.selected", e => { this.model.setActionButton(e.detail.actions);});
         window.EventBus.addEventListener("actionBtn.deselected", e => { this.model.unsetActionButton() });
         window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
         window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
@@ -66,15 +66,22 @@ export default class Controller {
             this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
         });
 
+        window.EventBus.addEventListener("item.unselected", e => {
+            this.model.removeSelectedItem(e.detail.itemId);
+        });
+
         this.model.bus.addEventListener("item.selected", e => {
-            if (e.detail.action === "open"
-                && e.detail.altMode === true
+            if (e.detail.action === "place"
                 && e.detail.selectedItems.length === 2
             ) {
                 this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
                 this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
                 this.view.submit(this.model.createPlaceUrl());
             }
+        });
+
+        this.model.bus.addEventListener("item.empty", e => {
+            window.EventBus.dispatchEvent("item.allUnselected");
         });
 
         this.model.bus.addEventListener("action.changed", e => {
@@ -121,13 +128,13 @@ class Model {
         this.selectedItems = [];
     }
 
-    setActionButton(actionButton) {
-        this.action = this.action.withButton(actionButton);
+    setActionButton(actions) {
+        this.action = this.action.withActions(actions);
         this.dispatchActionChangedEvent();
     }
 
     unsetActionButton() {
-        this.action = this.action.withoutButton();
+        this.action = this.action.withoutActions();
         this.dispatchActionChangedEvent();
     }
 
@@ -172,23 +179,23 @@ class Model {
     }
 
     createActionUrl(itemId) {
-        if (this.action.button === "look-at") {
+        if (this.action.getName() === "look-at") {
             return "/" + this.gameId + "/look-at/" + itemId;
         }
 
-        if (this.action.button === "drop") {
+        if (this.action.getName() === "drop") {
             return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
         }
 
-        if (this.action.button === "pick-up") {
+        if (this.action.getName() === "pick-up") {
             return "/" + this.gameId + "/pick-up/" + itemId;
         }
 
-        if (this.action.button === "use") {
+        if (this.action.getName() === "use") {
             return "/" + this.gameId + "/use/" + itemId;
         }
 
-        if (this.action.button === "eat") {
+        if (this.action.getName() === "eat") {
             return "/" + this.gameId + "/eat/" + itemId;
         }
 
@@ -207,10 +214,20 @@ class Model {
         });
 
         this.bus.dispatchEvent("item.selected", {
-            action: this.action.button,
+            action: this.action.getName(),
             altMode: this.action.altMode,
             selectedItems: this.selectedItems
         });
+    }
+
+    removeSelectedItem(itemId) {
+        this.selectedItems = this.selectedItems.filter(selectedItem => {
+            return selectedItem.itemId !== itemId;
+        });
+
+        if (this.selectedItems.length === 0) {
+            this.bus.dispatchEvent("item.empty");
+        }
     }
 }
 
@@ -219,18 +236,18 @@ class Action {
         return new Action(null, false, false);
     }
 
-    constructor(button, altMode, mulMode) {
-        this.button = button;
+    constructor(actions, altMode, mulMode) {
+        this.actions = actions;
         this.altMode = altMode;
         this.mulMode = mulMode;
     }
 
-    withoutButton() {
-        return new Action(null, this.altMode, this.mulMode);
+    withActions(actions) {
+        return new Action(actions, this.altMode, this.mulMode);
     }
 
-    withButton(button) {
-        return new Action(button, this.altMode, this.mulMode);
+    withoutActions() {
+        return new Action(null, this.altMode, this.mulMode);
     }
 
     toggleAltMode() {
@@ -242,96 +259,46 @@ class Action {
     }
 
     getName() {
-        if (this.isLookAt()) {
-            return "look-at";
+        if (this.actions === null) {
+            return undefined;
         }
 
-        if (this.isPickUp()) {
-            return "pick-up";
+        if (this.altMode === false
+            && this.mulMode === false
+        ) {
+            return this.actions.defaultAction;
         }
 
-        if (this.isPickUpMultiple()) {
-            return "pick-up-multiple";
+        if (this.altMode === false
+            && this.mulMode === true
+        ) {
+            return this.actions.defaultMultipleAction;
         }
 
-        if (this.isDrop()) {
-            return "drop";
+        if (this.altMode === true
+            && this.mulMode === false
+        ) {
+            return this.actions.altAction;
         }
 
-        if (this.isDropMultiple()) {
-            return "drop-multiple";
+        if (this.altMode === true
+            && this.mulMode === true
+        ) {
+            return this.actions.altMultipleAction;
         }
 
-        if (this.isUse()) {
-            return "use";
-        }
-
-        if (this.isEat()) {
-            return "eat";
-        }
-
-        if (this.isOpen()) {
-            return "open";
-        }
-
-        if (this.isPlace()) {
-            return "place";
-        }
-
-        return this.button;
-    }
-
-    isLookAt() {
-        return this.button === "look-at"
-            && this.altMode === false
-            && this.mulMode === false;
-    }
-
-    isPickUp() {
-        return this.button === "pick-up"
-            && this.altMode === false
-            && this.mulMode === false;
+        return undefined;
     }
 
     isPickUpMultiple() {
-        return this.button === "pick-up"
-            && this.altMode === false
-            && this.mulMode === true;
-    }
-
-    isDrop() {
-        return this.button === "drop"
-            && this.altMode === false
-            && this.mulMode === false;
+        return this.getName() === "pick-up-multiple";
     }
 
     isDropMultiple() {
-        return this.button === "drop"
-            && this.altMode === false
-            && this.mulMode === true;
+        return this.getName() === "drop-multiple"
     }
 
     isUse() {
-        return this.button === "use"
-            && this.altMode === false
-            && this.mulMode === false;
-    }
-
-    isEat() {
-        return this.button === "eat"
-            && this.altMode === false
-            && this.mulMode === false;
-    }
-
-    isOpen() {
-        return this.button === "open"
-            && this.altMode === false
-            && this.mulMode === false;
-    }
-
-    isPlace() {
-        return this.button === "open"
-            && this.altMode === true
-            && this.mulMode === false;
+        return this.getName() === "use";
     }
 }

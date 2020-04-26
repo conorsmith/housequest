@@ -141,10 +141,10 @@ ActionFormController.fromFormEl(document.querySelector("#js-action"));
 
 ActionButtonController.fromAction("look-at");
 ActionButtonController.fromAction("pick-up");
-ActionButtonController.fromAction("drop");
 ActionButtonController.fromAction("use");
 ActionButtonController.fromAction("eat");
 ActionButtonController.fromAction("open");
+ActionButtonController.fromAction("place");
 AltButtonController.fromEl(document.querySelector(".js-alt"));
 MulButtonController.fromEl(document.querySelector(".js-mul"));
 

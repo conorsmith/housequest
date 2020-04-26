@@ -176,7 +176,7 @@
                 Make -> Break
 
                 Open -> Close
-                Place -> ???
+                Place -> ??? (Remove?)
                 Put In -> ???
                 --}}
                 <button type="button"
@@ -193,19 +193,11 @@
                         {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                         data-default-action="pick-up"
                         data-default-multiple-action="pick-up-multiple"
-                        data-alt-label="Pick Up"
-                >
-                    Pick Up
-                </button>
-                <button type="button"
-                        class="js-drop btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                        data-default-action="drop"
-                        data-default-multiple-action="drop-multiple"
+                        data-alt-action="drop"
+                        data-alt-multiple-action="drop-multiple"
                         data-alt-label="Drop"
                 >
-                    Drop
+                    Pick Up
                 </button>
                 <button type="button"
                         class="js-use btn btn-action btn-sm"
@@ -229,10 +221,16 @@
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                         data-default-action="open"
-                        data-alt-action="place"
-                        data-alt-label="Place"
                 >
                     Open
+                </button>
+                <button type="button"
+                        class="js-place btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="place"
+                >
+                    Place
                 </button>
                 <button type="button"
                         class="js-make btn btn-action btn-sm"

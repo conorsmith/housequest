@@ -27,11 +27,21 @@ export default class Controller {
         this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
         this.model.bus.addEventListener("setNotSelectable", e => { this.view.unsetSelectable(); });
         this.model.bus.addEventListener("setSelected", e => { this.view.setSelected(); });
-        this.model.bus.addEventListener("setNotSelected", e => { this.view.unsetSelected(); });
+        this.model.bus.addEventListener("setNotSelected", e => {
+            this.view.unsetSelected();
+            window.EventBus.dispatchEvent("item.unselected", {
+                itemId: this.model.id
+            });
+        });
     }
 
     selectItem() {
         if (this.model.isSelectable === false) {
+            return;
+        }
+
+        if (this.model.isSelected === true) {
+            this.model.setNotSelected(this.model.id);
             return;
         }
 
@@ -135,8 +145,7 @@ class Model {
             return;
         }
 
-        this.isSelectable = false;
-        this.action = null;
+        this.isSelected = false;
         this.bus.dispatchEvent("setNotSelected");
     }
 }

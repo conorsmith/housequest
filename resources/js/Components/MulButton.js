@@ -14,15 +14,18 @@ export default class Controller {
 
         this.view.onClick(e => {
             this.model.toggle();
+            if (this.model.isActive) {
+                window.EventBus.dispatchEvent("mul.activated");
+            } else {
+                window.EventBus.dispatchEvent("mul.deactivated");
+            }
         });
 
         this.model.bus.addEventListener("activated", e => {
-            window.EventBus.dispatchEvent("mul.activated");
             this.view.setActive();
         });
 
         this.model.bus.addEventListener("deactivated", e => {
-            window.EventBus.dispatchEvent("mul.deactivated");
             this.view.setInactive();
         });
 
