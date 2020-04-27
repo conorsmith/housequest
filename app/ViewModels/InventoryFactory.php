@@ -34,7 +34,7 @@ final class InventoryFactory
         foreach ($inventoryTree->getInventory()->getItems() as $item) {
             $itemViewModel = $this->itemViewModelFactory->create($item);
             $itemViewModel->depth = $depth;
-            $itemViewModel->surface = $this->createInventory($inventoryTree->findChild($item), $depth + 1);
+            $itemViewModel->surface = $this->createInventory($inventoryTree->findSurfaceNode($item), $depth + 1);
             $inventoryViewModel[] = $itemViewModel;
         }
 

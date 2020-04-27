@@ -13,7 +13,7 @@ export default class Controller {
         this.view = view;
 
         this.view.onConfirm(e => {
-            window.EventBus.dispatchEvent("action.triggered");
+            window.EventBus.dispatchEvent("confirm");
         });
 
         this.view.onCancel(e => {
@@ -21,7 +21,7 @@ export default class Controller {
             this.model.hide();
         });
 
-        window.EventBus.addEventListener("action.changed", e => { this.model.setAction(e.detail.action); });
+        window.EventBus.addEventListener("action.changed", e => { this.model.setCurrentAction(e.detail.action); });
         window.EventBus.addEventListener("item.selected", e => { this.model.show(); });
         window.EventBus.addEventListener("item.allUnselected", e => { this.model.hide(); });
 
@@ -56,17 +56,16 @@ class View {
 class Model {
     constructor() {
         this.isShown = false;
-        this.action = null;
+        this.currentAction = null;
 
         this.bus = new EventBus();
     }
 
     show() {
-        if (this.action === "place") {
-            return;
+        if (this.isUsedByCurrentAction()) {
+            this.isShown = true;
+            this.bus.dispatchEvent("show");
         }
-        this.isShown = true;
-        this.bus.dispatchEvent("show");
     }
 
     hide() {
@@ -74,7 +73,14 @@ class Model {
         this.bus.dispatchEvent("hide");
     }
 
-    setAction(action) {
-        this.action = action;
+    setCurrentAction(action) {
+        this.currentAction = action;
+    }
+
+    isUsedByCurrentAction() {
+        return [
+            "drop-multiple",
+            "pick-up-multiple",
+        ].includes(this.currentAction);
     }
 }

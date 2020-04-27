@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\ItemWhereabouts;
+use App\Repositories\ItemRepository;
 use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
@@ -37,16 +39,10 @@ final class PostPickUp extends Controller
     public function __invoke(Request $request)
     {
         $gameId = Uuid::fromString($request->route("gameId"));
+        $itemIds = [];
 
-        if (is_null($request->route("itemId"))) {
-            $itemIds = [];
-            foreach ($request->input("items") as $itemIdAsString) {
-                $itemIds[] = Uuid::fromString($itemIdAsString);
-            }
-        } else {
-            $itemIds = [
-                Uuid::fromString($request->route("itemId"))
-            ];
+        foreach ($request->input("items") as $itemIdAsString) {
+            $itemIds[] = Uuid::fromString($itemIdAsString);
         }
 
         $player = $this->playerRepo->find($gameId);
@@ -61,32 +57,15 @@ final class PostPickUp extends Controller
 
         $playerInventory = $itemRepo->findInventory(ItemWhereabouts::player());
 
+        $failures = [];
+
         /** @var UuidInterface $itemId */
         foreach ($itemIds as $itemId) {
-            $item = $itemRepo->find($itemId);
-            $viewModel = $this->itemViewModelFactory->create($item);
+            $failure = $this->pickUp($itemRepo, $playerInventory, $itemId);
 
-            if ($item->getWhereabouts()->isPlayer()) {
-                session()->flash("info", "You cannot pick up {$viewModel->label}, you're already holding it.");
-                return redirect("/{$gameId}");
+            if (!is_null($failure)) {
+                $failures[] = $failure;
             }
-
-            if ($item->isDangerous()) {
-                session()->flash("info", "You cannot pick up {$viewModel->label}, it's too dangerous to do so.");
-                return redirect("/{$gameId}");
-            }
-
-            if ($item->isAffixed()) {
-                session()->flash("info", "You cannot pick up {$viewModel->label}, it's fixed in place.");
-                return redirect("/{$gameId}");
-            }
-
-            if ($item->isHeavy()) {
-                session()->flash("info", "You cannot pick up {$viewModel->label}, it's too heavy.");
-                return redirect("/{$gameId}");
-            }
-
-            $playerInventory->add($item);
         }
 
         /** @var Item $item */
@@ -94,6 +73,36 @@ final class PostPickUp extends Controller
             $itemRepo->save($item);
         }
 
+        if (count($failures) > 0) {
+            session()->flash("info[]", $failures);
+        }
+
         return redirect("/{$gameId}");
+    }
+
+    private function pickUp(ItemRepository $itemRepo, Inventory $playerInventory, UuidInterface $itemId): ?string
+    {
+        $item = $itemRepo->find($itemId);
+        $viewModel = $this->itemViewModelFactory->create($item);
+
+        if ($item->getWhereabouts()->isPlayer()) {
+            return "You cannot pick up {$viewModel->label}, you're already holding it.";
+        }
+
+        if ($item->isDangerous()) {
+            return "You cannot pick up {$viewModel->label}, it's too dangerous to do so.";
+        }
+
+        if ($item->isAffixed()) {
+            return "You cannot pick up {$viewModel->label}, it's fixed in place.";
+        }
+
+        if ($item->isHeavy()) {
+            return "You cannot pick up {$viewModel->label}, it's too heavy.";
+        }
+
+        $playerInventory->add($item);
+
+        return null;
     }
 }

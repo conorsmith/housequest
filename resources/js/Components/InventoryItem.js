@@ -1,9 +1,12 @@
 import EventBus from "../EventBus";
+import Item from "../Values/Item";
 
 export default class Controller {
     static fromItemEl(itemEl) {
         return new Controller(
-            new Model(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer),
+            new Model(
+                new Item(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer)
+            ),
             new View(itemEl)
         );
     }
@@ -17,11 +20,13 @@ export default class Controller {
         window.EventBus.addEventListener("action.changed", e => { this.model.handleActionChange(e.detail.action) });
         window.EventBus.addEventListener("cancel", e => {
             this.model.setNotSelectable();
-            this.model.setNotSelected(this.model.id);
+            this.model.setNotSelected();
         });
         window.EventBus.addEventListener("action.completed", e => {
             this.model.setNotSelectable();
-            this.model.setNotSelected(e.detail.itemId);
+            if (this.model.item.id === e.detail.itemId) {
+                this.model.setNotSelected();
+            }
         });
 
         this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
@@ -30,7 +35,7 @@ export default class Controller {
         this.model.bus.addEventListener("setNotSelected", e => {
             this.view.unsetSelected();
             window.EventBus.dispatchEvent("item.unselected", {
-                itemId: this.model.id
+                itemId: this.model.item.id
             });
         });
     }
@@ -41,44 +46,15 @@ export default class Controller {
         }
 
         if (this.model.isSelected === true) {
-            this.model.setNotSelected(this.model.id);
+            this.model.setNotSelected();
             return;
-        }
-
-        if (this.model.action === "open"
-            && !this.model.isContainer
-        ) {
-            window.EventBus.dispatchEvent("action.failed", {
-                message: "You cannot open " + this.model.label + "."
-            });
-            window.EventBus.dispatchEvent("action.completed", {
-                action: this.model.action,
-                itemId: this.model.id
-            });
-            return;
-        }
-
-        if (
-            this.model.action === "place"
-            || this.model.action === "pick-up-multiple"
-            || this.model.action === "drop-multiple"
-        ) {
-            window.EventBus.dispatchEvent("item.selected", {
-                itemId: this.model.id,
-                itemTypeId: this.model.typeId
-            });
         }
 
         this.model.setSelected();
 
-        if (this.model.action !== "pick-up-multiple"
-            && this.model.action !== "drop-multiple"
-        ) {
-            window.EventBus.dispatchEvent("action.triggered", {
-                itemId: this.model.id,
-                itemTypeId: this.model.typeId
-            });
-        }
+        window.EventBus.dispatchEvent("item.selected", {
+            item: this.model.item
+        });
     }
 }
 
@@ -107,11 +83,8 @@ class View {
 }
 
 class Model {
-    constructor(id, typeId, label, isContainer) {
-        this.id = id;
-        this.typeId = typeId;
-        this.label = label;
-        this.isContainer = isContainer;
+    constructor(item) {
+        this.item = item;
         this.isSelectable = false;
         this.isSelected = false;
         this.action = null;
@@ -140,11 +113,7 @@ class Model {
         this.bus.dispatchEvent("setSelected");
     }
 
-    setNotSelected(itemId) {
-        if (this.id !== itemId) {
-            return;
-        }
-
+    setNotSelected() {
         this.isSelected = false;
         this.bus.dispatchEvent("setNotSelected");
     }

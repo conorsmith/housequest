@@ -347,6 +347,18 @@ var Model = /*#__PURE__*/function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
 /* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(n); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -388,65 +400,50 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("mul.deactivated", function (e) {
       _this.model.deactivateMulMode();
     });
-    window.EventBus.addEventListener("cancel", function (e) {
-      _this.model.reset();
-    });
-    window.EventBus.addEventListener("action.triggered", function (e) {
-      if (!_this.model.isSupportedAction()) {
-        return;
-      }
-
-      if (_this.model.action.isUse() && e.detail.itemTypeId === "telephone") {
-        return;
-      }
-
-      if (_this.model.action.isPickUpMultiple()) {
-        _this.model.selectedItems.forEach(function (item) {
-          _this.view.set("items[]", item.itemId);
-        });
-
-        _this.view.submit(_this.model.createPickUpUrl());
-
-        return;
-      }
-
-      if (_this.model.action.isDropMultiple()) {
-        _this.model.selectedItems.forEach(function (item) {
-          _this.view.set("items[]", item.itemId);
-        });
-
-        _this.view.submit(_this.model.createDropUrl());
-
-        return;
-      }
-
-      _this.view.submit(_this.model.createActionUrl(e.detail.itemId));
-    });
-    window.EventBus.addEventListener("use.telephone", function (e) {
-      _this.view.set("number", e.detail.number);
-
-      _this.view.submit(_this.model.createUseUrl(e.detail.itemId));
-    });
     window.EventBus.addEventListener("item.selected", function (e) {
-      _this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
+      _this.model.addSelectedItem(e.detail.item);
     });
     window.EventBus.addEventListener("item.unselected", function (e) {
       _this.model.removeSelectedItem(e.detail.itemId);
     });
-    this.model.bus.addEventListener("item.selected", function (e) {
-      if (e.detail.action === "place" && e.detail.selectedItems.length === 2) {
-        _this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
-
-        _this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
-
-        _this.view.submit(_this.model.createPlaceUrl());
-      }
+    window.EventBus.addEventListener("confirm", function (e) {
+      _this.model.confirm();
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.reset();
+    });
+    window.EventBus.addEventListener("use.telephone", function (e) {
+      _this.model.confirm({
+        number: e.detail.number
+      });
+    });
+    this.model.bus.addEventListener("action.changed", function (e) {
+      window.EventBus.dispatchEvent("action.changed", e.detail);
     });
     this.model.bus.addEventListener("item.empty", function (e) {
       window.EventBus.dispatchEvent("item.allUnselected");
     });
-    this.model.bus.addEventListener("action.changed", function (e) {
-      window.EventBus.dispatchEvent("action.changed", e.detail);
+    this.model.bus.addEventListener("request", function (e) {
+      if (e.detail.body !== undefined) {
+        e.detail.body.forEach(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              key = _ref2[0],
+              value = _ref2[1];
+
+          _this.view.set(key, value);
+        });
+      }
+
+      _this.view.submit(e.detail.url);
+    });
+    this.model.bus.addEventListener("failure", function (e) {
+      window.EventBus.dispatchEvent("action.failed", {
+        message: e.detail.message
+      });
+      window.EventBus.dispatchEvent("action.completed", {
+        action: e.detail.action,
+        itemId: e.detail.itemId
+      });
     });
   }
 
@@ -494,10 +491,19 @@ var Model = /*#__PURE__*/function () {
     this.currentLocationId = currentLocationId;
     this.action = Action.createNull();
     this.selectedItems = [];
+    this.confirmed = false;
+    this.confirmationData = undefined;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
+    key: "confirm",
+    value: function confirm(confirmationData) {
+      this.confirmed = true;
+      this.confirmationData = confirmationData;
+      this.dispatchActionTriggeredEvent();
+    }
+  }, {
     key: "reset",
     value: function reset() {
       this.action = Action.createNull();
@@ -540,6 +546,23 @@ var Model = /*#__PURE__*/function () {
       this.dispatchActionChangedEvent();
     }
   }, {
+    key: "addSelectedItem",
+    value: function addSelectedItem(item) {
+      this.selectedItems.push(item);
+      this.dispatchActionTriggeredEvent(item);
+    }
+  }, {
+    key: "removeSelectedItem",
+    value: function removeSelectedItem(itemId) {
+      this.selectedItems = this.selectedItems.filter(function (selectedItem) {
+        return selectedItem.id !== itemId;
+      });
+
+      if (this.selectedItems.length === 0) {
+        this.bus.dispatchEvent("item.empty");
+      }
+    }
+  }, {
     key: "dispatchActionChangedEvent",
     value: function dispatchActionChangedEvent() {
       this.bus.dispatchEvent("action.changed", {
@@ -547,78 +570,94 @@ var Model = /*#__PURE__*/function () {
       });
     }
   }, {
-    key: "isSupportedAction",
-    value: function isSupportedAction() {
-      return ["look-at", "pick-up", "pick-up-multiple", "drop", "drop-multiple", "use", "eat"].includes(this.action.getName());
-    }
-  }, {
-    key: "createPlaceUrl",
-    value: function createPlaceUrl() {
-      return "/".concat(this.gameId, "/place");
-    }
-  }, {
-    key: "createPickUpUrl",
-    value: function createPickUpUrl() {
-      return "/".concat(this.gameId, "/pick-up");
-    }
-  }, {
-    key: "createDropUrl",
-    value: function createDropUrl() {
-      return "/".concat(this.gameId, "/drop/").concat(this.currentLocationId);
-    }
-  }, {
-    key: "createActionUrl",
-    value: function createActionUrl(itemId) {
-      if (this.action.getName() === "look-at") {
-        return "/" + this.gameId + "/look-at/" + itemId;
+    key: "dispatchActionTriggeredEvent",
+    value: function dispatchActionTriggeredEvent(item) {
+      if (item === undefined) {
+        item = this.selectedItems[this.selectedItems.length - 1];
       }
 
-      if (this.action.getName() === "drop") {
-        return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
+      if (this.action.is("look-at")) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/look-at/").concat(item.id)
+        });
       }
 
-      if (this.action.getName() === "pick-up") {
-        return "/" + this.gameId + "/pick-up/" + itemId;
+      if (this.action.is("pick-up")) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/pick-up"),
+          body: [["items[]", item.id]]
+        });
       }
 
-      if (this.action.getName() === "use") {
-        return "/" + this.gameId + "/use/" + itemId;
+      if (this.action.is("pick-up-multiple") && this.confirmed === true) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/pick-up"),
+          body: this.selectedItems.map(function (item) {
+            return ["items[]", item.id];
+          })
+        });
       }
 
-      if (this.action.getName() === "eat") {
-        return "/" + this.gameId + "/eat/" + itemId;
+      if (this.action.is("drop")) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/drop/").concat(this.currentLocationId),
+          body: [["items[]", item.id]]
+        });
       }
 
-      console.error("Cannot create action URL for action:", this.action);
-      return "";
-    }
-  }, {
-    key: "createUseUrl",
-    value: function createUseUrl(itemId) {
-      return "/" + this.gameId + "/use/" + itemId;
-    }
-  }, {
-    key: "addSelectedItem",
-    value: function addSelectedItem(itemId, itemTypeId) {
-      this.selectedItems.push({
-        itemId: itemId,
-        itemTypeId: itemTypeId
-      });
-      this.bus.dispatchEvent("item.selected", {
-        action: this.action.getName(),
-        altMode: this.action.altMode,
-        selectedItems: this.selectedItems
-      });
-    }
-  }, {
-    key: "removeSelectedItem",
-    value: function removeSelectedItem(itemId) {
-      this.selectedItems = this.selectedItems.filter(function (selectedItem) {
-        return selectedItem.itemId !== itemId;
-      });
+      if (this.action.is("drop-multiple") && this.confirmed === true) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/drop/").concat(this.currentLocationId),
+          body: this.selectedItems.map(function (item) {
+            return ["items[]", item.id];
+          })
+        });
+      }
 
-      if (this.selectedItems.length === 0) {
-        this.bus.dispatchEvent("item.empty");
+      if (this.action.is("use")) {
+        var body = [];
+
+        if (item.typeId === "telephone") {
+          if (this.confirmed === false) {
+            return;
+          }
+
+          body = Object.entries(this.confirmationData).map(function (_ref3) {
+            var _ref4 = _slicedToArray(_ref3, 2),
+                key = _ref4[0],
+                value = _ref4[1];
+
+            return [key, value];
+          });
+        }
+
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/use/").concat(itemId),
+          body: body
+        });
+      }
+
+      if (this.action.is("eat")) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/eat/").concat(item.id)
+        });
+      }
+
+      if (this.action.is("open")) {
+        if (!item.isContainer) {
+          this.bus.dispatchEvent("failure", {
+            message: "You cannot open ".concat(item.label, "."),
+            action: this.action.getName(),
+            itemId: item.id
+          });
+        }
+      }
+
+      if (this.action.is("place") && this.selectedItems.length === 2) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/place"),
+          body: [["itemSubjectId", this.selectedItems[0].id], ["itemTargetId", this.selectedItems[1].id]]
+        });
       }
     }
   }]);
@@ -688,19 +727,9 @@ var Action = /*#__PURE__*/function () {
       return undefined;
     }
   }, {
-    key: "isPickUpMultiple",
-    value: function isPickUpMultiple() {
-      return this.getName() === "pick-up-multiple";
-    }
-  }, {
-    key: "isDropMultiple",
-    value: function isDropMultiple() {
-      return this.getName() === "drop-multiple";
-    }
-  }, {
-    key: "isUse",
-    value: function isUse() {
-      return this.getName() === "use";
+    key: "is",
+    value: function is(name) {
+      return name === this.getName();
     }
   }]);
 
@@ -984,7 +1013,7 @@ var Controller = /*#__PURE__*/function () {
     this.model = model;
     this.view = view;
     this.view.onConfirm(function (e) {
-      window.EventBus.dispatchEvent("action.triggered");
+      window.EventBus.dispatchEvent("confirm");
     });
     this.view.onCancel(function (e) {
       window.EventBus.dispatchEvent("cancel");
@@ -992,7 +1021,7 @@ var Controller = /*#__PURE__*/function () {
       _this.model.hide();
     });
     window.EventBus.addEventListener("action.changed", function (e) {
-      _this.model.setAction(e.detail.action);
+      _this.model.setCurrentAction(e.detail.action);
     });
     window.EventBus.addEventListener("item.selected", function (e) {
       _this.model.show();
@@ -1050,19 +1079,17 @@ var Model = /*#__PURE__*/function () {
     _classCallCheck(this, Model);
 
     this.isShown = false;
-    this.action = null;
+    this.currentAction = null;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
 
   _createClass(Model, [{
     key: "show",
     value: function show() {
-      if (this.action === "place") {
-        return;
+      if (this.isUsedByCurrentAction()) {
+        this.isShown = true;
+        this.bus.dispatchEvent("show");
       }
-
-      this.isShown = true;
-      this.bus.dispatchEvent("show");
     }
   }, {
     key: "hide",
@@ -1071,9 +1098,14 @@ var Model = /*#__PURE__*/function () {
       this.bus.dispatchEvent("hide");
     }
   }, {
-    key: "setAction",
-    value: function setAction(action) {
-      this.action = action;
+    key: "setCurrentAction",
+    value: function setCurrentAction(action) {
+      this.currentAction = action;
+    }
+  }, {
+    key: "isUsedByCurrentAction",
+    value: function isUsedByCurrentAction() {
+      return ["drop-multiple", "pick-up-multiple"].includes(this.currentAction);
     }
   }]);
 
@@ -1093,6 +1125,7 @@ var Model = /*#__PURE__*/function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
 /* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+/* harmony import */ var _Values_Item__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Values/Item */ "./resources/js/Values/Item.js");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -1101,11 +1134,12 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
+
 var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromItemEl",
     value: function fromItemEl(itemEl) {
-      return new Controller(new Model(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer), new View(itemEl));
+      return new Controller(new Model(new _Values_Item__WEBPACK_IMPORTED_MODULE_1__["default"](itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer)), new View(itemEl));
     }
   }]);
 
@@ -1125,12 +1159,14 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("cancel", function (e) {
       _this.model.setNotSelectable();
 
-      _this.model.setNotSelected(_this.model.id);
+      _this.model.setNotSelected();
     });
     window.EventBus.addEventListener("action.completed", function (e) {
       _this.model.setNotSelectable();
 
-      _this.model.setNotSelected(e.detail.itemId);
+      if (_this.model.item.id === e.detail.itemId) {
+        _this.model.setNotSelected();
+      }
     });
     this.model.bus.addEventListener("setSelectable", function (e) {
       _this.view.setSelectable();
@@ -1145,7 +1181,7 @@ var Controller = /*#__PURE__*/function () {
       _this.view.unsetSelected();
 
       window.EventBus.dispatchEvent("item.unselected", {
-        itemId: _this.model.id
+        itemId: _this.model.item.id
       });
     });
   }
@@ -1158,36 +1194,14 @@ var Controller = /*#__PURE__*/function () {
       }
 
       if (this.model.isSelected === true) {
-        this.model.setNotSelected(this.model.id);
+        this.model.setNotSelected();
         return;
-      }
-
-      if (this.model.action === "open" && !this.model.isContainer) {
-        window.EventBus.dispatchEvent("action.failed", {
-          message: "You cannot open " + this.model.label + "."
-        });
-        window.EventBus.dispatchEvent("action.completed", {
-          action: this.model.action,
-          itemId: this.model.id
-        });
-        return;
-      }
-
-      if (this.model.action === "place" || this.model.action === "pick-up-multiple" || this.model.action === "drop-multiple") {
-        window.EventBus.dispatchEvent("item.selected", {
-          itemId: this.model.id,
-          itemTypeId: this.model.typeId
-        });
       }
 
       this.model.setSelected();
-
-      if (this.model.action !== "pick-up-multiple" && this.model.action !== "drop-multiple") {
-        window.EventBus.dispatchEvent("action.triggered", {
-          itemId: this.model.id,
-          itemTypeId: this.model.typeId
-        });
-      }
+      window.EventBus.dispatchEvent("item.selected", {
+        item: this.model.item
+      });
     }
   }]);
 
@@ -1231,13 +1245,10 @@ var View = /*#__PURE__*/function () {
 }();
 
 var Model = /*#__PURE__*/function () {
-  function Model(id, typeId, label, isContainer) {
+  function Model(item) {
     _classCallCheck(this, Model);
 
-    this.id = id;
-    this.typeId = typeId;
-    this.label = label;
-    this.isContainer = isContainer;
+    this.item = item;
     this.isSelectable = false;
     this.isSelected = false;
     this.action = null;
@@ -1270,11 +1281,7 @@ var Model = /*#__PURE__*/function () {
     }
   }, {
     key: "setNotSelected",
-    value: function setNotSelected(itemId) {
-      if (this.id !== itemId) {
-        return;
-      }
-
+    value: function setNotSelected() {
       this.isSelected = false;
       this.bus.dispatchEvent("setNotSelected");
     }
@@ -1444,8 +1451,8 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.action = e.detail.action;
     });
-    window.EventBus.addEventListener("action.triggered", function (e) {
-      _this.model.open(e.detail.itemId);
+    window.EventBus.addEventListener("item.selected", function (e) {
+      _this.model.open(e.detail.item.id);
     });
     window.EventBus.addEventListener("alt.activated", function (e) {
       _this.model.activateAltMode();
@@ -1595,8 +1602,8 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.action = e.detail.action;
     });
-    window.EventBus.addEventListener("action.triggered", function (e) {
-      _this.model.open(e.detail.itemId, e.detail.itemTypeId);
+    window.EventBus.addEventListener("item.selected", function (e) {
+      _this.model.open(e.detail.item.id, e.detail.item.typeId);
     });
     this.model.bus.addEventListener("opened", function (e) {
       _this.view.open();
@@ -1756,6 +1763,31 @@ var EventBus = /*#__PURE__*/function () {
 
   return EventBus;
 }();
+
+
+
+/***/ }),
+
+/***/ "./resources/js/Values/Item.js":
+/*!*************************************!*\
+  !*** ./resources/js/Values/Item.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Item; });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Item = function Item(id, typeId, label, isContainer) {
+  _classCallCheck(this, Item);
+
+  this.id = id;
+  this.typeId = typeId;
+  this.label = label;
+  this.isContainer = isContainer;
+};
 
 
 

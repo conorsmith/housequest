@@ -9,12 +9,12 @@ final class InventoryTreeNode
     private $inventory;
 
     /** @var array */
-    private $children;
+    private $surfaceNodes;
 
-    public function __construct(Inventory $inventory, array $children)
+    public function __construct(Inventory $inventory, array $surfaceNodes)
     {
         $this->inventory = $inventory;
-        $this->children = $children;
+        $this->surfaceNodes = $surfaceNodes;
     }
 
     public function getInventory(): Inventory
@@ -22,17 +22,17 @@ final class InventoryTreeNode
         return $this->inventory;
     }
 
-    public function getChildren(): array
+    public function getSurfaceNodes(): array
     {
-        return $this->children;
+        return $this->surfaceNodes;
     }
 
-    public function findChild(Item $item): ?self
+    public function findSurfaceNode(Item $item): ?self
     {
-        /** @var self $child */
-        foreach ($this->children as $child) {
-            if ($child->getInventory()->isForItem($item)) {
-                return $child;
+        /** @var self $surfaceNode */
+        foreach ($this->surfaceNodes as $surfaceNode) {
+            if ($surfaceNode->getInventory()->isForItem($item)) {
+                return $surfaceNode;
             }
         }
 

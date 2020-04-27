@@ -34,6 +34,16 @@
                     </button>
                 </div>
             @endif
+            @if(session("info[]"))
+                @foreach(session("info[]") as $info)
+                    <div class="alert alert-secondary alert-dismissible fade show">
+                        <i class="fas fa-fw fa-exclamation-circle"></i> {{ $info }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                @endforeach
+            @endif
             @if(session("achievements"))
                 @foreach (session("achievements") as $achievement)
                     <div class="alert alert-secondary alert-dismissible fade show">

@@ -21,72 +21,45 @@ export default class Controller {
         window.EventBus.addEventListener("alt.deactivated", e => { this.model.deactivateAltMode(); });
         window.EventBus.addEventListener("mul.activated", e => { this.model.activateMulMode(); });
         window.EventBus.addEventListener("mul.deactivated", e => { this.model.deactivateMulMode(); });
+
+        window.EventBus.addEventListener("item.selected", e => { this.model.addSelectedItem(e.detail.item); });
+        window.EventBus.addEventListener("item.unselected", e => { this.model.removeSelectedItem(e.detail.itemId); });
+
+        window.EventBus.addEventListener("confirm", e => { this.model.confirm(); });
         window.EventBus.addEventListener("cancel", e => { this.model.reset(); });
 
-        window.EventBus.addEventListener("action.triggered", e => {
-            if (!this.model.isSupportedAction()) {
-                return;
-            }
-
-            if (this.model.action.isUse()
-                && e.detail.itemTypeId === "telephone"
-            ) {
-                return;
-            }
-
-            if (this.model.action.isPickUpMultiple()) {
-                this.model.selectedItems.forEach(item => {
-                    this.view.set("items[]", item.itemId);
-                });
-                this.view.submit(this.model.createPickUpUrl());
-                return;
-            }
-
-            if (this.model.action.isDropMultiple()) {
-                this.model.selectedItems.forEach(item => {
-                    this.view.set("items[]", item.itemId);
-                });
-                this.view.submit(this.model.createDropUrl());
-                return;
-            }
-
-            this.view.submit(
-                this.model.createActionUrl(e.detail.itemId)
-            );
-        });
-
         window.EventBus.addEventListener("use.telephone", e => {
-            this.view.set("number", e.detail.number);
-            this.view.submit(
-                this.model.createUseUrl(e.detail.itemId)
-            )
+            this.model.confirm({
+                number: e.detail.number
+            });
         });
 
-        window.EventBus.addEventListener("item.selected", e => {
-            this.model.addSelectedItem(e.detail.itemId, e.detail.itemTypeId);
-        });
-
-        window.EventBus.addEventListener("item.unselected", e => {
-            this.model.removeSelectedItem(e.detail.itemId);
-        });
-
-        this.model.bus.addEventListener("item.selected", e => {
-            if (e.detail.action === "place"
-                && e.detail.selectedItems.length === 2
-            ) {
-                this.view.set("itemSubjectId", e.detail.selectedItems[0].itemId);
-                this.view.set("itemTargetId", e.detail.selectedItems[1].itemId);
-                this.view.submit(this.model.createPlaceUrl());
-            }
+        this.model.bus.addEventListener("action.changed", e => {
+            window.EventBus.dispatchEvent("action.changed", e.detail);
         });
 
         this.model.bus.addEventListener("item.empty", e => {
             window.EventBus.dispatchEvent("item.allUnselected");
         });
 
-        this.model.bus.addEventListener("action.changed", e => {
-            window.EventBus.dispatchEvent("action.changed", e.detail);
+        this.model.bus.addEventListener("request", e => {
+            if (e.detail.body !== undefined) {
+                e.detail.body.forEach(([key, value]) => {
+                    this.view.set(key, value);
+                });
+            }
+            this.view.submit(e.detail.url);
         });
+
+        this.model.bus.addEventListener("failure", e => {
+            window.EventBus.dispatchEvent("action.failed", {
+                message: e.detail.message
+            });
+            window.EventBus.dispatchEvent("action.completed", {
+                action: e.detail.action,
+                itemId: e.detail.itemId
+            });
+        })
     }
 }
 
@@ -119,8 +92,16 @@ class Model {
         this.currentLocationId = currentLocationId;
         this.action = Action.createNull();
         this.selectedItems = [];
+        this.confirmed = false;
+        this.confirmationData = undefined;
 
         this.bus = new EventBus();
+    }
+
+    confirm(confirmationData) {
+        this.confirmed = true;
+        this.confirmationData = confirmationData;
+        this.dispatchActionTriggeredEvent();
     }
 
     reset() {
@@ -158,75 +139,120 @@ class Model {
         this.dispatchActionChangedEvent();
     }
 
-    dispatchActionChangedEvent() {
-        this.bus.dispatchEvent("action.changed", { action: this.action.getName() });
-    }
-
-    isSupportedAction() {
-        return ["look-at", "pick-up", "pick-up-multiple", "drop", "drop-multiple", "use", "eat"].includes(this.action.getName());
-    }
-
-    createPlaceUrl() {
-        return `/${this.gameId}/place`;
-    }
-
-    createPickUpUrl() {
-        return `/${this.gameId}/pick-up`;
-    }
-
-    createDropUrl() {
-        return `/${this.gameId}/drop/${this.currentLocationId}`;
-    }
-
-    createActionUrl(itemId) {
-        if (this.action.getName() === "look-at") {
-            return "/" + this.gameId + "/look-at/" + itemId;
-        }
-
-        if (this.action.getName() === "drop") {
-            return "/" + this.gameId + "/drop/" + itemId + "/" + this.currentLocationId;
-        }
-
-        if (this.action.getName() === "pick-up") {
-            return "/" + this.gameId + "/pick-up/" + itemId;
-        }
-
-        if (this.action.getName() === "use") {
-            return "/" + this.gameId + "/use/" + itemId;
-        }
-
-        if (this.action.getName() === "eat") {
-            return "/" + this.gameId + "/eat/" + itemId;
-        }
-
-        console.error("Cannot create action URL for action:", this.action);
-        return "";
-    }
-
-    createUseUrl(itemId) {
-        return "/" + this.gameId + "/use/" + itemId;
-    }
-
-    addSelectedItem(itemId, itemTypeId) {
-        this.selectedItems.push({
-            itemId: itemId,
-            itemTypeId: itemTypeId,
-        });
-
-        this.bus.dispatchEvent("item.selected", {
-            action: this.action.getName(),
-            altMode: this.action.altMode,
-            selectedItems: this.selectedItems
-        });
+    addSelectedItem(item) {
+        this.selectedItems.push(item);
+        this.dispatchActionTriggeredEvent(item);
     }
 
     removeSelectedItem(itemId) {
         this.selectedItems = this.selectedItems.filter(selectedItem => {
-            return selectedItem.itemId !== itemId;
+            return selectedItem.id !== itemId;
         });
 
         if (this.selectedItems.length === 0) {
             this.bus.dispatchEvent("item.empty");
+        }
+    }
+
+    dispatchActionChangedEvent() {
+        this.bus.dispatchEvent("action.changed", { action: this.action.getName() });
+    }
+
+    dispatchActionTriggeredEvent(item) {
+        if (item === undefined) {
+            item = this.selectedItems[this.selectedItems.length - 1];
+        }
+
+        if (this.action.is("look-at")) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/look-at/${item.id}`
+            });
+        }
+
+        if (this.action.is("pick-up")) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/pick-up`,
+                body: [
+                    ["items[]", item.id],
+                ]
+            });
+        }
+
+        if (this.action.is("pick-up-multiple")
+            && this.confirmed === true
+        ) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/pick-up`,
+                body: this.selectedItems.map(item => {
+                        return ["items[]", item.id];
+                    })
+            });
+        }
+
+        if (this.action.is("drop")) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/drop/${this.currentLocationId}`,
+                body: [
+                    ["items[]", item.id],
+                ]
+            });
+        }
+
+        if (this.action.is("drop-multiple")
+            && this.confirmed === true
+        ) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/drop/${this.currentLocationId}`,
+                body: this.selectedItems.map(item => {
+                    return ["items[]", item.id];
+                })
+            });
+        }
+
+        if (this.action.is("use")) {
+            let body = [];
+
+            if (item.typeId === "telephone") {
+                if (this.confirmed === false) {
+                    return;
+                }
+                body = Object.entries(this.confirmationData).map(([key, value]) => {
+                    return [key, value];
+                });
+            }
+
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/use/${itemId}`,
+                body: body
+            });
+        }
+
+        if (this.action.is("eat")) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/eat/${item.id}`
+            });
+        }
+
+        if (this.action.is("open")) {
+            if (!item.isContainer) {
+                this.bus.dispatchEvent("failure", {
+                    message: `You cannot open ${item.label}.`,
+                    action: this.action.getName(),
+                    itemId: item.id
+                });
+            }
+        }
+
+        if (this.action.is("place")
+            && this.selectedItems.length === 2
+        ) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/place`,
+                body: [
+                    ["itemSubjectId", this.selectedItems[0].id],
+                    ["itemTargetId", this.selectedItems[1].id],
+                ]
+            });
         }
     }
 }
@@ -290,15 +316,7 @@ class Action {
         return undefined;
     }
 
-    isPickUpMultiple() {
-        return this.getName() === "pick-up-multiple";
-    }
-
-    isDropMultiple() {
-        return this.getName() === "drop-multiple"
-    }
-
-    isUse() {
-        return this.getName() === "use";
+    is(name) {
+        return name === this.getName();
     }
 }
