@@ -17,20 +17,29 @@ final class InventoryTreeFactory
 
     public function fromInventory(Inventory $inventory): InventoryTreeNode
     {
-        $children = [];
+        $surfaceNodes = [];
+        $contentsNodes = [];
 
         /** @var Item $item */
         foreach ($inventory->getItems() as $item) {
 
-            $childInventory = $this->itemRepo->findInventory(
+            $surfaceInventory = $this->itemRepo->findInventory(
                 ItemWhereabouts::itemSurface($item->getId()->toString())
             );
 
-            if (!$childInventory->isEmpty()) {
-                $children[] = $this->fromInventory($childInventory);
+            if (!$surfaceInventory->isEmpty()) {
+                $surfaceNodes[] = $this->fromInventory($surfaceInventory);
+            }
+
+            $contentsInventory = $this->itemRepo->findInventory(
+                ItemWhereabouts::itemContents($item->getId()->toString())
+            );
+
+            if (!$contentsInventory->isEmpty()) {
+                $contentsNodes[] = $this->fromInventory($contentsInventory);
             }
         }
 
-        return new InventoryTreeNode($inventory, $children);
+        return new InventoryTreeNode($inventory, $surfaceNodes, $contentsNodes);
     }
 }

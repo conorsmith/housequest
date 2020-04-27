@@ -35,6 +35,11 @@ final class InventoryFactory
             $itemViewModel = $this->itemViewModelFactory->create($item);
             $itemViewModel->depth = $depth;
             $itemViewModel->surface = $this->createInventory($inventoryTree->findSurfaceNode($item), $depth + 1);
+            $itemViewModel->contents = $this->createInventory($inventoryTree->findContentsNode($item), $depth + 1);
+            $itemViewModel->whereabouts = (object) [
+                'id' => $item->getWhereabouts()->getId(),
+                'type' => $item->getWhereabouts()->getType(),
+            ];
             $inventoryViewModel[] = $itemViewModel;
         }
 

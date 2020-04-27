@@ -5,7 +5,14 @@ export default class Controller {
     static fromItemEl(itemEl) {
         return new Controller(
             new Model(
-                new Item(itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer)
+                new Item(
+                    itemEl.dataset.id,
+                    itemEl.dataset.typeId,
+                    itemEl.dataset.label,
+                    itemEl.dataset.isContainer,
+                    itemEl.dataset.whereaboutsId,
+                    itemEl.dataset.whereaboutsType
+                )
             ),
             new View(itemEl)
         );
@@ -28,6 +35,9 @@ export default class Controller {
                 this.model.setNotSelected();
             }
         });
+        window.EventBus.addEventListener("item.open", e => {
+            this.model.showIfInContainer(e.detail.container);
+        });
 
         this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
         this.model.bus.addEventListener("setNotSelectable", e => { this.view.unsetSelectable(); });
@@ -36,6 +46,14 @@ export default class Controller {
             this.view.unsetSelected();
             window.EventBus.dispatchEvent("item.unselected", {
                 itemId: this.model.item.id
+            });
+        });
+
+        this.model.bus.addEventListener("show", e => {
+            this.view.show();
+            window.EventBus.dispatchEvent("action.completed", {
+                action: this.model.action,
+                itemId: e.detail.containerId
             });
         });
     }
@@ -80,6 +98,10 @@ class View {
     unsetSelected() {
         this.el.classList.remove("active");
     }
+
+    show() {
+        this.el.classList.remove("item-hidden");
+    }
 }
 
 class Model {
@@ -116,5 +138,19 @@ class Model {
     setNotSelected() {
         this.isSelected = false;
         this.bus.dispatchEvent("setNotSelected");
+    }
+
+    showIfInContainer(container) {
+        if (this.item.whereaboutsType !== "item-contents") {
+            return;
+        }
+
+        if (this.item.whereaboutsId !== container.id) {
+            return;
+        }
+
+        this.bus.dispatchEvent("show", {
+            containerId: container.id
+        });
     }
 }

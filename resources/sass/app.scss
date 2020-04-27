@@ -98,23 +98,41 @@ $border-radius-sm: 0 !default;
         }
     }
 
+    &.item-hidden {
+        display: none !important;
+    }
+
+    &:not(.item-contents) + &.item-contents {
+        border-top-color: $gray-300;
+        border-top-width: 1px;
+    }
+
+    &.item-contents:not(.item-hidden) + &:not(.item-contents) {
+        border-top-color: $gray-300;
+        border-top-width: 1px;
+    }
+
     $item-placement-padding: 1.25rem;
 
     padding-left: $item-placement-padding + ($item-placement-padding * 3);
 
-    &.item-placement-0 {
+    &.item-contents {
         padding-left: $item-placement-padding + ($item-placement-padding * 0);
     }
 
-    &.item-placement-1 {
+    &.item-placement-0:not(.item-contents) {
+        padding-left: $item-placement-padding + ($item-placement-padding * 0);
+    }
+
+    &.item-placement-1:not(.item-contents) {
         padding-left: $item-placement-padding + ($item-placement-padding * 1);
     }
 
-    &.item-placement-2 {
+    &.item-placement-2:not(.item-contents) {
         padding-left: $item-placement-padding + ($item-placement-padding * 2);
     }
 
-    &.item-placement-3 {
+    &.item-placement-3:not(.item-contents) {
         padding-left: $item-placement-padding + ($item-placement-padding * 3);
     }
 }

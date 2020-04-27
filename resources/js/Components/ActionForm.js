@@ -240,6 +240,10 @@ class Model {
                     action: this.action.getName(),
                     itemId: item.id
                 });
+            } else {
+                window.EventBus.dispatchEvent("item.open", {
+                    container: item
+                });
             }
         }
 

@@ -11075,19 +11075,37 @@ a.text-dark:focus {
   margin-top: -9px;
 }
 
-.item.item-placement-0 {
+.item.item-hidden {
+  display: none !important;
+}
+
+.item:not(.item-contents) + .item.item-contents {
+  border-top-color: #007f00;
+  border-top-width: 1px;
+}
+
+.item.item-contents:not(.item-hidden) + .item:not(.item-contents) {
+  border-top-color: #007f00;
+  border-top-width: 1px;
+}
+
+.item.item-contents {
   padding-left: 1.25rem;
 }
 
-.item.item-placement-1 {
+.item.item-placement-0:not(.item-contents) {
+  padding-left: 1.25rem;
+}
+
+.item.item-placement-1:not(.item-contents) {
   padding-left: 2.5rem;
 }
 
-.item.item-placement-2 {
+.item.item-placement-2:not(.item-contents) {
   padding-left: 3.75rem;
 }
 
-.item.item-placement-3 {
+.item.item-placement-3:not(.item-contents) {
   padding-left: 5rem;
 }
 

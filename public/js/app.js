@@ -650,6 +650,10 @@ var Model = /*#__PURE__*/function () {
             action: this.action.getName(),
             itemId: item.id
           });
+        } else {
+          window.EventBus.dispatchEvent("item.open", {
+            container: item
+          });
         }
       }
 
@@ -1139,7 +1143,7 @@ var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromItemEl",
     value: function fromItemEl(itemEl) {
-      return new Controller(new Model(new _Values_Item__WEBPACK_IMPORTED_MODULE_1__["default"](itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer)), new View(itemEl));
+      return new Controller(new Model(new _Values_Item__WEBPACK_IMPORTED_MODULE_1__["default"](itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer, itemEl.dataset.whereaboutsId, itemEl.dataset.whereaboutsType)), new View(itemEl));
     }
   }]);
 
@@ -1168,6 +1172,9 @@ var Controller = /*#__PURE__*/function () {
         _this.model.setNotSelected();
       }
     });
+    window.EventBus.addEventListener("item.open", function (e) {
+      _this.model.showIfInContainer(e.detail.container);
+    });
     this.model.bus.addEventListener("setSelectable", function (e) {
       _this.view.setSelectable();
     });
@@ -1182,6 +1189,14 @@ var Controller = /*#__PURE__*/function () {
 
       window.EventBus.dispatchEvent("item.unselected", {
         itemId: _this.model.item.id
+      });
+    });
+    this.model.bus.addEventListener("show", function (e) {
+      _this.view.show();
+
+      window.EventBus.dispatchEvent("action.completed", {
+        action: _this.model.action,
+        itemId: e.detail.containerId
       });
     });
   }
@@ -1239,6 +1254,11 @@ var View = /*#__PURE__*/function () {
     value: function unsetSelected() {
       this.el.classList.remove("active");
     }
+  }, {
+    key: "show",
+    value: function show() {
+      this.el.classList.remove("item-hidden");
+    }
   }]);
 
   return View;
@@ -1284,6 +1304,21 @@ var Model = /*#__PURE__*/function () {
     value: function setNotSelected() {
       this.isSelected = false;
       this.bus.dispatchEvent("setNotSelected");
+    }
+  }, {
+    key: "showIfInContainer",
+    value: function showIfInContainer(container) {
+      if (this.item.whereaboutsType !== "item-contents") {
+        return;
+      }
+
+      if (this.item.whereaboutsId !== container.id) {
+        return;
+      }
+
+      this.bus.dispatchEvent("show", {
+        containerId: container.id
+      });
     }
   }]);
 
@@ -1451,8 +1486,7 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.changed", function (e) {
       _this.model.action = e.detail.action;
     });
-    window.EventBus.addEventListener("item.selected", function (e) {
-      _this.model.open(e.detail.item.id);
+    window.EventBus.addEventListener("item.selected", function (e) {//this.model.open(e.detail.item.id);
     });
     window.EventBus.addEventListener("alt.activated", function (e) {
       _this.model.activateAltMode();
@@ -1780,13 +1814,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Item; });
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Item = function Item(id, typeId, label, isContainer) {
+var Item = function Item(id, typeId, label, isContainer, whereaboutsId, whereaboutsType) {
   _classCallCheck(this, Item);
 
   this.id = id;
   this.typeId = typeId;
   this.label = label;
   this.isContainer = isContainer;
+  this.whereaboutsId = whereaboutsId;
+  this.whereaboutsType = whereaboutsType;
 };
 
 

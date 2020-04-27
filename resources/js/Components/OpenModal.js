@@ -15,7 +15,7 @@ export default class Controller {
         window.EventBus.addEventListener("action.changed", e => { this.model.action = e.detail.action; });
 
         window.EventBus.addEventListener("item.selected", e => {
-            this.model.open(e.detail.item.id);
+            //this.model.open(e.detail.item.id);
         });
 
         window.EventBus.addEventListener("alt.activated", e => { this.model.activateAltMode(); });
