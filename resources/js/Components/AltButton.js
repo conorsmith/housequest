@@ -21,16 +21,20 @@ export default class Controller {
             }
         });
 
+        window.EventBus.addEventListener("cancel", e => { this.model.deactivate(); });
+        window.EventBus.addEventListener("action.completed", e => {
+            if (this.model.isActive) {
+                this.model.deactivate();
+                window.EventBus.dispatchEvent("alt.deactivated");
+            }
+        });
+
         this.model.bus.addEventListener("activated", e => {
             this.view.setActive();
         });
 
         this.model.bus.addEventListener("deactivated", e => {
             this.view.setInactive();
-        });
-
-        window.EventBus.addEventListener("cancel", e => {
-            this.model.deactivate();
         });
     }
 

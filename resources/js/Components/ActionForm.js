@@ -59,13 +59,56 @@ export default class Controller {
                 action: e.detail.action,
                 itemId: e.detail.itemId
             });
-        })
+        });
+
+        this.model.bus.addEventListener("open", e => {
+            window.EventBus.dispatchEvent("item.open", {
+                container: e.detail.container
+            });
+            window.EventBus.dispatchEvent("action.completed", {
+                action: e.detail.action,
+                itemId: e.detail.container.id
+            });
+            this.sendAsyncRequest(`${this.model.gameId}/open`, {
+                itemId: e.detail.container.id
+            });
+        });
+
+        this.model.bus.addEventListener("close", e => {
+            window.EventBus.dispatchEvent("item.close", {
+                container: e.detail.container
+            });
+            window.EventBus.dispatchEvent("action.completed", {
+                action: e.detail.action,
+                itemId: e.detail.container.id
+            });
+            this.sendAsyncRequest(`${this.model.gameId}/close`, {
+                itemId: e.detail.container.id
+            });
+        });
+    }
+
+    sendAsyncRequest(url, body) {
+        fetch(url, {
+            method: "POST",
+            body: new URLSearchParams(body),
+            headers: new Headers({
+                'X-CSRF-TOKEN': this.view.getCsrfToken()
+            })
+        }).then(response => {
+        }).catch(error => {
+            console.error(error);
+        });
     }
 }
 
 class View {
     constructor(el) {
         this.el = el;
+    }
+
+    getCsrfToken() {
+        return this.el.querySelector("input[name=\"_token\"]").value;
     }
 
     set(key, value) {
@@ -120,22 +163,22 @@ class Model {
     }
 
     activateAltMode() {
-        this.action.toggleAltMode();
+        this.action.activateAltMode();
         this.dispatchActionChangedEvent();
     }
 
     deactivateAltMode() {
-        this.action.toggleAltMode();
+        this.action.deactivateAltMode();
         this.dispatchActionChangedEvent();
     }
 
     activateMulMode() {
-        this.action.toggleMulMode();
+        this.action.activateMulMode();
         this.dispatchActionChangedEvent();
     }
 
     deactivateMulMode() {
-        this.action.toggleMulMode();
+        this.action.deactivateMulMode();
         this.dispatchActionChangedEvent();
     }
 
@@ -227,12 +270,6 @@ class Model {
             });
         }
 
-        if (this.action.is("eat")) {
-            this.bus.dispatchEvent("request", {
-                url: `/${this.gameId}/eat/${item.id}`
-            });
-        }
-
         if (this.action.is("open")) {
             if (!item.isContainer) {
                 this.bus.dispatchEvent("failure", {
@@ -241,8 +278,44 @@ class Model {
                     itemId: item.id
                 });
             } else {
-                window.EventBus.dispatchEvent("item.open", {
+                this.bus.dispatchEvent("open", {
+                    action: this.action.getName(),
                     container: item
+                });
+            }
+        }
+
+        if (this.action.is("close")) {
+            if (!item.isContainer) {
+                this.bus.dispatchEvent("failure", {
+                    message: `You cannot close ${item.label}.`,
+                    action: this.action.getName(),
+                    itemId: item.id
+                });
+            } else {
+                this.bus.dispatchEvent("close", {
+                    action: this.action.getName(),
+                    container: item
+                });
+            }
+        }
+
+        if (this.action.is("put-in")
+            && this.selectedItems.length === 2
+        ) {
+            if (!this.selectedItems[1].isContainer) {
+                this.bus.dispatchEvent("failure", {
+                    message: `You cannot put ${this.selectedItems[0].label} in ${this.selectedItems[1].label}.`,
+                    action: this.action.getName(),
+                    itemId: item.id
+                });
+            } else {
+                this.bus.dispatchEvent("request", {
+                    url: `/${this.gameId}/put-in`,
+                    body: [
+                        ["itemSubjectId", this.selectedItems[0].id],
+                        ["itemTargetId", this.selectedItems[1].id],
+                    ]
                 });
             }
         }
@@ -256,6 +329,12 @@ class Model {
                     ["itemSubjectId", this.selectedItems[0].id],
                     ["itemTargetId", this.selectedItems[1].id],
                 ]
+            });
+        }
+
+        if (this.action.is("eat")) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/eat/${item.id}`
             });
         }
     }
@@ -280,12 +359,20 @@ class Action {
         return new Action(null, this.altMode, this.mulMode);
     }
 
-    toggleAltMode() {
-        this.altMode = !this.altMode;
+    activateAltMode() {
+        this.altMode = true;
     }
 
-    toggleMulMode() {
-        this.mulMode = !this.mulMode;
+    deactivateAltMode() {
+        this.altMode = false;
+    }
+
+    activateMulMode() {
+        this.mulMode = true;
+    }
+
+    deactivateMulMode() {
+        this.mulMode = false;
     }
 
     getName() {

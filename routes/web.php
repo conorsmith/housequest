@@ -30,3 +30,6 @@ Route::post("/{gameId}/eat/{itemId}", "PostEat");
 Route::post("/{gameId}/make", "PostMake");
 Route::post("/{gameId}/transfer/{containerId}", "PostTransfer");
 Route::post("/{gameId}/place", "PostPlace");
+Route::post("/{gameId}/open", "PostOpen");
+Route::post("/{gameId}/close", "PostClose");
+Route::post("/{gameId}/put-in", "PostPutIn");

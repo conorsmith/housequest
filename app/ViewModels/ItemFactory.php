@@ -26,6 +26,10 @@ final class ItemFactory
             $state = $state['label'];
         }
 
+        if ($item->isContainer() && $item->getState() === "open") {
+            $state = "Open";
+        }
+
         return (object) [
             'id'                          => $item->getId(),
             'typeId'                      => $item->getTypeId(),

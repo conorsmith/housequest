@@ -224,7 +224,9 @@ var View = /*#__PURE__*/function () {
         return;
       }
 
-      this.el.innerHTML = this.originalLabel;
+      if (this.originalLabel !== undefined) {
+        this.el.innerHTML = this.originalLabel;
+      }
     }
   }, {
     key: "activateMul",
@@ -445,7 +447,48 @@ var Controller = /*#__PURE__*/function () {
         itemId: e.detail.itemId
       });
     });
+    this.model.bus.addEventListener("open", function (e) {
+      window.EventBus.dispatchEvent("item.open", {
+        container: e.detail.container
+      });
+      window.EventBus.dispatchEvent("action.completed", {
+        action: e.detail.action,
+        itemId: e.detail.container.id
+      });
+
+      _this.sendAsyncRequest("".concat(_this.model.gameId, "/open"), {
+        itemId: e.detail.container.id
+      });
+    });
+    this.model.bus.addEventListener("close", function (e) {
+      window.EventBus.dispatchEvent("item.close", {
+        container: e.detail.container
+      });
+      window.EventBus.dispatchEvent("action.completed", {
+        action: e.detail.action,
+        itemId: e.detail.container.id
+      });
+
+      _this.sendAsyncRequest("".concat(_this.model.gameId, "/close"), {
+        itemId: e.detail.container.id
+      });
+    });
   }
+
+  _createClass(Controller, [{
+    key: "sendAsyncRequest",
+    value: function sendAsyncRequest(url, body) {
+      fetch(url, {
+        method: "POST",
+        body: new URLSearchParams(body),
+        headers: new Headers({
+          'X-CSRF-TOKEN': this.view.getCsrfToken()
+        })
+      }).then(function (response) {})["catch"](function (error) {
+        console.error(error);
+      });
+    }
+  }]);
 
   return Controller;
 }();
@@ -460,6 +503,11 @@ var View = /*#__PURE__*/function () {
   }
 
   _createClass(View, [{
+    key: "getCsrfToken",
+    value: function getCsrfToken() {
+      return this.el.querySelector("input[name=\"_token\"]").value;
+    }
+  }, {
     key: "set",
     value: function set(key, value) {
       var input = document.createElement("input");
@@ -524,25 +572,25 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "activateAltMode",
     value: function activateAltMode() {
-      this.action.toggleAltMode();
+      this.action.activateAltMode();
       this.dispatchActionChangedEvent();
     }
   }, {
     key: "deactivateAltMode",
     value: function deactivateAltMode() {
-      this.action.toggleAltMode();
+      this.action.deactivateAltMode();
       this.dispatchActionChangedEvent();
     }
   }, {
     key: "activateMulMode",
     value: function activateMulMode() {
-      this.action.toggleMulMode();
+      this.action.activateMulMode();
       this.dispatchActionChangedEvent();
     }
   }, {
     key: "deactivateMulMode",
     value: function deactivateMulMode() {
-      this.action.toggleMulMode();
+      this.action.deactivateMulMode();
       this.dispatchActionChangedEvent();
     }
   }, {
@@ -637,12 +685,6 @@ var Model = /*#__PURE__*/function () {
         });
       }
 
-      if (this.action.is("eat")) {
-        this.bus.dispatchEvent("request", {
-          url: "/".concat(this.gameId, "/eat/").concat(item.id)
-        });
-      }
-
       if (this.action.is("open")) {
         if (!item.isContainer) {
           this.bus.dispatchEvent("failure", {
@@ -651,8 +693,39 @@ var Model = /*#__PURE__*/function () {
             itemId: item.id
           });
         } else {
-          window.EventBus.dispatchEvent("item.open", {
+          this.bus.dispatchEvent("open", {
+            action: this.action.getName(),
             container: item
+          });
+        }
+      }
+
+      if (this.action.is("close")) {
+        if (!item.isContainer) {
+          this.bus.dispatchEvent("failure", {
+            message: "You cannot close ".concat(item.label, "."),
+            action: this.action.getName(),
+            itemId: item.id
+          });
+        } else {
+          this.bus.dispatchEvent("close", {
+            action: this.action.getName(),
+            container: item
+          });
+        }
+      }
+
+      if (this.action.is("put-in") && this.selectedItems.length === 2) {
+        if (!this.selectedItems[1].isContainer) {
+          this.bus.dispatchEvent("failure", {
+            message: "You cannot put ".concat(this.selectedItems[0].label, " in ").concat(this.selectedItems[1].label, "."),
+            action: this.action.getName(),
+            itemId: item.id
+          });
+        } else {
+          this.bus.dispatchEvent("request", {
+            url: "/".concat(this.gameId, "/put-in"),
+            body: [["itemSubjectId", this.selectedItems[0].id], ["itemTargetId", this.selectedItems[1].id]]
           });
         }
       }
@@ -661,6 +734,12 @@ var Model = /*#__PURE__*/function () {
         this.bus.dispatchEvent("request", {
           url: "/".concat(this.gameId, "/place"),
           body: [["itemSubjectId", this.selectedItems[0].id], ["itemTargetId", this.selectedItems[1].id]]
+        });
+      }
+
+      if (this.action.is("eat")) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/eat/").concat(item.id)
         });
       }
     }
@@ -696,14 +775,24 @@ var Action = /*#__PURE__*/function () {
       return new Action(null, this.altMode, this.mulMode);
     }
   }, {
-    key: "toggleAltMode",
-    value: function toggleAltMode() {
-      this.altMode = !this.altMode;
+    key: "activateAltMode",
+    value: function activateAltMode() {
+      this.altMode = true;
     }
   }, {
-    key: "toggleMulMode",
-    value: function toggleMulMode() {
-      this.mulMode = !this.mulMode;
+    key: "deactivateAltMode",
+    value: function deactivateAltMode() {
+      this.altMode = false;
+    }
+  }, {
+    key: "activateMulMode",
+    value: function activateMulMode() {
+      this.mulMode = true;
+    }
+  }, {
+    key: "deactivateMulMode",
+    value: function deactivateMulMode() {
+      this.mulMode = false;
     }
   }, {
     key: "getName",
@@ -782,7 +871,13 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.failed", function (e) {
       _this.model.showMessage(e.detail.message);
     });
-    window.EventBus.addEventListener("action.changed", function (e) {
+    window.EventBus.addEventListener("actionBtn.selected", function (e) {
+      _this.model.hide();
+    });
+    window.EventBus.addEventListener("alt.activated", function (e) {
+      _this.model.hide();
+    });
+    window.EventBus.addEventListener("mul.activated", function (e) {
       _this.model.hide();
     });
     this.model.bus.addEventListener("shown", function (e) {
@@ -903,14 +998,21 @@ var Controller = /*#__PURE__*/function () {
         window.EventBus.dispatchEvent("alt.deactivated");
       }
     });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.deactivate();
+    });
+    window.EventBus.addEventListener("action.completed", function (e) {
+      if (_this.model.isActive) {
+        _this.model.deactivate();
+
+        window.EventBus.dispatchEvent("alt.deactivated");
+      }
+    });
     this.model.bus.addEventListener("activated", function (e) {
       _this.view.setActive();
     });
     this.model.bus.addEventListener("deactivated", function (e) {
       _this.view.setInactive();
-    });
-    window.EventBus.addEventListener("cancel", function (e) {
-      _this.model.deactivate();
     });
   }
 
@@ -1143,7 +1245,7 @@ var Controller = /*#__PURE__*/function () {
   _createClass(Controller, null, [{
     key: "fromItemEl",
     value: function fromItemEl(itemEl) {
-      return new Controller(new Model(new _Values_Item__WEBPACK_IMPORTED_MODULE_1__["default"](itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.isContainer, itemEl.dataset.whereaboutsId, itemEl.dataset.whereaboutsType)), new View(itemEl));
+      return new Controller(new Model(new _Values_Item__WEBPACK_IMPORTED_MODULE_1__["default"](itemEl.dataset.id, itemEl.dataset.typeId, itemEl.dataset.label, itemEl.dataset.state, itemEl.dataset.isContainer, itemEl.dataset.whereaboutsId, itemEl.dataset.whereaboutsType)), new View(itemEl));
     }
   }]);
 
@@ -1168,12 +1270,17 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("action.completed", function (e) {
       _this.model.setNotSelectable();
 
-      if (_this.model.item.id === e.detail.itemId) {
-        _this.model.setNotSelected();
-      }
+      _this.model.setNotSelected();
     });
     window.EventBus.addEventListener("item.open", function (e) {
+      _this.model.openIfContainer(e.detail.container);
+
       _this.model.showIfInContainer(e.detail.container);
+    });
+    window.EventBus.addEventListener("item.close", function (e) {
+      _this.model.closeIfContainer(e.detail.container);
+
+      _this.model.hideIfInContainer(e.detail.container);
     });
     this.model.bus.addEventListener("setSelectable", function (e) {
       _this.view.setSelectable();
@@ -1193,10 +1300,19 @@ var Controller = /*#__PURE__*/function () {
     });
     this.model.bus.addEventListener("show", function (e) {
       _this.view.show();
-
-      window.EventBus.dispatchEvent("action.completed", {
-        action: _this.model.action,
-        itemId: e.detail.containerId
+    });
+    this.model.bus.addEventListener("hide", function (e) {
+      _this.view.hide();
+    });
+    this.model.bus.addEventListener("open", function (e) {
+      _this.view.open();
+    });
+    this.model.bus.addEventListener("close", function (e) {
+      _this.view.close();
+    });
+    this.model.bus.addEventListener("failure", function (e) {
+      window.EventBus.dispatchEvent("action.failed", {
+        message: e.detail.message
       });
     });
   }
@@ -1255,9 +1371,26 @@ var View = /*#__PURE__*/function () {
       this.el.classList.remove("active");
     }
   }, {
+    key: "open",
+    value: function open() {
+      this.el.querySelector(".item-state").innerHTML = "Open";
+      this.el.querySelector(".item-state").classList.remove("d-none");
+    }
+  }, {
+    key: "close",
+    value: function close() {
+      this.el.querySelector(".item-state").innerHTML = "";
+      this.el.querySelector(".item-state").classList.add("d-none");
+    }
+  }, {
     key: "show",
     value: function show() {
       this.el.classList.remove("item-hidden");
+    }
+  }, {
+    key: "hide",
+    value: function hide() {
+      this.el.classList.add("item-hidden");
     }
   }]);
 
@@ -1271,6 +1404,7 @@ var Model = /*#__PURE__*/function () {
     this.item = item;
     this.isSelectable = false;
     this.isSelected = false;
+    this.isOpen = false;
     this.action = null;
     this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
   }
@@ -1278,7 +1412,7 @@ var Model = /*#__PURE__*/function () {
   _createClass(Model, [{
     key: "handleActionChange",
     value: function handleActionChange(action) {
-      if (action === null) {
+      if (action === undefined) {
         this.setNotSelectable();
       } else {
         this.isSelectable = true;
@@ -1302,8 +1436,44 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "setNotSelected",
     value: function setNotSelected() {
-      this.isSelected = false;
-      this.bus.dispatchEvent("setNotSelected");
+      if (this.isSelected) {
+        this.isSelected = false;
+        this.bus.dispatchEvent("setNotSelected");
+      }
+    }
+  }, {
+    key: "openIfContainer",
+    value: function openIfContainer(container) {
+      if (this.item.id !== container.id) {
+        return;
+      }
+
+      if (this.item.state === "open") {
+        this.bus.dispatchEvent("failure", {
+          message: "You cannot open ".concat(this.item.label, ", it's already open.")
+        });
+        return;
+      }
+
+      this.item.state = "open";
+      this.bus.dispatchEvent("open");
+    }
+  }, {
+    key: "closeIfContainer",
+    value: function closeIfContainer(container) {
+      if (this.item.id !== container.id) {
+        return;
+      }
+
+      if (this.item.state !== "open") {
+        this.bus.dispatchEvent("failure", {
+          message: "You cannot close ".concat(this.item.label, ", it's not open.")
+        });
+        return;
+      }
+
+      this.item.state = "closed";
+      this.bus.dispatchEvent("close");
     }
   }, {
     key: "showIfInContainer",
@@ -1317,6 +1487,21 @@ var Model = /*#__PURE__*/function () {
       }
 
       this.bus.dispatchEvent("show", {
+        containerId: container.id
+      });
+    }
+  }, {
+    key: "hideIfInContainer",
+    value: function hideIfInContainer(container) {
+      if (this.item.whereaboutsType !== "item-contents") {
+        return;
+      }
+
+      if (this.item.whereaboutsId !== container.id) {
+        return;
+      }
+
+      this.bus.dispatchEvent("hide", {
         containerId: container.id
       });
     }
@@ -1814,12 +1999,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Item; });
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Item = function Item(id, typeId, label, isContainer, whereaboutsId, whereaboutsType) {
+var Item = function Item(id, typeId, label, state, isContainer, whereaboutsId, whereaboutsType) {
   _classCallCheck(this, Item);
 
   this.id = id;
   this.typeId = typeId;
   this.label = label;
+  this.state = state;
   this.isContainer = isContainer;
   this.whereaboutsId = whereaboutsId;
   this.whereaboutsType = whereaboutsType;
@@ -1975,9 +2161,10 @@ _Components_ActionForm__WEBPACK_IMPORTED_MODULE_3__["default"].fromFormEl(docume
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("look-at");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("pick-up");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("use");
-_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("eat");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("open");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("put-in");
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("place");
+_Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("eat");
 _Components_AltButton__WEBPACK_IMPORTED_MODULE_8__["default"].fromEl(document.querySelector(".js-alt"));
 _Components_MulButton__WEBPACK_IMPORTED_MODULE_9__["default"].fromEl(document.querySelector(".js-mul"));
 _Components_ConfirmBar__WEBPACK_IMPORTED_MODULE_0__["default"].fromEl(document.querySelector(".js-confirm-bar"));

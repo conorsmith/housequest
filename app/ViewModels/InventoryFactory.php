@@ -19,10 +19,10 @@ final class InventoryFactory
 
     public function fromInventoryTree(InventoryTreeNode $inventoryTree): array
     {
-        return $this->createInventory($inventoryTree, 0);
+        return $this->createInventory($inventoryTree, null,  0);
     }
 
-    private function createInventory(?InventoryTreeNode $inventoryTree, int $depth): array
+    private function createInventory(?InventoryTreeNode $inventoryTree, ?Item $inventoryItem, int $depth): array
     {
         if (is_null($inventoryTree)) {
             return [];
@@ -33,13 +33,24 @@ final class InventoryFactory
         /** @var Item $item */
         foreach ($inventoryTree->getInventory()->getItems() as $item) {
             $itemViewModel = $this->itemViewModelFactory->create($item);
+            $itemViewModel->stateId = $item->getState();
             $itemViewModel->depth = $depth;
-            $itemViewModel->surface = $this->createInventory($inventoryTree->findSurfaceNode($item), $depth + 1);
-            $itemViewModel->contents = $this->createInventory($inventoryTree->findContentsNode($item), $depth + 1);
+            $itemViewModel->surface = $this->createInventory($inventoryTree->findSurfaceNode($item), $item, $depth + 1);
+            $itemViewModel->contents = $this->createInventory($inventoryTree->findContentsNode($item), $item, $depth + 1);
             $itemViewModel->whereabouts = (object) [
                 'id' => $item->getWhereabouts()->getId(),
                 'type' => $item->getWhereabouts()->getType(),
             ];
+
+            if (is_null($inventoryItem)
+                || !$inventoryItem->isContainer()
+                || ($inventoryItem->isContainer() && $inventoryItem->getState() === "open")
+            ) {
+                $itemViewModel->visible = true;
+            } else {
+                $itemViewModel->visible = false;
+            }
+
             $inventoryViewModel[] = $itemViewModel;
         }
 

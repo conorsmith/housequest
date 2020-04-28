@@ -9,6 +9,7 @@ export default class Controller {
                     itemEl.dataset.id,
                     itemEl.dataset.typeId,
                     itemEl.dataset.label,
+                    itemEl.dataset.state,
                     itemEl.dataset.isContainer,
                     itemEl.dataset.whereaboutsId,
                     itemEl.dataset.whereaboutsType
@@ -31,12 +32,15 @@ export default class Controller {
         });
         window.EventBus.addEventListener("action.completed", e => {
             this.model.setNotSelectable();
-            if (this.model.item.id === e.detail.itemId) {
-                this.model.setNotSelected();
-            }
+            this.model.setNotSelected();
         });
         window.EventBus.addEventListener("item.open", e => {
+            this.model.openIfContainer(e.detail.container);
             this.model.showIfInContainer(e.detail.container);
+        });
+        window.EventBus.addEventListener("item.close", e => {
+            this.model.closeIfContainer(e.detail.container);
+            this.model.hideIfInContainer(e.detail.container);
         });
 
         this.model.bus.addEventListener("setSelectable", e => { this.view.setSelectable(); });
@@ -49,11 +53,14 @@ export default class Controller {
             });
         });
 
-        this.model.bus.addEventListener("show", e => {
-            this.view.show();
-            window.EventBus.dispatchEvent("action.completed", {
-                action: this.model.action,
-                itemId: e.detail.containerId
+        this.model.bus.addEventListener("show", e => { this.view.show(); });
+        this.model.bus.addEventListener("hide", e => { this.view.hide(); });
+        this.model.bus.addEventListener("open", e => { this.view.open(); });
+        this.model.bus.addEventListener("close", e => { this.view.close(); });
+
+        this.model.bus.addEventListener("failure", e => {
+            window.EventBus.dispatchEvent("action.failed", {
+                message: e.detail.message
             });
         });
     }
@@ -99,8 +106,22 @@ class View {
         this.el.classList.remove("active");
     }
 
+    open() {
+        this.el.querySelector(".item-state").innerHTML = "Open";
+        this.el.querySelector(".item-state").classList.remove("d-none");
+    }
+
+    close() {
+        this.el.querySelector(".item-state").innerHTML = "";
+        this.el.querySelector(".item-state").classList.add("d-none");
+    }
+
     show() {
         this.el.classList.remove("item-hidden");
+    }
+
+    hide() {
+        this.el.classList.add("item-hidden");
     }
 }
 
@@ -109,13 +130,14 @@ class Model {
         this.item = item;
         this.isSelectable = false;
         this.isSelected = false;
+        this.isOpen = false;
         this.action = null;
 
         this.bus = new EventBus();
     }
 
     handleActionChange(action) {
-        if (action === null) {
+        if (action === undefined) {
             this.setNotSelectable();
         } else {
             this.isSelectable = true;
@@ -136,8 +158,44 @@ class Model {
     }
 
     setNotSelected() {
-        this.isSelected = false;
-        this.bus.dispatchEvent("setNotSelected");
+        if (this.isSelected) {
+            this.isSelected = false;
+            this.bus.dispatchEvent("setNotSelected");
+        }
+    }
+
+    openIfContainer(container) {
+        if (this.item.id !== container.id) {
+            return;
+        }
+
+        if (this.item.state === "open") {
+            this.bus.dispatchEvent("failure", {
+                message: `You cannot open ${this.item.label}, it's already open.`
+            });
+            return;
+        }
+
+        this.item.state = "open";
+
+        this.bus.dispatchEvent("open");
+    }
+
+    closeIfContainer(container) {
+        if (this.item.id !== container.id) {
+            return;
+        }
+
+        if (this.item.state !== "open") {
+            this.bus.dispatchEvent("failure", {
+                message: `You cannot close ${this.item.label}, it's not open.`
+            });
+            return;
+        }
+
+        this.item.state = "closed";
+
+        this.bus.dispatchEvent("close");
     }
 
     showIfInContainer(container) {
@@ -150,6 +208,20 @@ class Model {
         }
 
         this.bus.dispatchEvent("show", {
+            containerId: container.id
+        });
+    }
+
+    hideIfInContainer(container) {
+        if (this.item.whereaboutsType !== "item-contents") {
+            return;
+        }
+
+        if (this.item.whereaboutsId !== container.id) {
+            return;
+        }
+
+        this.bus.dispatchEvent("hide", {
             containerId: container.id
         });
     }

@@ -219,20 +219,22 @@
                     Use
                 </button>
                 <button type="button"
-                        class="js-eat btn btn-action btn-sm"
-                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
-                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
-                        data-default-action="eat"
-                >
-                    Eat
-                </button>
-                <button type="button"
                         class="js-open btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                         data-default-action="open"
+                        data-alt-action="close"
+                        data-alt-label="Close"
                 >
                     Open
+                </button>
+                <button type="button"
+                        class="js-put-in btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="put-in"
+                >
+                    Put In
                 </button>
                 <button type="button"
                         class="js-place btn btn-action btn-sm"
@@ -243,6 +245,14 @@
                     Place
                 </button>
                 <button type="button"
+                        class="js-eat btn btn-action btn-sm"
+                        style="width: 6rem; margin: 0 0.1rem 0.2rem;"
+                        {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
+                        data-default-action="eat"
+                >
+                    Eat
+                </button>
+                <button type="button"
                         class="js-make btn btn-action btn-sm"
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         data-toggle="modal"
@@ -251,7 +261,6 @@
                 >
                     Make
                 </button>
-                <div class="d-sm-none" style="width: 6rem; margin: 0 0.1rem 0.2rem;"></div>
                 <button type="button"
                         class="js-alt btn btn-action btn-sm"
                         style="width: 2.9rem; margin: 0 0.1rem 0.2rem 0.1rem;"

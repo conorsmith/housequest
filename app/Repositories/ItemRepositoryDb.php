@@ -99,6 +99,8 @@ final class ItemRepositoryDb implements ItemRepository
 
         if (array_key_exists('states', $itemConfig)) {
             $state = array_key_first($itemConfig['states']);
+        } elseif (in_array("container", Arr::get($itemConfig, 'attributes', []))) {
+            $state = "closed";
         } else {
             $state = null;
         }

@@ -85,7 +85,9 @@ class View {
             return;
         }
 
-        this.el.innerHTML = this.originalLabel;
+        if (this.originalLabel !== undefined) {
+            this.el.innerHTML = this.originalLabel;
+        }
     }
 
     activateMul() {
