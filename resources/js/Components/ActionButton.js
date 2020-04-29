@@ -44,9 +44,10 @@ export default class Controller {
         this.model.bus.addEventListener("action.deactivated", e => { this.view.deactivateButton(); });
 
         this.model.bus.addEventListener("mode.alt.active", e => { this.view.activateAlt(); });
-        this.model.bus.addEventListener("mode.alt.inactive", e => { this.view.deactivateAlt(e.detail.mulMode); });
-        this.model.bus.addEventListener("mode.mul.active", e => { this.view.activateMul(); });
-        this.model.bus.addEventListener("mode.mul.inactive", e => { this.view.deactivateMul(e.detail.altMode); });
+        this.model.bus.addEventListener("mode.alt.inactive", e => { this.view.deactivateAlt(); });
+
+        this.model.bus.addEventListener("action.disabled", e => { this.view.disable(); });
+        this.model.bus.addEventListener("action.enabled", e => { this.view.enable(); });
     }
 }
 
@@ -64,46 +65,26 @@ class View {
     }
 
     activateAlt() {
-        if (this.el.dataset.altAction === undefined) {
-            this.el.disabled = true;
-            document.querySelector(".js-make").disabled = true;
-            return;
-        }
-
         this.originalLabel = this.el.innerHTML;
         if (this.el.dataset.altLabel !== undefined) {
             this.el.innerHTML = this.el.dataset.altLabel;
         }
     }
 
-    deactivateAlt(mulMode) {
-        if (this.el.dataset.altAction === undefined) {
-            if (mulMode === false) {
-                this.el.disabled = false;
-                document.querySelector(".js-make").disabled = false;
-            }
-            return;
-        }
-
+    deactivateAlt() {
         if (this.originalLabel !== undefined) {
             this.el.innerHTML = this.originalLabel;
         }
     }
 
-    activateMul() {
-        if (this.el.dataset.defaultMultipleAction === undefined) {
-            this.el.disabled = true;
-            document.querySelector(".js-make").disabled = true;
-        }
+    disable() {
+        this.el.disabled = true;
+        //document.querySelector(".js-make").disabled = true;
     }
 
-    deactivateMul(altMode) {
-        if (this.el.dataset.defaultMultipleAction === undefined
-            && altMode === false
-        ) {
-            this.el.disabled = false;
-            document.querySelector(".js-make").disabled = false;
-        }
+    enable() {
+        this.el.disabled = false;
+        //document.querySelector(".js-make").disabled = false;
     }
 }
 
@@ -160,24 +141,59 @@ class Model {
     setAltMode() {
         this.altMode = true;
         this.bus.dispatchEvent("mode.alt.active");
+        if (!this.hasActionForCurrentMode()) {
+            this.bus.dispatchEvent("action.disabled");
+        }
     }
 
     unsetAltMode() {
         this.altMode = false;
-        this.bus.dispatchEvent("mode.alt.inactive", {
-            mulMode: this.mulMode
-        });
+        this.bus.dispatchEvent("mode.alt.inactive");
+        if (this.hasActionForCurrentMode()) {
+            this.bus.dispatchEvent("action.enabled");
+        }
     }
 
     setMulMode() {
         this.mulMode = true;
-        this.bus.dispatchEvent("mode.mul.active");
+        if (!this.hasActionForCurrentMode()) {
+            this.bus.dispatchEvent("action.disabled");
+        }
     }
 
     unsetMulMode() {
         this.mulMode = false;
-        this.bus.dispatchEvent("mode.mul.inactive", {
-            altMode: this.altMode
-        });
+        if (this.hasActionForCurrentMode()) {
+            this.bus.dispatchEvent("action.enabled");
+        }
+    }
+
+    hasActionForCurrentMode() {
+        if (this.altMode === false
+            && this.mulMode === false
+        ) {
+            return this.defaultAction !== undefined;
+        }
+
+        if (this.altMode === false
+            && this.mulMode === true
+        ) {
+            return this.defaultMultipleAction !== undefined;
+        }
+
+        if (this.altMode === true
+            && this.mulMode === false
+        ) {
+            return this.altAction !== undefined;
+        }
+
+        if (this.altMode === true
+            && this.mulMode === true
+        ) {
+            return this.altMultipleAction !== undefined;
+        }
+
+        console.error("Invalid mode state");
+        return false;
     }
 }
