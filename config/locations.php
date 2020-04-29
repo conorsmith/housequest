@@ -31,18 +31,19 @@ return [
                 'surface' => [
                     "wool-blanket",
                     "linen-blanket",
+                    "couch-cushion" => 5,
                 ],
             ],
             [
                 'id' => "coffee-table",
                 'surface' => [
                     "tv-remote",
-                    "digital-remote",
                     "pack-of-crisps",
                 ],
             ],
             "entertainment-unit",
             "television",
+            "floor-lamp",
         ],
     ],
     'staircase' => [

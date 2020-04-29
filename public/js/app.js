@@ -691,7 +691,7 @@ var Model = /*#__PURE__*/function () {
         }
 
         this.bus.dispatchEvent("request", {
-          url: "/".concat(this.gameId, "/use/").concat(itemId),
+          url: "/".concat(this.gameId, "/use/").concat(item.id),
           body: body
         });
       }

@@ -100,6 +100,9 @@ final class PostUse extends Controller
         'quarantine-barrier'          => "useQuarantineBarrier",
         'pager'                       => "usePager",
         'table-lamp'                  => "useOnOffItem",
+        'television'                  => "useOnOffItem",
+        'alarm-clock'                 => "useOnOffItem",
+        'tv-remote'                   => "useTvRemote",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -274,14 +277,25 @@ final class PostUse extends Controller
         $itemRepo = $this->itemRepoFactory->create($command->getGameId());
         $item = $itemRepo->find($command->getItemId());
         $viewModel = $this->itemViewModelFactory->create($item);
+        $useMessages = $this->itemViewModelFactory->createUseMessages($item);
 
         if ($item->getState() === "on") {
             $item->transitionState("off");
-            session()->flash("success", "You turned off the {$viewModel->label}.");
+            session()->flash(
+                "success",
+                array_key_exists($item->getState(), $useMessages->states)
+                    ? $useMessages->states[$item->getState()]
+                    : "You turned off the {$viewModel->label}."
+            );
 
         } elseif ($item->getState() === "off") {
             $item->transitionState("on");
-            session()->flash("success", "You turned on the {$viewModel->label}.");
+            session()->flash(
+                "success",
+                array_key_exists($item->getState(), $useMessages->states)
+                    ? $useMessages->states[$item->getState()]
+                    : "You turned on the {$viewModel->label}."
+            );
         }
 
         $itemRepo->save($item);
@@ -347,5 +361,53 @@ final class PostUse extends Controller
 
         $this->playerRepo->save($player);
         $itemRepo->save($item);
+    }
+
+    private function useTvRemote(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $tvRemote = $itemRepo->find($command->getItemId());
+
+        $tvRemoteRootWhereabouts = $itemRepo->findRootWhereabouts($tvRemote);
+        if (!($tvRemoteRootWhereabouts->isPlayer() && $player->getLocationId() === "living-room")
+            && !$tvRemoteRootWhereabouts->isLocation("living-room")
+        ) {
+            session()->flash("info", "That did nothing.");
+            return;
+        }
+
+        $livingRoom = $itemRepo->findInventory(ItemWhereabouts::location("living-room"));
+
+        /** @var Item $item */
+        foreach ($livingRoom->getItems() as $item) {
+            if ($item->getTypeId() === "television") {
+                $television = $item;
+            }
+        }
+
+        if (!isset($television)) {
+            session()->flash("info", "That did nothing.");
+            return;
+        }
+
+        $televisionViewModel = $this->itemViewModelFactory->create($television);
+
+        if ($television->getState() === "on") {
+            $television->transitionState("off");
+            session()->flash(
+                "success",
+                "You turned off the {$televisionViewModel->label} using the remote."
+            );
+
+        } elseif ($television->getState() === "off") {
+            $television->transitionState("on");
+            session()->flash(
+                "success",
+                "You turned on the {$televisionViewModel->label} using the remote."
+            );
+        }
+
+        $itemRepo->save($television);
     }
 }

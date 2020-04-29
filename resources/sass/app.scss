@@ -116,23 +116,19 @@ $border-radius-sm: 0 !default;
 
     padding-left: $item-placement-padding + ($item-placement-padding * 3);
 
-    &.item-contents {
+    &.item-placement-0 {
         padding-left: $item-placement-padding + ($item-placement-padding * 0);
     }
 
-    &.item-placement-0:not(.item-contents) {
-        padding-left: $item-placement-padding + ($item-placement-padding * 0);
-    }
-
-    &.item-placement-1:not(.item-contents) {
+    &.item-placement-1 {
         padding-left: $item-placement-padding + ($item-placement-padding * 1);
     }
 
-    &.item-placement-2:not(.item-contents) {
+    &.item-placement-2 {
         padding-left: $item-placement-padding + ($item-placement-padding * 2);
     }
 
-    &.item-placement-3:not(.item-contents) {
+    &.item-placement-3 {
         padding-left: $item-placement-padding + ($item-placement-padding * 3);
     }
 }

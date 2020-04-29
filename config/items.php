@@ -87,6 +87,18 @@ return [
         'attributes' => [
             "affixed",
         ],
+        'states' => [
+            'off' => [
+                'label' => "",
+                'description' => "The Television is displaying a black screen. It's riveting.",
+                'use' => "You turned off the Television manually, like a chump.",
+            ],
+            'on'  => [
+                'label' => "On",
+                'description' => "The Television is displaying the state's quarantine bulletin. It's running on a loop on all channels.",
+                'use' => "You turned on the Television manually, like a chump.",
+            ],
+        ],
     ],
     'slice-of-bread' => [
         'name' => "Slice of Bread",
@@ -339,6 +351,7 @@ return [
         'name' => "Medicine Cabinet",
         'attributes' => [
             "container",
+            "affixed",
         ],
     ],
     'sleeping-pills' => [
@@ -394,8 +407,29 @@ return [
     ],
     'alarm-clock' => [
         'name' => "Alarm Clock",
+        'description' => "You look at the time, for all that means these days.",
+        'states' => [
+            'off' => [
+                'label' => "",
+                'use' => "You unset the Alarm Clock.",
+            ],
+            'on'  => [
+                'label' => "Set",
+                'use' => "You set the Alarm Clock.",
+            ],
+        ]
     ],
     'coffee-table' => [
         'name' => "Coffee Table",
+    ],
+    'couch-cushion' => [
+        'name' => "Couch Cushion",
+    ],
+    'floor-lamp' => [
+        'name' => "Floor Lamp",
+        'states' => [
+            'off' => "",
+            'on' => "On",
+        ],
     ],
 ];

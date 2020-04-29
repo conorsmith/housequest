@@ -265,7 +265,7 @@ class Model {
             }
 
             this.bus.dispatchEvent("request", {
-                url: `/${this.gameId}/use/${itemId}`,
+                url: `/${this.gameId}/use/${item.id}`,
                 body: body
             });
         }

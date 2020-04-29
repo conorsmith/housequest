@@ -197,7 +197,9 @@ final class ItemRepositoryDb implements ItemRepository
 
         $attributes = Arr::get($itemConfig, 'attributes', []);
 
-        if (array_key_exists('states', $itemConfig)) {
+        if (array_key_exists('states', $itemConfig)
+            && $row->state
+        ) {
             $state = $itemConfig['states'][$row->state];
             if (is_array($state)
                 && array_key_exists('attributes', $state)

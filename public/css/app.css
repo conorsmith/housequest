@@ -11089,23 +11089,19 @@ a.text-dark:focus {
   border-top-width: 1px;
 }
 
-.item.item-contents {
+.item.item-placement-0 {
   padding-left: 1.25rem;
 }
 
-.item.item-placement-0:not(.item-contents) {
-  padding-left: 1.25rem;
-}
-
-.item.item-placement-1:not(.item-contents) {
+.item.item-placement-1 {
   padding-left: 2.5rem;
 }
 
-.item.item-placement-2:not(.item-contents) {
+.item.item-placement-2 {
   padding-left: 3.75rem;
 }
 
-.item.item-placement-3:not(.item-contents) {
+.item.item-placement-3 {
   padding-left: 5rem;
 }
 

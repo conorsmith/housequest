@@ -36,13 +36,14 @@ final class InventoryFactory
             $itemViewModel->stateId = $item->getState();
             $itemViewModel->depth = $depth;
             $itemViewModel->surface = $this->createInventory($inventoryTree->findSurfaceNode($item), $item, $depth + 1);
-            $itemViewModel->contents = $this->createInventory($inventoryTree->findContentsNode($item), $item, $depth + 1);
+            $itemViewModel->contents = $this->createInventory($inventoryTree->findContentsNode($item), $item, $depth);
             $itemViewModel->whereabouts = (object) [
                 'id' => $item->getWhereabouts()->getId(),
                 'type' => $item->getWhereabouts()->getType(),
             ];
 
             if (is_null($inventoryItem)
+                || $item->getWhereabouts()->isOnSomething()
                 || !$inventoryItem->isContainer()
                 || ($inventoryItem->isContainer() && $inventoryItem->getState() === "open")
             ) {
