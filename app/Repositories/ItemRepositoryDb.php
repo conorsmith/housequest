@@ -64,7 +64,9 @@ final class ItemRepositoryDb implements ItemRepository
 
         $items = [];
 
-        while ($item->getWhereabouts()->isOnSomething()) {
+        while ($item->getWhereabouts()->isOnSomething()
+            || $item->getWhereabouts()->isInSomething()
+        ) {
             $item = $this->find(
                 Uuid::fromString($item->getWhereabouts()->getId())
             );
@@ -185,6 +187,8 @@ final class ItemRepositoryDb implements ItemRepository
                     $itemConfig['use']
                 );
             }
+        } elseif (in_array("exhaustible", Arr::get($itemConfig, 'attributes', []))) {
+            $itemUse = new ItemUse([], "You use the {$itemConfig['name']}.");
         } else {
             $itemUse = null;
         }

@@ -171,6 +171,16 @@ final class Item
         return in_array("improvised", $this->attributes);
     }
 
+    public function isPluggable(): bool
+    {
+        return in_array("pluggable", $this->attributes);
+    }
+
+    public function isExhaustible(): bool
+    {
+        return in_array("exhaustible", $this->attributes);
+    }
+
     public function isSinglePortionItem(): bool
     {
         return $this->totalPortions === 1;
@@ -207,7 +217,7 @@ final class Item
             && $this->typeId === $other->typeId
             && !$this->isContainer()
             && $this->remainingPortions === $other->remainingPortions
-            && $this->whereabouts === $other->whereabouts;
+            && $this->whereabouts->equals($other->whereabouts);
     }
 
     public function moveTo(ItemWhereabouts $whereabouts): void

@@ -84,6 +84,17 @@ final class PostUse extends Controller
             }
         }
 
+        if ($item->isExhaustible()) {
+            $inventory = $itemRepo->findInventory($item->getWhereabouts());
+
+            $inventory->removeExpendedItem($item->getId());
+
+            /** @var Item $inventoryItem */
+            foreach ($inventory->getItems() as $inventoryItem) {
+                $itemRepo->save($inventoryItem);
+            }
+        }
+
         $this->playerRepo->save($player);
 
         session()->flash("success", $use->getMessage());
@@ -103,6 +114,7 @@ final class PostUse extends Controller
         'television'                  => "useOnOffItem",
         'alarm-clock'                 => "useOnOffItem",
         'tv-remote'                   => "useTvRemote",
+        'sleeping-pills'              => "useBed",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -222,6 +234,17 @@ final class PostUse extends Controller
         $player = $this->playerRepo->find($command->getGameId());
         $item = $itemRepo->find($command->getItemId());
 
+        if ($item->isExhaustible()) {
+            $inventory = $itemRepo->findInventory($item->getWhereabouts());
+
+            $inventory->removeExpendedItem($item->getId());
+
+            /** @var Item $inventoryItem */
+            foreach ($inventory->getItems() as $inventoryItem) {
+                $itemRepo->save($inventoryItem);
+            }
+        }
+
         if ($player->experiencedEvent("the-right-call")
             && !$player->experiencedEvent("prank-call")
         ) {
@@ -289,6 +312,18 @@ final class PostUse extends Controller
             );
 
         } elseif ($item->getState() === "off") {
+
+            if ($item->isPluggable()) {
+                $rootWhereabouts = $itemRepo->findRootWhereabouts($item);
+                if ($rootWhereabouts->isPlayer()) {
+                    session()->flash(
+                        "success",
+                        "You cannot turn on the {$viewModel->label} while you're holding it."
+                    );
+                    return;
+                }
+            }
+
             $item->transitionState("on");
             session()->flash(
                 "success",

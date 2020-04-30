@@ -75,6 +75,11 @@ final class ItemWhereabouts
         return $this->type === "item-surface";
     }
 
+    public function isInSomething(): bool
+    {
+        return $this->type === "item-contents";
+    }
+
     public function isForItem(Item $item): bool
     {
         return $this->id === $item->getId()->toString()

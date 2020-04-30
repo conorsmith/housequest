@@ -21,6 +21,26 @@ final class Inventory
         $this->items = $items;
     }
 
+    public function removeExpendedItem(UuidInterface $itemId): void
+    {
+        $item = $this->find($itemId);
+
+        if (is_null($item)) {
+            throw new InvalidArgumentException("Item '{$itemId}' not found in inventory.");
+        }
+
+        if (!$item->isExhaustible()) {
+            throw new DomainException("Item type '{$item->getTypeId()}' cannot be used.");
+        }
+
+        if ($item->isSinglePortionItem()) {
+            $item->decrementQuantity();
+            return;
+        }
+
+        $this->removePortionsFromItem($item, 1);
+    }
+
     public function removeEatenItem(UuidInterface $itemId): void
     {
         $item = $this->find($itemId);

@@ -101,6 +101,10 @@ final class PostPickUp extends Controller
             return "You cannot pick up {$viewModel->label}, it's too heavy.";
         }
 
+        if ($item->isPluggable() && $item->getState() === "on") {
+            $item->transitionState("off");
+        }
+
         $playerInventory->add($item);
 
         return null;

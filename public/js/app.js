@@ -1425,6 +1425,7 @@ var Model = /*#__PURE__*/function () {
     value: function handleActionChange(action) {
       if (action === undefined) {
         this.setNotSelectable();
+        this.setNotSelected();
       } else {
         this.isSelectable = true;
         this.action = action;

@@ -139,6 +139,7 @@ class Model {
     handleActionChange(action) {
         if (action === undefined) {
             this.setNotSelectable();
+            this.setNotSelected();
         } else {
             this.isSelectable = true;
             this.action = action;

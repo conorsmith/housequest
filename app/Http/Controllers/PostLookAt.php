@@ -47,7 +47,8 @@ final class PostLookAt extends Controller
         $viewModel = $this->itemViewModelFactory->create($item);
 
         if ($viewModel->hasDescription) {
-            session()->flash("messageRaw", $viewModel->description);
+            $description = str_replace("{player}", $player->getName(), $viewModel->description);
+            session()->flash("messageRaw", $description);
         } else {
             session()->flash("messageRaw", "It's {$viewModel->label}.");
         }

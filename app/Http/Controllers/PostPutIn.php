@@ -60,6 +60,21 @@ final class PostPutIn extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($subjectItem->isDangerous()) {
+            session()->flash("info", "You cannot move {$subjectItemViewModel->label}, it's too dangerous to do so.");
+            return redirect("/{$gameId}");
+        }
+
+        if ($subjectItem->isAffixed()) {
+            session()->flash("info", "You cannot move {$subjectItemViewModel->label}, it's fixed in place.");
+            return redirect("/{$gameId}");
+        }
+
+        if ($subjectItem->isHeavy()) {
+            session()->flash("info", "You cannot move {$subjectItemViewModel->label}, it's too heavy.");
+            return redirect("/{$gameId}");
+        }
+
         $subjectItem->moveTo(
             ItemWhereabouts::itemContents($targetItem->getId()->toString())
         );

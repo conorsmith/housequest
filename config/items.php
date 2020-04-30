@@ -272,6 +272,7 @@ return [
     ],
     'passport' => [
         'name' => "Passport",
+        'description' => "It's an Irish passport for {player}, featuring a rather unflattering biometric photo of your face.",
     ],
     'flashlight' => [
         'name' => "Flashlight",
@@ -356,9 +357,11 @@ return [
     ],
     'sleeping-pills' => [
         'name' => "Sleeping Pills",
+        'use' => "You immediately pass out until morning. Those babies are strong.",
         'portions' => 12,
         'attributes' => [
             "ingestible",
+            "exhaustible",
         ],
     ],
     'toothpaste' => [
@@ -373,15 +376,25 @@ return [
     ],
     'disposable-razor' => [
         'name' => "Disposable Razor",
+        'use' => "You cut the crap out of yourself but get the job done.",
+        'portions' => 10,
+        'attributes' => [
+            "exhaustible",
+        ],
     ],
     'dental-floss' => [
         'name' => "Dental Floss",
+        'use' => "You really go to town on your teeth.",
         'portions' => 50,
+        'attributes' => [
+            "exhaustible",
+        ],
     ],
     'mouthwash' => [
         'name' => "Mouthwash",
         'portions' => 25,
         'attributes' => [
+            "exhaustible",
             "ingestible",
         ],
     ],
@@ -389,6 +402,7 @@ return [
         'name' => "Moisturiser",
         'portions' => 30,
         'attributes' => [
+            "exhaustible",
             "ingestible",
         ],
     ],
@@ -397,9 +411,13 @@ return [
     ],
     'nail-clippers' => [
         'name' => "Nail Clippers",
+        'use' => "You tidy up your nails. It's healthy to keep up these things during quarantine.",
     ],
     'table-lamp' => [
         'name' => "Table Lamp",
+        'attributes' => [
+            "pluggable",
+        ],
         'states' => [
             'off' => "",
             'on'  => "On",
@@ -431,5 +449,8 @@ return [
             'off' => "",
             'on' => "On",
         ],
+    ],
+    'soap' => [
+        'name' => "Soap",
     ],
 ];
