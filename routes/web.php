@@ -33,3 +33,4 @@ Route::post("/{gameId}/place", "PostPlace");
 Route::post("/{gameId}/open", "PostOpen");
 Route::post("/{gameId}/close", "PostClose");
 Route::post("/{gameId}/put-in", "PostPutIn");
+Route::post("/{gameId}/use-with", "PostUseWith");

@@ -270,6 +270,17 @@ class Model {
             });
         }
 
+        if (this.action.is("use-with")
+            && this.confirmed === true
+        ) {
+            this.bus.dispatchEvent("request", {
+                url: `${this.gameId}/use-with`,
+                body: this.selectedItems.map(item => {
+                    return ["items[]", item.id];
+                }),
+            })
+        }
+
         if (this.action.is("open")) {
             if (!item.isContainer) {
                 this.bus.dispatchEvent("failure", {

@@ -42,6 +42,15 @@ final class ItemRepositoryDb implements ItemRepository
         return $this->createItemFromRow($row);
     }
 
+    public function all(): array
+    {
+        $rows = DB::select("SELECT * FROM objects WHERE game_id = ?", [
+            $this->gameId,
+        ]);
+
+        return $this->createItemsFromRows($rows);
+    }
+
     public function findInventory(ItemWhereabouts $whereabouts): Inventory
     {
         $rows = DB::select(

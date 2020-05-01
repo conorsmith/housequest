@@ -27,6 +27,9 @@ final class Player
     private $hasWon;
 
     /** @var array */
+    private $conditions;
+
+    /** @var array */
     private $events;
 
     /** @var array */
@@ -41,6 +44,9 @@ final class Player
     /** @var array */
     private $enteredLocations;
 
+    /** @var PlayerStats */
+    private $stats;
+
     public function __construct(
         UuidInterface $id,
         string $name,
@@ -48,11 +54,13 @@ final class Player
         int $xp,
         bool $isDead,
         bool $hasWon,
+        array $conditions,
         array $events,
         array $achievements,
         array $eatenItemTypes,
         int $eatenItemCount,
-        array $enteredLocations
+        array $enteredLocations,
+        PlayerStats $stats
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -60,11 +68,13 @@ final class Player
         $this->xp = $xp;
         $this->isDead = $isDead;
         $this->hasWon = $hasWon;
+        $this->conditions = $conditions;
         $this->events = $events;
         $this->achievements = $achievements;
         $this->eatenItemTypes = $eatenItemTypes;
         $this->eatenItemsCount = $eatenItemCount;
         $this->enteredLocations = $enteredLocations;
+        $this->stats = $stats;
     }
 
     public function getId(): UuidInterface
@@ -97,6 +107,11 @@ final class Player
         return $this->hasWon;
     }
 
+    public function getConditions(): array
+    {
+        return $this->conditions;
+    }
+
     public function getEvents(): array
     {
         return $this->events;
@@ -107,30 +122,15 @@ final class Player
         return $this->achievements;
     }
 
-    public function getEatenItemTypes(): array
+    public function getStats(): PlayerStats
     {
-        return $this->eatenItemTypes;
-    }
-
-    public function getEatenItemsCount(): int
-    {
-        return $this->eatenItemsCount;
-    }
-
-    public function getEnteredLocations(): array
-    {
-        return $this->enteredLocations;
+        return $this->stats;
     }
 
     public function move(string $locationId): void
     {
         $this->locationId = $locationId;
-
-        if (in_array($locationId, $this->enteredLocations)) {
-            return;
-        }
-
-        $this->enteredLocations[] = $locationId;
+        $this->stats->recordLocationEntered($locationId);
     }
 
     public function kill(): void
@@ -141,6 +141,25 @@ final class Player
     public function win(): void
     {
         $this->hasWon = true;
+    }
+
+    public function addCondition(string $condition): void
+    {
+        if (in_array($condition, $this->conditions)) {
+            return;
+        }
+
+        $this->conditions[] = $condition;
+    }
+
+    public function removeCondition(string $removedCondition): void
+    {
+        foreach ($this->conditions as $key => $exisitngCondition) {
+            if ($removedCondition === $exisitngCondition) {
+                unset($this->conditions[$key]);
+                return;
+            }
+        }
     }
 
     public function experienceEvent(string $eventId): ?Event
@@ -167,19 +186,23 @@ final class Player
         return true;
     }
 
+    public function useItem(Item $item): void
+    {
+        $this->stats->recordItemUsed($item);
+    }
+
+    public function useCombo(array $items): void
+    {
+        $this->stats->recordItemComboUsed($items);
+    }
+
     public function eat(Item $item): void
     {
         if (!$item->isIngestible()) {
             throw new DomainException("Player cannot eat non-ingestible item {$item->getTypeId()}.");
         }
 
-        $this->eatenItemsCount++;
-
-        if (in_array($item->getTypeId(), $this->eatenItemTypes)) {
-            return;
-        }
-
-        $this->eatenItemTypes[] = $item->getTypeId();
+        $this->stats->recordItemEaten($item);
     }
 
     public function experiencedEvent(string $eventId): bool
@@ -192,5 +215,59 @@ final class Player
         }
 
         return false;
+    }
+
+    public function unlockAchievements(): array
+    {
+        $existingAchievementIds = $this->getAchievements();
+
+        if ($this->stats->getUsedItemsCount() === 5) {
+            $this->unlockAchievement("use_count_5");
+        } elseif ($this->stats->getUsedItemsCount() === 10) {
+            $this->unlockAchievement("use_count_10");
+        } elseif ($this->stats->getUsedItemsCount() === 25) {
+            $this->unlockAchievement("use_count_25");
+        } elseif ($this->stats->getUsedItemsCount() === 50) {
+            $this->unlockAchievement("use_count_50");
+        }
+
+        if ($this->stats->getEatenItemsCount() === 5) {
+            $this->unlockAchievement("eat_count_5");
+        } elseif ($this->stats->getEatenItemsCount() === 10) {
+            $this->unlockAchievement("eat_count_10");
+        } elseif ($this->stats->getEatenItemsCount() === 25) {
+            $this->unlockAchievement("eat_count_25");
+        } elseif ($this->stats->getEatenItemsCount() === 50) {
+            $this->unlockAchievement("eat_count_50");
+        }
+
+        if (count($this->stats->getEatenItemTypes()) === 5) {
+            $this->unlockAchievement("eat_types_5");
+        } elseif (count($this->stats->getEatenItemTypes()) === 10) {
+            $this->unlockAchievement("eat_types_10");
+        } elseif (count($this->stats->getEatenItemTypes()) === 25) {
+            $this->unlockAchievement("eat_types_25");
+        } elseif (count($this->stats->getEatenItemTypes()) === 50) {
+            $this->unlockAchievement("eat_types_50");
+        } elseif (count($this->stats->getEatenItemTypes()) === 57) {
+            $this->unlockAchievement("eat_types_57");
+        }
+
+        if (in_array("mouthwash", $this->stats->getUsedItemTypes())
+            && in_array("dental-floss", $this->stats->getUsedItemTypes())
+            && in_array(["sink", "toothbrush", "toothpaste"], $this->stats->getUsedItemCombos())
+        ) {
+            $this->unlockAchievement("use_class_teeth");
+        }
+
+        $unlockedAchievementIds = [];
+
+        foreach ($this->achievements as $achievementId) {
+            if (!in_array($achievementId, $existingAchievementIds)) {
+                $unlockedAchievementIds[] = $achievementId;
+            }
+        }
+
+        return $unlockedAchievementIds;
     }
 }

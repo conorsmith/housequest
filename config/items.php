@@ -225,7 +225,7 @@ return [
     ],
     'sink' => [
         'name' => "Sink",
-        'use' => "You wash your hands for a solid minute. Good work.",
+        'use' => "You run your hands under the water for a bit. Not ideal work.",
         'attributes' => [
             "affixed",
         ],
@@ -360,19 +360,22 @@ return [
         'use' => "You immediately pass out until morning. Those babies are strong.",
         'portions' => 12,
         'attributes' => [
-            "ingestible",
             "exhaustible",
+            "ingestible",
         ],
     ],
     'toothpaste' => [
         'name' => "Toothpaste",
         'portions' => 30,
+        'use' => "You rub toothpaste over those teeth of yours. That'll do I guess.",
         'attributes' => [
+            "exhaustible",
             "ingestible",
         ],
     ],
     'toothbrush' => [
         'name' => "Toothbrush",
+        'use' => "You brush your gums with a dry toothbrush until your gums hurt.",
     ],
     'disposable-razor' => [
         'name' => "Disposable Razor",
@@ -452,5 +455,56 @@ return [
     ],
     'soap' => [
         'name' => "Soap",
+        'use' => "You sort of grease up your hands with a dry bar of soap.",
+        'portions' => 30,
+        'attributes' => [
+            "exhaustible",
+            "ingestible",
+        ],
+    ],
+    'shaving-cream' => [
+        'name' => "Shaving Cream",
+        'use' => "You put a fun little blob of shaving cream on your hand.",
+        'portions' => 50,
+        'attributes' => [
+            "exhaustible",
+            "ingestible",
+        ],
+    ],
+    'towel-rail' => [
+        'name' => "Towel Rail",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'hand-towel' => [
+        'name' => "Hand Towel",
+        'use' => "You dry your hands.",
+        'states' => [
+            'dry' => "",
+            'wet' => "Wet",
+        ],
+    ],
+    'door-hooks' => [
+        'name' => "Door Hooks",
+        'attributes' => [
+            "affixed",
+        ],
+    ],
+    'bath-towel' => [
+        'name' => "Bath Towel",
+        'use' => "You dry your bod'.",
+        'states' => [
+            'dry' => "",
+            'wet' => "Wet",
+        ],
+    ],
+    'face-cloth' => [
+        'name' => "Face Cloth",
+        'use' => "You dab your face with a dry cloth.",
+        'states' => [
+            'dry' => "",
+            'wet' => "Wet",
+        ],
     ],
 ];

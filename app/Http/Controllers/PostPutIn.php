@@ -9,7 +9,6 @@ use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\ItemFactory;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Ramsey\Uuid\Uuid;
 
 final class PostPutIn extends Controller

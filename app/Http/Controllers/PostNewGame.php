@@ -8,6 +8,7 @@ use App\Domain\Inventory;
 use App\Domain\Item;
 use App\Domain\ItemWhereabouts;
 use App\Domain\Player;
+use App\Domain\PlayerStats;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\EventFactory;
@@ -68,6 +69,7 @@ final class PostNewGame extends Controller
             0,
             false,
             false,
+            [],
             [
                 $startEvent,
             ],
@@ -76,7 +78,18 @@ final class PostNewGame extends Controller
             0,
             [
                 $startingLocationId,
-            ]
+            ],
+            new PlayerStats(
+                [],
+                0,
+                [],
+                0,
+                [],
+                0,
+                [
+                    $startingLocationId,
+                ]
+            )
         );
 
         $inventories = $this->createInventoriesForGame($gameId);

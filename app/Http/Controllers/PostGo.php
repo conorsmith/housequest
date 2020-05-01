@@ -39,7 +39,7 @@ final class PostGo extends Controller
 
         $player = $this->playerRepo->find($gameId);
 
-        $isNewLocation = !in_array($locationId, $player->getEnteredLocations());
+        $isNewLocation = !in_array($locationId, $player->getStats()->getEnteredLocations());
         $startingLocationId = $player->getLocationId();
 
         $player->move($locationId);

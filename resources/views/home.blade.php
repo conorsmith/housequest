@@ -106,43 +106,41 @@
                 @endif
             </div>
 
-            @if($player->inventory or $player->isDead or $player->hasWon)
-                <div class="card" style="margin-top: 2rem;">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>{{ $player->name }}</div>
-                    </div>
-
-                    @if($player->isDead)
-                        <div class="card-body additional-border-bottom">
-                            <form action="/new-game" method="POST" class="action-button">
-                                {{ csrf_field() }}
-                                <input type="hidden" name="playerName" value="{{ $player->name }}">
-                                <button type="submit" class="btn btn-primary btn-block">
-                                    You have died. Try again?
-                                </button>
-                            </form>
-                        </div>
-                    @endif
-
-                    @if($player->hasWon)
-                        <div class="card-body additional-border-bottom">
-                            <form action="/new-game" method="POST" class="action-button">
-                                {{ csrf_field() }}
-                                <input type="hidden" name="playerName" value="{{ $player->name }}">
-                                <button type="submit" class="btn btn-primary btn-block">
-                                    You saved the world. Care to try again?
-                                </button>
-                            </form>
-                        </div>
-                    @endif
-
-                    <ul class="list-group list-group-flush">
-                        @foreach($player->inventory as $item)
-                            @include('inventory-item', ['item' => $item])
-                        @endforeach
-                    </ul>
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>{{ $player->name }}</div>
                 </div>
-            @endif
+
+                @if($player->isDead)
+                    <div class="card-body additional-border-bottom">
+                        <form action="/new-game" method="POST" class="action-button">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="playerName" value="{{ $player->name }}">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                You have died. Try again?
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                @if($player->hasWon)
+                    <div class="card-body additional-border-bottom">
+                        <form action="/new-game" method="POST" class="action-button">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="playerName" value="{{ $player->name }}">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                You saved the world. Care to try again?
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                <ul class="list-group list-group-flush">
+                    @foreach($player->inventory as $item)
+                        @include('inventory-item', ['item' => $item])
+                    @endforeach
+                </ul>
+            </div>
 
         </div>
     </div>
@@ -214,6 +212,7 @@
                         style="width: 6rem; margin: 0 0.1rem 0.2rem;"
                         {{ $player->isDead || $player->hasWon ? "disabled" : "" }}
                         data-default-action="use"
+                        data-alt-action="use-with"
                         data-alt-label="Use With"
                 >
                     Use

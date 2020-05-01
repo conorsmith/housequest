@@ -46,11 +46,19 @@ final class PostLookAt extends Controller
         $item = $itemRepo->find($itemId);
         $viewModel = $this->itemViewModelFactory->create($item);
 
+        if ($item->isMultiPortionItem()
+            && $item->getRemainingPortions() < $item->getTotalPortions()
+        ) {
+            $portionMessage = " [{$item->getRemainingPortions()}/{$item->getTotalPortions()}]";
+        } else {
+            $portionMessage = "";
+        }
+
         if ($viewModel->hasDescription) {
             $description = str_replace("{player}", $player->getName(), $viewModel->description);
-            session()->flash("messageRaw", $description);
+            session()->flash("messageRaw", $description . $portionMessage);
         } else {
-            session()->flash("messageRaw", "It's {$viewModel->label}.");
+            session()->flash("messageRaw", "It's {$viewModel->label}.{$portionMessage}");
         }
         return redirect("/{$gameId}");
     }

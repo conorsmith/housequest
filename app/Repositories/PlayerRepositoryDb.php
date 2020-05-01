@@ -5,6 +5,7 @@ namespace App\Repositories;
 
 use App\Domain\Event;
 use App\Domain\Player;
+use App\Domain\PlayerStats;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Ramsey\Uuid\Uuid;
@@ -34,6 +35,8 @@ final class PlayerRepositoryDb implements PlayerRepository
             $row->id,
         ]);
 
+        $usedItemTypes = [];
+        $usedItemComboTypes = [];
         $eatenItemTypes = [];
         $enteredLocations = [];
         $events = [];
@@ -42,6 +45,10 @@ final class PlayerRepositoryDb implements PlayerRepository
         foreach ($itemActionLogRows as $itemActionLogRow) {
             if ($itemActionLogRow->action === "eat") {
                 $eatenItemTypes[] = $itemActionLogRow->item_type_id;
+            } elseif ($itemActionLogRow->action === "use") {
+                $usedItemTypes[] = $itemActionLogRow->item_type_id;
+            } elseif ($itemActionLogRow->action === "use-with") {
+                $usedItemComboTypes[] = explode("|", $itemActionLogRow->item_type_id);
             }
         }
 
@@ -66,11 +73,21 @@ final class PlayerRepositoryDb implements PlayerRepository
             intval($row->xp),
             $row->is_dead === 1,
             $row->has_won === 1,
+            json_decode($row->conditions, true) ?? [],
             $events,
             $achievements,
             $eatenItemTypes,
             intval($row->eaten_items_count),
-            $enteredLocations
+            $enteredLocations,
+            new PlayerStats(
+                $usedItemTypes,
+                intval($row->used_items_count),
+                $usedItemComboTypes,
+                intval($row->used_item_combos_count),
+                $eatenItemTypes,
+                intval($row->eaten_items_count),
+                $enteredLocations
+            )
         );
     }
 
@@ -81,14 +98,47 @@ final class PlayerRepositoryDb implements PlayerRepository
                 'id' => $player->getId(),
             ])
             ->update([
-                'location_id'       => $player->getLocationId(),
-                'xp'                => $player->getXp(),
-                'is_dead'           => $player->isDead(),
-                'has_won'           => $player->hasWon(),
-                'eaten_items_count' => $player->getEatenItemsCount(),
+                'location_id'            => $player->getLocationId(),
+                'xp'                     => $player->getXp(),
+                'is_dead'                => $player->isDead(),
+                'has_won'                => $player->hasWon(),
+                'conditions'             => json_encode($player->getConditions()),
+                'used_items_count'       => $player->getStats()->getUsedItemsCount(),
+                'used_item_combos_count' => $player->getStats()->getUsedItemCombosCount(),
+                'eaten_items_count'      => $player->getStats()->getEatenItemsCount(),
             ]);
 
-        foreach ($player->getEatenItemTypes() as $itemType) {
+        foreach ($player->getStats()->getUsedItemTypes() as $itemType) {
+            DB::table("player_item_action_log")
+                ->updateOrInsert(
+                    [
+                        'player_id'    => $player->getId(),
+                        'item_type_id' => $itemType,
+                        'action'       => "use",
+                    ],
+                    [
+                        'id'           => Uuid::uuid4(),
+                        'created_at'   => Carbon::now("Europe/Dublin"),
+                    ]
+                );
+        }
+
+        foreach ($player->getStats()->getUsedItemCombos() as $itemTypes) {
+            DB::table("player_item_action_log")
+                ->updateOrInsert(
+                    [
+                        'player_id'    => $player->getId(),
+                        'item_type_id' => implode("|", $itemTypes),
+                        'action'       => "use-with",
+                    ],
+                    [
+                        'id'           => Uuid::uuid4(),
+                        'created_at'   => Carbon::now("Europe/Dublin"),
+                    ]
+                );
+        }
+
+        foreach ($player->getStats()->getEatenItemTypes() as $itemType) {
             DB::table("player_item_action_log")
                 ->updateOrInsert(
                     [
@@ -103,7 +153,7 @@ final class PlayerRepositoryDb implements PlayerRepository
                 );
         }
 
-        foreach ($player->getEnteredLocations() as $locationId) {
+        foreach ($player->getStats()->getEnteredLocations() as $locationId) {
             DB::table("player_location_action_log")
                 ->updateOrInsert(
                     [
@@ -168,19 +218,22 @@ final class PlayerRepositoryDb implements PlayerRepository
     public function saveNew(UuidInterface $gameId, Player $player): void
     {
         DB::table("players")->insert([
-            'id'                => $player->getId()->toString(),
-            'game_id'           => $gameId->toString(),
-            'name'              => $player->getName(),
-            'location_id'       => $player->getLocationId(),
-            'xp'                => 0,
-            'is_dead'           => $player->isDead(),
-            'has_won'           => $player->hasWon(),
-            'eaten_items_count' => $player->getEatenItemsCount(),
-            'created_at'        => Carbon::now("Europe/Dublin"),
+            'id'                     => $player->getId()->toString(),
+            'game_id'                => $gameId->toString(),
+            'name'                   => $player->getName(),
+            'location_id'            => $player->getLocationId(),
+            'xp'                     => 0,
+            'is_dead'                => $player->isDead(),
+            'has_won'                => $player->hasWon(),
+            'conditions'             => json_encode($player->getConditions()),
+            'used_items_count'       => $player->getStats()->getUsedItemsCount(),
+            'used_item_combos_count' => $player->getStats()->getUsedItemCombosCount(),
+            'eaten_items_count'      => $player->getStats()->getEatenItemsCount(),
+            'created_at'             => Carbon::now("Europe/Dublin"),
         ]);
 
         /** @var string $locationId */
-        foreach ($player->getEnteredLocations() as $locationId) {
+        foreach ($player->getStats()->getEnteredLocations() as $locationId) {
             DB::table("player_location_action_log")
                 ->insert([
                     'id'          => Uuid::uuid4(),

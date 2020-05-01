@@ -696,6 +696,15 @@ var Model = /*#__PURE__*/function () {
         });
       }
 
+      if (this.action.is("use-with") && this.confirmed === true) {
+        this.bus.dispatchEvent("request", {
+          url: "".concat(this.gameId, "/use-with"),
+          body: this.selectedItems.map(function (item) {
+            return ["items[]", item.id];
+          })
+        });
+      }
+
       if (this.action.is("open")) {
         if (!item.isContainer) {
           this.bus.dispatchEvent("failure", {
@@ -1222,7 +1231,7 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "isUsedByCurrentAction",
     value: function isUsedByCurrentAction() {
-      return ["drop-multiple", "pick-up-multiple"].includes(this.currentAction);
+      return ["drop-multiple", "pick-up-multiple", "use-with"].includes(this.currentAction);
     }
   }]);
 

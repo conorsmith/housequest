@@ -81,6 +81,7 @@ class Model {
         return [
             "drop-multiple",
             "pick-up-multiple",
+            "use-with",
         ].includes(this.currentAction);
     }
 }

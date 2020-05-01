@@ -9,6 +9,7 @@ use App\Repositories\ItemRepositoryDb;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepositoryDb;
 use App\UseCases\UseCommand;
+use App\ViewModels\AchievementFactory;
 use App\ViewModels\EventFactory;
 use App\ViewModels\ItemFactory;
 use Illuminate\Http\Request;
@@ -28,16 +29,21 @@ final class PostUse extends Controller
     /** @var ItemFactory */
     private $itemViewModelFactory;
 
+    /** @var AchievementFactory */
+    private $achievementViewModelFactory;
+
     public function __construct(
         ItemRepositoryDbFactory $itemRepoFactory,
         PlayerRepositoryDb $playerRepo,
         EventFactory $eventViewModelFactory,
-        ItemFactory $itemViewModelFactory
+        ItemFactory $itemViewModelFactory,
+        AchievementFactory $achievementViewModelFactory
     ) {
         $this->itemRepoFactory = $itemRepoFactory;
         $this->playerRepo = $playerRepo;
         $this->eventViewModelFactory = $eventViewModelFactory;
         $this->itemViewModelFactory = $itemViewModelFactory;
+        $this->achievementViewModelFactory = $achievementViewModelFactory;
     }
 
     public function __invoke(Request $request, string $gameId, string $itemId)
@@ -55,6 +61,21 @@ final class PostUse extends Controller
 
         if ($this->hasCustomUse($item)) {
             $this->executeCustomUse($request, $item);
+
+            $player->useItem($item);
+            $achievementIds = $player->unlockAchievements();
+            $this->playerRepo->save($player);
+
+            $achievementSessionData = [];
+
+            foreach ($achievementIds as $achievementId) {
+                $achievementSessionData[] = $this->achievementViewModelFactory->create($achievementId);
+            }
+
+            if (count($achievementSessionData) > 0) {
+                session()->flash("achievements", $achievementSessionData);
+            }
+
             return redirect("/{$gameId}");
         }
 
@@ -95,7 +116,20 @@ final class PostUse extends Controller
             }
         }
 
+        $player->useItem($item);
+        $achievementIds = $player->unlockAchievements();
+
         $this->playerRepo->save($player);
+
+        $achievementSessionData = [];
+
+        foreach ($achievementIds as $achievementId) {
+            $achievementSessionData[] = $this->achievementViewModelFactory->create($achievementId);
+        }
+
+        if (count($achievementSessionData) > 0) {
+            session()->flash("achievements", $achievementSessionData);
+        }
 
         session()->flash("success", $use->getMessage());
         return redirect("/{$gameId}");
@@ -211,7 +245,15 @@ final class PostUse extends Controller
             $message = "<p class=\"mb-0\">\"This is an automated message from your local police department. If you require police assistance, a SWAT team will be dispatched to your residence. If you require medical assistance, please contact your insurer. If you do not have medical insurance, a SWAT team will be dispatched to your residence.\"</p>";
 
         } elseif ($number === "08002684319") {
-            if ($inventory->hasItemType("covid-19-cure")) {
+            if ($player->experiencedEvent("prank-call")) {
+                $message = "<p>You get through to the quarantine hotline. After hours of waiting a human answers.</p>"
+                . "<p>\"Hell– {$player->getName()}? The prank caller? Go fuck yourself!\"</p>"
+                . "<p class=\"mb-0\">The call ends. This is why we follow instructions carefully.</p>";
+            } elseif ($player->experiencedEvent("beam-in-first-glance")
+                || $player->experiencedEvent("beam-in-second-glance")
+                || $player->experiencedEvent("beam-in-first-glance-sandwich-retrieval")
+                || $player->experiencedEvent("beam-in-second-glance-sandwich-retrieval")
+            ) {
                 $player->experienceEvent("the-right-call");
                 $message = $this->eventViewModelFactory->createMessage("the-right-call");
             } else {
@@ -242,6 +284,16 @@ final class PostUse extends Controller
             /** @var Item $inventoryItem */
             foreach ($inventory->getItems() as $inventoryItem) {
                 $itemRepo->save($inventoryItem);
+            }
+        }
+
+        $allItems = $itemRepo->all();
+
+        /** @var Item $potentiallyResetItem */
+        foreach ($allItems as $potentiallyResetItem) {
+            if ($potentiallyResetItem->getState() === "wet") {
+                $potentiallyResetItem->transitionState("dry");
+                $itemRepo->save($potentiallyResetItem);
             }
         }
 

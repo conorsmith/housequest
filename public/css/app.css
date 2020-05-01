@@ -11109,6 +11109,7 @@ a.text-dark:focus {
 .item .item-controls .progress {
   margin-left: 0.6rem;
   width: 2rem;
+  height: 0.6rem;
 }
 
 .item .item-label .progress-bar,

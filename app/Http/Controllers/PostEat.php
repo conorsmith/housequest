@@ -80,7 +80,7 @@ final class PostEat extends Controller
 
         $player->eat($item);
 
-        $achievementIds = $this->unlockAchievements($player);
+        $achievementIds = $player->unlockAchievements();
 
         if ($item->hasAttribute("toxic")) {
             $player->kill();
@@ -109,42 +109,5 @@ final class PostEat extends Controller
             session()->flash("success", "You ate {$viewModel->label}.");
         }
         return redirect("/{$gameId}");
-    }
-
-    private function unlockAchievements(Player $player): array
-    {
-        $existingAchievementIds = $player->getAchievements();
-
-        if ($player->getEatenItemsCount() === 5) {
-            $player->unlockAchievement("eat_count_5");
-        } elseif ($player->getEatenItemsCount() === 10) {
-            $player->unlockAchievement("eat_count_10");
-        } elseif ($player->getEatenItemsCount() === 25) {
-            $player->unlockAchievement("eat_count_25");
-        } elseif ($player->getEatenItemsCount() === 50) {
-            $player->unlockAchievement("eat_count_50");
-        }
-
-        if (count($player->getEatenItemTypes()) === 5) {
-            $player->unlockAchievement("eat_types_5");
-        } elseif (count($player->getEatenItemTypes()) === 10) {
-            $player->unlockAchievement("eat_types_10");
-        } elseif (count($player->getEatenItemTypes()) === 25) {
-            $player->unlockAchievement("eat_types_25");
-        } elseif (count($player->getEatenItemTypes()) === 50) {
-            $player->unlockAchievement("eat_types_50");
-        } elseif (count($player->getEatenItemTypes()) === 57) {
-            $player->unlockAchievement("eat_types_57");
-        }
-
-        $unlockedAchievementIds = [];
-
-        foreach ($player->getAchievements() as $achievementId) {
-            if (!in_array($achievementId, $existingAchievementIds)) {
-                $unlockedAchievementIds[] = $achievementId;
-            }
-        }
-
-        return $unlockedAchievementIds;
     }
 }

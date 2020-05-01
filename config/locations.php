@@ -222,8 +222,14 @@ return [
         ],
         'items' => [
             "toilet",
-            "sink",
             "shower",
+            [
+                'id' => "sink",
+                'surface' => [
+                    "soap",
+                    "face-cloth",
+                ],
+            ],
             [
                 'id' => "medicine-cabinet",
                 'contents' => [
@@ -232,9 +238,22 @@ return [
                     "toothbrush" => 2,
                     "dental-floss",
                     "disposable-razor" => 5,
+                    "shaving-cream",
                     "moisturiser" => 3,
                     "mouthwash",
                     "nail-clippers",
+                ],
+            ],
+            [
+                'id' => "towel-rail",
+                'surface' => [
+                    "hand-towel",
+                ],
+            ],
+            [
+                'id' => "door-hooks",
+                'surface' => [
+                    "bath-towel" => 2,
                 ],
             ],
         ],
