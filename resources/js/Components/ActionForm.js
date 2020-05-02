@@ -25,6 +25,9 @@ export default class Controller {
         window.EventBus.addEventListener("item.selected", e => { this.model.addSelectedItem(e.detail.item); });
         window.EventBus.addEventListener("item.unselected", e => { this.model.removeSelectedItem(e.detail.itemId); });
 
+        window.EventBus.addEventListener("player.selected", e => { this.model.selectPlayer(); });
+        window.EventBus.addEventListener("player.unselected", e => { this.model.unselectPlayer(); });
+
         window.EventBus.addEventListener("confirm", e => { this.model.confirm(); });
         window.EventBus.addEventListener("cancel", e => { this.model.reset(); });
 
@@ -134,6 +137,7 @@ class Model {
         this.gameId = gameId;
         this.currentLocationId = currentLocationId;
         this.action = Action.createNull();
+        this.playerIsSelected = false;
         this.selectedItems = [];
         this.confirmed = false;
         this.confirmationData = undefined;
@@ -190,6 +194,28 @@ class Model {
     removeSelectedItem(itemId) {
         this.selectedItems = this.selectedItems.filter(selectedItem => {
             return selectedItem.id !== itemId;
+        });
+
+        if (this.selectedItems.length === 0) {
+            this.bus.dispatchEvent("item.empty");
+        }
+    }
+
+    selectPlayer() {
+        this.playerIsSelected = true;
+        this.selectedItems.push({
+            id: "00000000-0000-0000-0000-000000000000",
+            typeId: "player",
+            label: "yourself",
+            isContainer: false
+        });
+        this.dispatchActionTriggeredEvent();
+    }
+
+    unselectPlayer() {
+        this.playerIsSelected = false;
+        this.selectedItems = this.selectedItems.filter(selectedItem => {
+            return selectedItem.id !== "00000000-0000-0000-0000-000000000000";
         });
 
         if (this.selectedItems.length === 0) {

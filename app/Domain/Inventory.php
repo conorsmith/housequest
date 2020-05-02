@@ -78,6 +78,23 @@ final class Inventory
         }
     }
 
+    public function transitionStateOfItem(Item $item, string $newState): void
+    {
+        if ($item->hasManyQuantities()) {
+            $item = $item->split(1);
+            $this->items[] = $item;
+        }
+
+        $item->transitionState($newState);
+
+        /** @var Item $inventoryItem */
+        foreach ($this->items as $inventoryItem) {
+            if ($item->canMergeWith($inventoryItem)) {
+                $inventoryItem->merge($item);
+            }
+        }
+    }
+
     public function removeByType(string $itemTypeId): void
     {
         /** @var Item $inventoryItem */

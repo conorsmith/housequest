@@ -229,6 +229,8 @@ final class Player
             $this->unlockAchievement("use_count_25");
         } elseif ($this->stats->getUsedItemsCount() === 50) {
             $this->unlockAchievement("use_count_50");
+        } elseif ($this->stats->getUsedItemsCount() === 100) {
+            $this->unlockAchievement("use_count_100");
         }
 
         if ($this->stats->getEatenItemsCount() === 5) {

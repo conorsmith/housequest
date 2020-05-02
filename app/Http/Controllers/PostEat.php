@@ -58,6 +58,11 @@ final class PostEat extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($itemId->toString() === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot eat yourself.");
+            return redirect("/{$gameId}");
+        }
+
         $item = $itemRepo->find($itemId);
         $rootWhereabouts = $itemRepo->findRootWhereabouts($item);
 

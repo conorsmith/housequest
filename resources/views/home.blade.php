@@ -107,7 +107,7 @@
             </div>
 
             <div class="card" style="margin-top: 2rem;">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="js-player card-header d-flex justify-content-between align-items-center">
                     <div>{{ $player->name }}</div>
                 </div>
 

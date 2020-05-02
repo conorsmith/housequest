@@ -479,7 +479,6 @@ return [
     ],
     'hand-towel' => [
         'name' => "Hand Towel",
-        'use' => "You dry your hands.",
         'states' => [
             'dry' => "",
             'wet' => "Wet",
@@ -493,7 +492,6 @@ return [
     ],
     'bath-towel' => [
         'name' => "Bath Towel",
-        'use' => "You dry your bod'.",
         'states' => [
             'dry' => "",
             'wet' => "Wet",

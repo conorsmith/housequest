@@ -55,26 +55,31 @@ return [
     [
         'id' => "use_count_5",
         'title' => "Just Do It",
-        'body' => "You have used stuff 5 times"
+        'body' => "You have used stuff 5 times",
     ],
     [
         'id' => "use_count_10",
         'title' => "Do It Now!",
-        'body' => "You have used stuff 10 times"
+        'body' => "You have used stuff 10 times",
     ],
     [
         'id' => "use_count_25",
         'title' => "Do the Bartman",
-        'body' => "You have used stuff 25 times"
+        'body' => "You have used stuff 25 times",
     ],
     [
         'id' => "use_count_50",
         'title' => "Don't Do What Donny Don't Does",
-        'body' => "You have used stuff 50 times"
+        'body' => "You have used stuff 50 times",
+    ],
+    [
+        'id' => "use_count_100",
+        'title' => "Doo Doo Doo, Doo Doo-Doo Doo",
+        'body' => "You have used stuff 100 times",
     ],
     [
         'id' => "use_class_teeth",
         'title' => "9 out of 10 Dentists",
-        'body' => "You have practiced good oral hygiene"
+        'body' => "You have practiced good oral hygiene",
     ],
 ];

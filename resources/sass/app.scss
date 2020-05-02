@@ -61,6 +61,18 @@ $border-radius-sm: 0 !default;
     border-bottom: 1px solid $border-color;
 }
 
+.header-selectable {
+    cursor: pointer;
+
+    &:hover {
+        background-color: $gray-100;
+    }
+
+    &.active {
+        background-color: $gray-100;
+    }
+}
+
 .item {
     @extend .list-group-item;
     @extend .d-flex;

@@ -62,6 +62,10 @@ final class PostUseWith extends Controller
 
         /** @var UuidInterface $itemId */
         foreach ($itemIds as $itemId) {
+            if ($itemId->toString() === "00000000-0000-0000-0000-000000000000") {
+                session()->flash("info", "You cannot use that with yourself.");
+                return redirect("/{$gameId}");
+            }
             $items[] = $itemRepo->find($itemId);
         }
 

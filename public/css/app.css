@@ -11043,6 +11043,18 @@ a.text-dark:focus {
   border-bottom: 1px solid #007f00;
 }
 
+.header-selectable {
+  cursor: pointer;
+}
+
+.header-selectable:hover {
+  background-color: #004c00;
+}
+
+.header-selectable.active {
+  background-color: #004c00;
+}
+
 .item {
   padding-left: 5rem;
 }

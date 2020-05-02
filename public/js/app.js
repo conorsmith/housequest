@@ -419,6 +419,12 @@ var Controller = /*#__PURE__*/function () {
     window.EventBus.addEventListener("item.unselected", function (e) {
       _this.model.removeSelectedItem(e.detail.itemId);
     });
+    window.EventBus.addEventListener("player.selected", function (e) {
+      _this.model.selectPlayer();
+    });
+    window.EventBus.addEventListener("player.unselected", function (e) {
+      _this.model.unselectPlayer();
+    });
     window.EventBus.addEventListener("confirm", function (e) {
       _this.model.confirm();
     });
@@ -549,6 +555,7 @@ var Model = /*#__PURE__*/function () {
     this.gameId = gameId;
     this.currentLocationId = currentLocationId;
     this.action = Action.createNull();
+    this.playerIsSelected = false;
     this.selectedItems = [];
     this.confirmed = false;
     this.confirmationData = undefined;
@@ -615,6 +622,30 @@ var Model = /*#__PURE__*/function () {
     value: function removeSelectedItem(itemId) {
       this.selectedItems = this.selectedItems.filter(function (selectedItem) {
         return selectedItem.id !== itemId;
+      });
+
+      if (this.selectedItems.length === 0) {
+        this.bus.dispatchEvent("item.empty");
+      }
+    }
+  }, {
+    key: "selectPlayer",
+    value: function selectPlayer() {
+      this.playerIsSelected = true;
+      this.selectedItems.push({
+        id: "00000000-0000-0000-0000-000000000000",
+        typeId: "player",
+        label: "yourself",
+        isContainer: false
+      });
+      this.dispatchActionTriggeredEvent();
+    }
+  }, {
+    key: "unselectPlayer",
+    value: function unselectPlayer() {
+      this.playerIsSelected = false;
+      this.selectedItems = this.selectedItems.filter(function (selectedItem) {
+        return selectedItem.id !== "00000000-0000-0000-0000-000000000000";
       });
 
       if (this.selectedItems.length === 0) {
@@ -1958,6 +1989,181 @@ var Model = /*#__PURE__*/function () {
 
 /***/ }),
 
+/***/ "./resources/js/Components/Player.js":
+/*!*******************************************!*\
+  !*** ./resources/js/Components/Player.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Controller; });
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventBus */ "./resources/js/EventBus.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var Controller = /*#__PURE__*/function () {
+  _createClass(Controller, null, [{
+    key: "fromEl",
+    value: function fromEl(el) {
+      return new Controller(new Model(), new View(el));
+    }
+  }]);
+
+  function Controller(model, view) {
+    var _this = this;
+
+    _classCallCheck(this, Controller);
+
+    this.model = model;
+    this.view = view;
+    this.view.onClick(function (e) {
+      _this.selectPlayer();
+    });
+    window.EventBus.addEventListener("action.changed", function (e) {
+      _this.model.handleActionChange(e.detail.action);
+    });
+    window.EventBus.addEventListener("cancel", function (e) {
+      _this.model.setNotSelectable();
+
+      _this.model.setNotSelected();
+    });
+    window.EventBus.addEventListener("action.completed", function (e) {
+      _this.model.setNotSelectable();
+
+      _this.model.setNotSelected();
+    });
+    this.model.bus.addEventListener("setSelectable", function (e) {
+      _this.view.setSelectable();
+    });
+    this.model.bus.addEventListener("setNotSelectable", function (e) {
+      _this.view.unsetSelectable();
+    });
+    this.model.bus.addEventListener("setSelected", function (e) {
+      _this.view.setSelected();
+    });
+    this.model.bus.addEventListener("setNotSelected", function (e) {
+      _this.view.unsetSelected();
+
+      window.EventBus.dispatchEvent("player.unselected");
+    });
+  }
+
+  _createClass(Controller, [{
+    key: "selectPlayer",
+    value: function selectPlayer() {
+      if (this.model.isSelectable === false) {
+        return;
+      }
+
+      if (this.model.isSelected === true) {
+        this.model.setNotSelected();
+        return;
+      }
+
+      this.model.setSelected();
+      window.EventBus.dispatchEvent("player.selected");
+    }
+  }]);
+
+  return Controller;
+}();
+
+
+
+var View = /*#__PURE__*/function () {
+  function View(el) {
+    _classCallCheck(this, View);
+
+    this.el = el;
+  }
+
+  _createClass(View, [{
+    key: "onClick",
+    value: function onClick(callback) {
+      this.el.addEventListener("click", callback);
+    }
+  }, {
+    key: "setSelectable",
+    value: function setSelectable() {
+      this.el.classList.add("header-selectable");
+    }
+  }, {
+    key: "unsetSelectable",
+    value: function unsetSelectable() {
+      this.el.classList.remove("header-selectable");
+    }
+  }, {
+    key: "setSelected",
+    value: function setSelected() {
+      this.el.classList.add("active");
+    }
+  }, {
+    key: "unsetSelected",
+    value: function unsetSelected() {
+      this.el.classList.remove("active");
+    }
+  }]);
+
+  return View;
+}();
+
+var Model = /*#__PURE__*/function () {
+  function Model() {
+    _classCallCheck(this, Model);
+
+    this.isSelectable = false;
+    this.isSelected = false;
+    this.action = null;
+    this.bus = new _EventBus__WEBPACK_IMPORTED_MODULE_0__["default"]();
+  }
+
+  _createClass(Model, [{
+    key: "handleActionChange",
+    value: function handleActionChange(action) {
+      if (action === undefined) {
+        this.setNotSelectable();
+        this.setNotSelected();
+      } else {
+        this.isSelectable = true;
+        this.action = action;
+        this.bus.dispatchEvent("setSelectable");
+      }
+    }
+  }, {
+    key: "setNotSelectable",
+    value: function setNotSelectable() {
+      this.isSelectable = false;
+      this.action = null;
+      this.bus.dispatchEvent("setNotSelectable");
+    }
+  }, {
+    key: "setSelected",
+    value: function setSelected() {
+      this.isSelected = true;
+      this.bus.dispatchEvent("setSelected");
+    }
+  }, {
+    key: "setNotSelected",
+    value: function setNotSelected() {
+      if (this.isSelected) {
+        this.isSelected = false;
+        this.bus.dispatchEvent("setNotSelected");
+      }
+    }
+  }]);
+
+  return Model;
+}();
+
+/***/ }),
+
 /***/ "./resources/js/EventBus.js":
 /*!**********************************!*\
   !*** ./resources/js/EventBus.js ***!
@@ -2055,6 +2261,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Components_PhoneModal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Components/PhoneModal */ "./resources/js/Components/PhoneModal.js");
 /* harmony import */ var _Components_AltButton__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Components/AltButton */ "./resources/js/Components/AltButton.js");
 /* harmony import */ var _Components_MulButton__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Components/MulButton */ "./resources/js/Components/MulButton.js");
+/* harmony import */ var _Components_Player__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./Components/Player */ "./resources/js/Components/Player.js");
 
 document.querySelectorAll(".js-increment").forEach(function (buttonEl) {
   buttonEl.addEventListener("click", function (e) {
@@ -2177,6 +2384,7 @@ document.querySelectorAll(".js-portion-decrement").forEach(function (buttonEl) {
 
 
 
+
 window.EventBus = new _EventBus__WEBPACK_IMPORTED_MODULE_1__["default"]();
 _Components_ActionForm__WEBPACK_IMPORTED_MODULE_3__["default"].fromFormEl(document.querySelector("#js-action"));
 _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("look-at");
@@ -2189,6 +2397,7 @@ _Components_ActionButton__WEBPACK_IMPORTED_MODULE_2__["default"].fromAction("eat
 _Components_AltButton__WEBPACK_IMPORTED_MODULE_8__["default"].fromEl(document.querySelector(".js-alt"));
 _Components_MulButton__WEBPACK_IMPORTED_MODULE_9__["default"].fromEl(document.querySelector(".js-mul"));
 _Components_ConfirmBar__WEBPACK_IMPORTED_MODULE_0__["default"].fromEl(document.querySelector(".js-confirm-bar"));
+_Components_Player__WEBPACK_IMPORTED_MODULE_10__["default"].fromEl(document.querySelector(".js-player"));
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
   _Components_InventoryItem__WEBPACK_IMPORTED_MODULE_4__["default"].fromItemEl(itemEl);
 });

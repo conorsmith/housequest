@@ -92,6 +92,10 @@ final class PostDrop extends Controller
 
     private function drop(ItemRepository $itemRepo, Inventory $locationInventory, UuidInterface $itemId)
     {
+        if ($itemId->toString() === "00000000-0000-0000-0000-000000000000") {
+            return $this->createdFailedResult("You cannot drop yourself.");
+        }
+
         $item = $itemRepo->find($itemId);
         $rootWhereabouts = $itemRepo->findRootWhereabouts($item);
 

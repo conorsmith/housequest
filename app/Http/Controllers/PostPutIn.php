@@ -45,6 +45,16 @@ final class PostPutIn extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($itemSubjectId->toString() === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot put yourself in that.");
+            return redirect("/{$gameId}");
+        }
+
+        if ($itemTargetId->toString() === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot put that in yourself.");
+            return redirect("/{$gameId}");
+        }
+
         /** @var ItemRepositoryDb $itemRepo */
         $itemRepo = $this->itemRepoFactory->create($gameId);
 

@@ -57,11 +57,17 @@ final class PostUse extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($itemId === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot use yourself.");
+            return redirect("/{$gameId}");
+        }
+
         $item = $itemRepo->find(Uuid::fromString($itemId));
 
         if ($this->hasCustomUse($item)) {
             $this->executeCustomUse($request, $item);
 
+            $player = $this->playerRepo->find(Uuid::fromString($gameId));
             $player->useItem($item);
             $achievementIds = $player->unlockAchievements();
             $this->playerRepo->save($player);
@@ -149,6 +155,9 @@ final class PostUse extends Controller
         'alarm-clock'                 => "useOnOffItem",
         'tv-remote'                   => "useTvRemote",
         'sleeping-pills'              => "useBed",
+        'hand-towel'                  => "useHandTowel",
+        'shower'                      => "useShower",
+        'bath-towel'                  => "useBathTowel",
     ];
 
     private function hasCustomUse(Item $item): bool
@@ -292,8 +301,14 @@ final class PostUse extends Controller
         /** @var Item $potentiallyResetItem */
         foreach ($allItems as $potentiallyResetItem) {
             if ($potentiallyResetItem->getState() === "wet") {
-                $potentiallyResetItem->transitionState("dry");
-                $itemRepo->save($potentiallyResetItem);
+                $inventory = $itemRepo->findInventory($potentiallyResetItem->getWhereabouts());
+                for ($i = 0; $i < $potentiallyResetItem->getQuantity(); $i++) {
+                    $inventory->transitionStateOfItem($inventory->find($potentiallyResetItem->getId()), "dry");
+                }
+                /** @var Item $inventoryItem */
+                foreach ($inventory->getItems() as $inventoryItem) {
+                    $itemRepo->save($inventoryItem);
+                }
             }
         }
 
@@ -496,5 +511,122 @@ final class PostUse extends Controller
         }
 
         $itemRepo->save($television);
+    }
+
+    public function useHandTowel(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $handTowel = $itemRepo->find($command->getItemId());
+
+        if ($handTowel->getState() === "wet") {
+            session()->flash("info", "You fail to dry yourself with a wet Hand Towel.");
+            return;
+        }
+
+        $handsWet = false;
+        $faceWet = false;
+
+        /** @var string $condition */
+        foreach ($player->getConditions() as $condition) {
+            if ($condition === "wet-hands") {
+                $handsWet = true;
+                $player->removeCondition($condition);
+            } elseif ($condition === "wet-face") {
+                $faceWet = true;
+                $player->removeCondition($condition);
+            }
+        }
+
+        if (!$handsWet && !$faceWet) {
+            session()->flash(
+                "success",
+                "You rub your dry hands on the Hand Towel."
+            );
+            return;
+        }
+
+        $handTowel->transitionState("wet");
+
+        $itemRepo->save($handTowel);
+        $this->playerRepo->save($player);
+
+        if ($handsWet && $faceWet) {
+            session()->flash(
+                "success",
+                "You dry your hands and face."
+            );
+        } elseif ($handsWet) {
+            session()->flash(
+                "success",
+                "You dry your hands."
+            );
+        } elseif ($faceWet) {
+            session()->flash(
+                "success",
+                "You dry your face."
+            );
+        }
+    }
+
+    public function useShower(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $shower = $itemRepo->find($command->getItemId());
+
+        $player->addCondition("wet-body");
+
+        $this->playerRepo->save($player);
+
+        session()->flash(
+            "success",
+            $shower->getUse()->getMessage()
+        );
+    }
+
+    public function useBathTowel(UseCommand $command): void
+    {
+        $itemRepo = $this->itemRepoFactory->create($command->getGameId());
+        $player = $this->playerRepo->find($command->getGameId());
+        $bathTowel = $itemRepo->find($command->getItemId());
+
+        if ($bathTowel->getState() === "wet") {
+            session()->flash("info", "You fail to dry yourself with a wet Bath Towel.");
+            return;
+        }
+
+        $isWet = false;
+
+        /** @var string $condition */
+        foreach ($player->getConditions() as $condition) {
+            if ($condition === "wet-body") {
+                $isWet = true;
+                $player->removeCondition($condition);
+            }
+        }
+
+        if (!$isWet) {
+            session()->flash(
+                "success",
+                "You rub the Bath Towel over your dry body."
+            );
+            return;
+        }
+
+        $inventory = $itemRepo->findInventory($bathTowel->getWhereabouts());
+        $inventory->transitionStateOfItem($inventory->find($bathTowel->getId()), "wet");
+
+        /** @var Item $item */
+        foreach ($inventory->getItems() as $item) {
+            $itemRepo->save($item);
+        }
+
+        $this->playerRepo->save($player);
+
+        session()->flash(
+            "success",
+            "You dry your bod'."
+        );
     }
 }

@@ -43,6 +43,23 @@ final class PostLookAt extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($itemId->toString() === "00000000-0000-0000-0000-000000000000") {
+            $playerMessage = "It's {$player->getName()}.";
+
+            foreach ($player->getConditions() as $condition) {
+                if ($condition === "wet-body") {
+                    $playerMessage .= " You are wet.";
+                } elseif ($condition === "wet-hands") {
+                    $playerMessage .= " Your hands are wet.";
+                } elseif ($condition === "wet-face") {
+                    $playerMessage .= " Your face is wet.";
+                }
+            }
+
+            session()->flash("messageRaw", $playerMessage);
+            return redirect("/{$gameId}");
+        }
+
         $item = $itemRepo->find($itemId);
         $viewModel = $this->itemViewModelFactory->create($item);
 

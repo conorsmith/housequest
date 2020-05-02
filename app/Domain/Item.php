@@ -120,6 +120,11 @@ final class Item
         return $this->totalPortions;
     }
 
+    public function hasStates(): bool
+    {
+        return !is_null($this->state);
+    }
+
     public function getState(): ?string
     {
         return $this->state;
@@ -217,7 +222,8 @@ final class Item
             && $this->typeId === $other->typeId
             && !$this->isContainer()
             && $this->remainingPortions === $other->remainingPortions
-            && $this->whereabouts->equals($other->whereabouts);
+            && $this->whereabouts->equals($other->whereabouts)
+            && $this->state === $other->state;
     }
 
     public function moveTo(ItemWhereabouts $whereabouts): void

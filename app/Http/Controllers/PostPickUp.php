@@ -82,6 +82,10 @@ final class PostPickUp extends Controller
 
     private function pickUp(ItemRepository $itemRepo, Inventory $playerInventory, UuidInterface $itemId): ?string
     {
+        if ($itemId->toString() === "00000000-0000-0000-0000-000000000000") {
+            return "You cannot pick yourself up.";
+        }
+
         $item = $itemRepo->find($itemId);
         $viewModel = $this->itemViewModelFactory->create($item);
 

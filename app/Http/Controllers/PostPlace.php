@@ -36,6 +36,8 @@ final class PostPlace extends Controller
     public function __invoke(Request $request)
     {
         $gameId = Uuid::fromString($request->route("gameId"));
+        $itemSubjectId = Uuid::fromString($request->input("itemSubjectId"));
+        $itemTargetId = Uuid::fromString($request->input("itemTargetId"));
         $player = $this->playerRepo->find($gameId);
 
         if ($player->isDead()) {
@@ -43,9 +45,19 @@ final class PostPlace extends Controller
             return redirect("/{$gameId}");
         }
 
+        if ($itemSubjectId->toString() === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot place yourself on that.");
+            return redirect("/{$gameId}");
+        }
+
+        if ($itemTargetId->toString() === "00000000-0000-0000-0000-000000000000") {
+            session()->flash("info", "You cannot place that on yourself.");
+            return redirect("/{$gameId}");
+        }
+
         $itemRepo = $this->itemRepoFactory->create($gameId);
-        $subjectItem = $itemRepo->find(Uuid::fromString($request->input("itemSubjectId")));
-        $targetItem = $itemRepo->find(Uuid::fromString($request->input("itemTargetId")));
+        $subjectItem = $itemRepo->find($itemSubjectId);
+        $targetItem = $itemRepo->find($itemTargetId);
 
         $subjectViewModel = $this->itemViewModelFactory->create($subjectItem);
         $targetViewModel = $this->itemViewModelFactory->create($targetItem);

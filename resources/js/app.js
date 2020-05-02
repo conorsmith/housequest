@@ -134,6 +134,7 @@ import AlertController from "./Components/Alert";
 import PhoneModalController from "./Components/PhoneModal";
 import AltButtonController from "./Components/AltButton";
 import MulButtonController from "./Components/MulButton";
+import PlayerController from "./Components/Player";
 
 window.EventBus = new EventBus();
 
@@ -150,6 +151,7 @@ AltButtonController.fromEl(document.querySelector(".js-alt"));
 MulButtonController.fromEl(document.querySelector(".js-mul"));
 
 ConfirmBar.fromEl(document.querySelector(".js-confirm-bar"));
+PlayerController.fromEl(document.querySelector(".js-player"));
 
 document.querySelectorAll(".js-inventory-item").forEach(function (itemEl) {
     InventoryItemController.fromItemEl(itemEl);
