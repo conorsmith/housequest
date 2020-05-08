@@ -374,6 +374,17 @@ class Model {
                 url: `/${this.gameId}/eat/${item.id}`
             });
         }
+
+        if (this.action.is("eat-multiple")
+            && this.confirmed === true
+        ) {
+            this.bus.dispatchEvent("request", {
+                url: `/${this.gameId}/eat`,
+                body: this.selectedItems.map(item => {
+                    return ["items[]", item.id];
+                })
+            });
+        }
     }
 }
 

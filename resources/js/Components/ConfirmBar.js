@@ -82,6 +82,7 @@ class Model {
             "drop-multiple",
             "pick-up-multiple",
             "use-with",
+            "eat-multiple",
         ].includes(this.currentAction);
     }
 }

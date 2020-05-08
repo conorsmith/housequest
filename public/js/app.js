@@ -793,6 +793,15 @@ var Model = /*#__PURE__*/function () {
           url: "/".concat(this.gameId, "/eat/").concat(item.id)
         });
       }
+
+      if (this.action.is("eat-multiple") && this.confirmed === true) {
+        this.bus.dispatchEvent("request", {
+          url: "/".concat(this.gameId, "/eat"),
+          body: this.selectedItems.map(function (item) {
+            return ["items[]", item.id];
+          })
+        });
+      }
     }
   }]);
 
@@ -1262,7 +1271,7 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "isUsedByCurrentAction",
     value: function isUsedByCurrentAction() {
-      return ["drop-multiple", "pick-up-multiple", "use-with"].includes(this.currentAction);
+      return ["drop-multiple", "pick-up-multiple", "use-with", "eat-multiple"].includes(this.currentAction);
     }
   }]);
 
