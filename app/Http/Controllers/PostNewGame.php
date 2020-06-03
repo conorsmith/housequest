@@ -9,6 +9,7 @@ use App\Domain\Item;
 use App\Domain\ItemWhereabouts;
 use App\Domain\Player;
 use App\Domain\PlayerStats;
+use App\Repositories\ItemRepository;
 use App\Repositories\ItemRepositoryDbFactory;
 use App\Repositories\PlayerRepository;
 use App\ViewModels\EventFactory;
@@ -167,32 +168,64 @@ final class PostNewGame extends Controller
                         $inventories[] = $containerInventory;
                     }
 
-                    if (count($surface) > 0) {
-                        $surfaceInventory = new Inventory(ItemWhereabouts::itemSurface($item->getId()->toString()), []);
-
-                        foreach ($surface as $surfaceKey => $surfaceValue) {
-
-                            if (is_int($surfaceValue)) {
-                                $containedItemTypeId = $surfaceKey;
-                                $quantity = $surfaceValue;
-                            } else {
-                                $containedItemTypeId = $surfaceValue;
-                                $quantity = 1;
-                            }
-
-                            $containedItem = $itemRepo->createType($containedItemTypeId);
-                            $containedItem->moveTo(ItemWhereabouts::itemSurface($item->getId()->toString()));
-                            $containedItem->addQuantity($quantity);
-
-                            $surfaceInventory->add($containedItem);
-                        }
-
-                        $inventories[] = $surfaceInventory;
-                    }
+                    $inventories = $this->createSurfaceInventories(
+                        $itemRepo,
+                        $item->getId(),
+                        $surface,
+                        $inventories
+                    );
                 }
                 $inventories[] = $locationInventory;
             }
         }
+
+        return $inventories;
+    }
+
+    private function createSurfaceInventories(
+        ItemRepository $itemRepo,
+        UuidInterface $itemId,
+        array $surface,
+        array $inventories
+    ): array {
+        if (count($surface) === 0) {
+            return $inventories;
+        }
+
+        $surfaceInventory = new Inventory(ItemWhereabouts::itemSurface($itemId->toString()), []);
+
+        foreach ($surface as $surfaceKey => $surfaceValue) {
+
+            if (is_array($surfaceValue)) {
+                $containedItemTypeId = $surfaceValue['id'];
+                $quantity = 1;
+            } else {
+                if (is_int($surfaceValue)) {
+                    $containedItemTypeId = $surfaceKey;
+                    $quantity = $surfaceValue;
+                } else {
+                    $containedItemTypeId = $surfaceValue;
+                    $quantity = 1;
+                }
+            }
+
+            $containedItem = $itemRepo->createType($containedItemTypeId);
+            $containedItem->moveTo(ItemWhereabouts::itemSurface($itemId->toString()));
+            $containedItem->addQuantity($quantity);
+
+            $surfaceInventory->add($containedItem);
+
+            if (is_array($surfaceValue)) {
+                $inventories = $this->createSurfaceInventories(
+                    $itemRepo,
+                    $containedItem->getId(),
+                    $surfaceValue['surface'],
+                    $inventories
+                );
+            }
+        }
+
+        $inventories[] = $surfaceInventory;
 
         return $inventories;
     }

@@ -123,7 +123,38 @@ return [
         ],
         'items' => [
             "toilet",
-            "sink",
+            [
+                'id' => "sink",
+                'surface' => [
+                    [
+                        'id' => "soap-dish",
+                        'surface' => [
+                            "soap",
+                        ],
+                    ],
+                ],
+            ],
+            "toilet-brush",
+            "bleach",
+            "bin",
+            [
+                'id' => "toilet-roll-stand",
+                'surface' => [
+                    "toilet-roll" => 3,
+                ],
+            ],
+            [
+                'id' => "toilet-roll-holder",
+                'surface' => [
+                    "toilet-roll",
+                ],
+            ],
+            [
+                'id' => "towel-rail",
+                'surface' => [
+                    "hand-towel",
+                ],
+            ],
         ],
     ],
     'garage' => [

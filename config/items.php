@@ -505,4 +505,38 @@ return [
             'wet' => "Wet",
         ],
     ],
+    'toilet-brush' => [
+        'name' => "Toilet Brush",
+    ],
+    'bleach' => [
+        'name' => "Bleach",
+        'portions' => 30,
+        'attributes' => [
+            "exhaustible",
+            "ingestible",
+            // "toxic",
+        ],
+    ],
+    'bin' => [
+        'name' => "Bin",
+        'attributes' => [
+            "container",
+        ],
+    ],
+    'toilet-roll-stand' => [
+        'name' => "Toilet Roll Stand",
+    ],
+    'toilet-roll' => [
+        'name' => "Toilet Roll",
+        'portions' => 500,
+        'attributes' => [
+            "exhaustible",
+        ],
+    ],
+    'toilet-roll-holder' => [
+        'name' => "Toilet Roll Holder",
+    ],
+    'soap-dish' => [
+        'name' => "Soap Dish",
+    ],
 ];
